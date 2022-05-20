@@ -35,9 +35,9 @@ volatile LONG InstanceCount = 0;
 
 BassSource::BassSource(LPCWSTR name, IUnknown* unk, REFCLSID clsid, HRESULT& hr)
 	: CSource(name, unk, clsid, &hr)
-	, pin(NULL)
-	, currentTag(NULL)
-	, fileName(NULL)
+	, pin(nullptr)
+	, currentTag(nullptr)
+	, fileName(nullptr)
 {
 	Init();
 }
@@ -55,10 +55,10 @@ void BassSource::Init()
 }
 
 BassSource::BassSource(CFactoryTemplate* factory, LPUNKNOWN controller)
-	: CSource(FromLPWSTR(factory->m_Name, TextBuffer, TextBufferLength), controller, CLSID_BassAudioSource, NULL)
-	, pin(NULL)
-	, currentTag(NULL)
-	, fileName(NULL)
+	: CSource(FromLPWSTR(factory->m_Name, TextBuffer, TextBufferLength), controller, CLSID_BassAudioSource, nullptr)
+	, pin(nullptr)
+	, currentTag(nullptr)
+	, fileName(nullptr)
 {
 	Init();
 }
@@ -69,7 +69,7 @@ BassSource::~BassSource()
 
 	if (this->pin) {
 		delete this->pin;
-		this->pin = NULL;
+		this->pin = nullptr;
 	}
 
 	delete this->metaLock;
@@ -114,7 +114,7 @@ bool RegReadInteger(HKEY key, LPCWSTR name, int* value)
 	DWORD type;
 	DWORD len = MAX_PATH;
 
-	if (RegQueryValueExW(key, name, NULL, &type, buf, &len) != ERROR_SUCCESS) {
+	if (RegQueryValueExW(key, name, nullptr, &type, buf, &len) != ERROR_SUCCESS) {
 		return false;
 	}
 	if (!value) {
@@ -143,7 +143,7 @@ void RegWriteInteger(HKEY key, LPCWSTR name, int value)
 	BYTE buf[MAX_PATH];
 	DWORD type;
 	DWORD len = MAX_PATH;
-	if (RegQueryValueExW(key, name, NULL, &type, NULL, NULL) == ERROR_FILE_NOT_FOUND) {
+	if (RegQueryValueExW(key, name, nullptr, &type, nullptr, nullptr) == ERROR_FILE_NOT_FOUND) {
 		type = REG_DWORD;
 	}
 
@@ -172,7 +172,7 @@ bool RegReadBool(HKEY key, LPCWSTR name, bool* value)
 	DWORD len = sizeof(LONGLONG);
 	LPCWSTR s;
 
-	if (RegQueryValueExW(key, name, NULL, &type, (LPBYTE)&buf, &len) != ERROR_SUCCESS) {
+	if (RegQueryValueExW(key, name, nullptr, &type, (LPBYTE)&buf, &len) != ERROR_SUCCESS) {
 		return false;
 	}
 	if (!value) {
@@ -203,7 +203,7 @@ void RegWriteBool(HKEY key, LPCWSTR name, bool value)
 	DWORD type;
 	DWORD len = sizeof(LONGLONG);
 
-	if (RegQueryValueExW(key, name, NULL, &type, NULL, NULL) == ERROR_FILE_NOT_FOUND) {
+	if (RegQueryValueExW(key, name, nullptr, &type, nullptr, nullptr) == ERROR_FILE_NOT_FOUND) {
 		type = REG_DWORD;
 	}
 

@@ -49,7 +49,7 @@ const AMOVIESETUP_PIN sudOpPin = {
 	FALSE,                  // Can we have none
 	FALSE,                  // Can we have many
 	&CLSID_NULL,            // Connects to filter
-	NULL,                   // Connects to pin
+	nullptr,                // Connects to pin
 	1,                      // Number of types
 	&sudOpPinTypes          // Pin details
 };
@@ -111,7 +111,7 @@ CFactoryTemplate g_Templates[] = {
 	{ LABEL_BassAudioSource
 	, &CLSID_BassAudioSource
 	, CreateBassAudioSourceInstance
-	, NULL
+	, nullptr
 	, &sudBassAudioSourceax }
 };
 int g_cTemplates = (int)std::size(g_Templates);
@@ -169,7 +169,7 @@ bool RegReadString(HKEY key, LPCWSTR name, LPWSTR value, int len)
 {
 	DWORD type;
 	DWORD cbuf = len * sizeof(WCHAR);
-	if (RegQueryValueExW(key, name, NULL, &type, (LPBYTE)value, &cbuf) != ERROR_SUCCESS) {
+	if (RegQueryValueExW(key, name, nullptr, &type, (LPBYTE)value, &cbuf) != ERROR_SUCCESS) {
 		return false;
 	}
 
@@ -198,7 +198,7 @@ STDAPI DllRegisterServer()
 	dllPath = GetFilterDirectory(PathBuffer2);
 	plugin = dllPath + wcslen(dllPath);
 
-	if (RegCreateKeyExW(HKEY_CLASSES_ROOT, DIRECTSHOW_SOURCE_FILTER_PATH, 0, NULL, 0, KEY_ALL_ACCESS, NULL, &reg, NULL) == ERROR_SUCCESS)
+	if (RegCreateKeyExW(HKEY_CLASSES_ROOT, DIRECTSHOW_SOURCE_FILTER_PATH, 0, nullptr, 0, KEY_ALL_ACCESS, nullptr, &reg, nullptr) == ERROR_SUCCESS)
 	{
 		__try {
 			for (int i = 0; i < BASS_EXTENSIONS_COUNT; i++) {
@@ -218,15 +218,14 @@ STDAPI DllRegisterServer()
 						//if reg.KeyExists(path)
 						RegDeleteKeyW(reg, ext);
 
-						if (RegCreateKeyExW(reg, ext, 0, NULL, 0, KEY_ALL_ACCESS, NULL, &reg2, NULL) == ERROR_SUCCESS) {
+						if (RegCreateKeyExW(reg, ext, 0, nullptr, 0, KEY_ALL_ACCESS, nullptr, &reg2, nullptr) == ERROR_SUCCESS) {
 							__try {
 								RegWriteString(reg2, L"Source Filter", STR_CLSID_BassAudioSource);
 
 								// Special handling of MP3 Files
-								if (lstrcmpiW(ext, L".mp3") == 0)
-								{
-									RegWriteString(reg2, L"Media Type", L"{E436EB83-524F-11CE-9F53-0020AF0BA770}");
-									RegWriteString(reg2, L"Subtype", L"{E436EB87-524F-11CE-9F53-0020AF0BA770}");
+								if (lstrcmpiW(ext, L".mp3") == 0) {
+									RegWriteString(reg2, L"Media Type", L"{E436EB83-524F-11CE-9F53-0020AF0BA770}"); // MEDIATYPE_Stream
+									RegWriteString(reg2, L"Subtype", L"{E436EB87-524F-11CE-9F53-0020AF0BA770}"); // MEDIASUBTYPE_MPEG1Audio
 								}
 
 							}
@@ -289,9 +288,9 @@ STDAPI DllUnregisterServer()
 					if (lstrcmpiW(ext, L".mp3") == 0) {
 						if (RegCreateKeyW(reg, ext, &reg2)) {
 							__try {
-								RegWriteString(reg2, L"Source Filter", L"{E436EBB5-524F-11CE-9F53-0020AF0BA770}");
-								RegWriteString(reg2, L"Media Type", L"{E436EB83-524F-11CE-9F53-0020AF0BA770}");
-								RegWriteString(reg2, L"Subtype", L"{E436EB87-524F-11CE-9F53-0020AF0BA770}");
+								RegWriteString(reg2, L"Source Filter", L"{E436EBB5-524F-11CE-9F53-0020AF0BA770}"); // CLSID_AsyncReader
+								RegWriteString(reg2, L"Media Type", L"{E436EB83-524F-11CE-9F53-0020AF0BA770}"); // MEDIATYPE_Stream
+								RegWriteString(reg2, L"Subtype", L"{E436EB87-524F-11CE-9F53-0020AF0BA770}"); // MEDIASUBTYPE_MPEG1Audio
 							}
 							__finally {
 								RegCloseKey(reg2);

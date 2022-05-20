@@ -151,7 +151,7 @@ BassDecoder::~BassDecoder()
 
 void BassDecoder::LoadBASS()
 {
-	BASS_Init(0, 44100, 0, GetDesktopWindow(), NULL);
+	BASS_Init(0, 44100, 0, GetDesktopWindow(), nullptr);
 
 	if (this->prebufferMS == 0) {
 		this->prebufferMS = 1;

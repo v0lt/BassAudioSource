@@ -38,8 +38,8 @@ BassSourceStream::BassSourceStream(
 	int buffersizeMS, int prebufferMS
 )
 	: CSourceStream(objectName, &hr, filter, name)
-	, decoder(NULL)
-	, lock(NULL)
+	, decoder(nullptr)
+	, lock(nullptr)
 {
 	if (FAILED(hr)) {
 		return;
