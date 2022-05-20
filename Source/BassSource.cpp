@@ -55,7 +55,7 @@ void BassSource::Init()
 }
 
 BassSource::BassSource(CFactoryTemplate* factory, LPUNKNOWN controller)
-	: CSource(FromLPWSTR(factory->m_Name, TextBuffer, TextBufferLength), controller, CLSID_BassAudioSource, nullptr)
+	: CSource(factory->m_Name, controller, CLSID_BassAudioSource, nullptr)
 	, pin(nullptr)
 	, currentTag(nullptr)
 	, fileName(nullptr)
@@ -293,7 +293,7 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 		return VFW_E_ALREADY_CONNECTED;
 	}
 
-	this->pin = new BassSourceStream(L"Bass Source Stream", hr, this, L"Output", FromLPWSTR(pszFileName, TextBuffer, TextBufferLength), this, this->buffersizeMS, this->preBufferMS);
+	this->pin = new BassSourceStream(L"Bass Source Stream", hr, this, L"Output", pszFileName, this, this->buffersizeMS, this->preBufferMS);
 	if (FAILED(hr) || !this->pin) {
 		return hr;
 	}

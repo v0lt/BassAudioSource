@@ -3,9 +3,7 @@
 #pragma once
 
 LPCSTR ToLPSTR(LPCWSTR text, LPSTR convertBuffer, int len);
-#define ToLPWSTR(text, convertBuffer, len) (text)
 LPCWSTR FromLPSTR(LPCSTR text, LPWSTR buf, int len);
-#define FromLPWSTR(text, buf, len) (text)
 #define CopyFromLPSTR(text, buf, len) (LPWSTR)FromLPSTR(text, buf, len)
 #define CopyFromLPWSTR(text, buf, len) wcsncpy(buf, text, len)
 
