@@ -22,10 +22,6 @@
 
 //BassSource.h
 
-/*
-interface
-*/
-
 #include <DShow.h>
 #include <InitGuid.h>
 #include <qnetwork.h>
@@ -36,63 +32,57 @@ interface
 #define PREBUFFER_MIN_SIZE 100
 #define PREBUFFER_MAX_SIZE 5000
 
-class BassSource: public CSource, protected ShoutcastEvents, public IFileSourceFilter, /*public IDispatch,*/
-  /*public ISpecifyPropertyPages, public IBassAudioSource,*/ public IAMMediaContent {/*
-  TBassSource = class(TBCSource, IFileSourceFilter, IPersist, IDispatch,
-                      ISpecifyPropertyPages, IBassAudioSource, IAMMediaContent)
-*/protected:
-    CCritSec* metaLock;//: TBCCritSec;
-    //FWriteLock: TBCCritSec;
-    //FFileStream: TFileStream;
-    //FWritingFileName: WideString;
-    BassSourceStream* pin;//: TBassSourceStream;
-    LPCWSTR fileName;//: WideString;
-    LPCWSTR currentTag;//: WideString;
-    int buffersizeMS;//: Integer;
-    int preBufferMS;//: Integer;
-    //FSplitStream: Boolean;
-    //FCurrentWritePath: WideString;
-    void STDMETHODCALLTYPE OnShoutcastMetaDataCallback(LPCWSTR text);
-    void STDMETHODCALLTYPE OnShoutcastBufferCallback(const void *buffer, DWORD size);
-    void LoadSettings();
-    void SaveSettings();
-  public:
-    BassSource(LPCWSTR name, IUnknown *unk, REFCLSID clsid, HRESULT &hr);
-    BassSource(CFactoryTemplate* factory, LPUNKNOWN controller);
-    ~BassSource();
-    STDMETHODIMP NonDelegatingQueryInterface(REFIID iid, void **ppv);
+class BassSource : public CSource, protected ShoutcastEvents, public IFileSourceFilter, public IAMMediaContent
+{
+protected:
+	CCritSec* metaLock;
+	BassSourceStream* pin;
+	LPCWSTR fileName;
+	LPCWSTR currentTag;
+	int buffersizeMS;
+	int preBufferMS;
+	void STDMETHODCALLTYPE OnShoutcastMetaDataCallback(LPCWSTR text);
+	void STDMETHODCALLTYPE OnShoutcastBufferCallback(const void* buffer, DWORD size);
+	void LoadSettings();
+	void SaveSettings();
+public:
+	BassSource(LPCWSTR name, IUnknown* unk, REFCLSID clsid, HRESULT& hr);
+	BassSource(CFactoryTemplate* factory, LPUNKNOWN controller);
+	~BassSource();
 
-    DECLARE_IUNKNOWN
-    // IFileSourceFilter
-    STDMETHODIMP Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE *pmt);
-    STDMETHODIMP GetCurFile(LPOLESTR *ppszFileName, AM_MEDIA_TYPE *pmt);
+	STDMETHODIMP NonDelegatingQueryInterface(REFIID iid, void** ppv);
 
-    //IDispatch
-    STDMETHODIMP GetTypeInfoCount(UINT FAR* pctinfo) { return E_NOTIMPL; }
-    STDMETHODIMP GetTypeInfo(UINT itinfo, LCID lcid, ITypeInfo FAR* FAR* pptinfo) { return E_NOTIMPL; }
-    STDMETHODIMP GetIDsOfNames(REFIID riid, OLECHAR FAR* FAR* rgszNames, UINT cNames, LCID lcid, DISPID FAR* rgdispid) { return E_NOTIMPL; }
-    STDMETHODIMP Invoke(DISPID dispidMember, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS FAR* pdispparams, VARIANT FAR* pvarResult, EXCEPINFO FAR* pexcepinfo, UINT FAR* puArgErr) { return E_NOTIMPL; }
+	DECLARE_IUNKNOWN
+	// IFileSourceFilter
+	STDMETHODIMP Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt);
+	STDMETHODIMP GetCurFile(LPOLESTR* ppszFileName, AM_MEDIA_TYPE* pmt);
 
-    // IAMMediaContent
-    STDMETHODIMP get_AuthorName(THIS_ BSTR FAR* pbstrAuthorName) { return E_NOTIMPL; }
-    STDMETHODIMP get_Title(THIS_ BSTR FAR* pbstrTitle);
-    STDMETHODIMP get_Rating(THIS_ BSTR FAR* pbstrRating) { return E_NOTIMPL; }
-    STDMETHODIMP get_Description(THIS_ BSTR FAR* pbstrDescription) { return E_NOTIMPL; }
-    STDMETHODIMP get_Copyright(THIS_ BSTR FAR* pbstrCopyright) { return E_NOTIMPL; }
-    STDMETHODIMP get_BaseURL(THIS_ BSTR FAR* pbstrBaseURL) { return E_NOTIMPL; }
-    STDMETHODIMP get_LogoURL(THIS_ BSTR FAR* pbstrLogoURL) { return E_NOTIMPL; }
-    STDMETHODIMP get_LogoIconURL(THIS_ BSTR FAR* pbstrLogoURL) { return E_NOTIMPL; }
-    STDMETHODIMP get_WatermarkURL(THIS_ BSTR FAR* pbstrWatermarkURL) { return E_NOTIMPL; }
-    STDMETHODIMP get_MoreInfoURL(THIS_ BSTR FAR* pbstrMoreInfoURL) { return E_NOTIMPL; }
-    STDMETHODIMP get_MoreInfoBannerImage(THIS_ BSTR FAR* pbstrMoreInfoBannerImage) { return E_NOTIMPL; }
-    STDMETHODIMP get_MoreInfoBannerURL(THIS_ BSTR FAR* pbstrMoreInfoBannerURL) { return E_NOTIMPL; }
-    STDMETHODIMP get_MoreInfoText(THIS_ BSTR FAR* pbstrMoreInfoText) { return E_NOTIMPL; }
-  private:
-    void Init();
-  public:
-    inline LPCWSTR GetCurrentTag() { return this->currentTag; }
-    void SetCurrentTag(LPCWSTR tag);
-    __declspec(property(get = GetCurrentTag, put = SetCurrentTag)) LPCWSTR CurrentTag;
+	//IDispatch
+	STDMETHODIMP GetTypeInfoCount(UINT FAR* pctinfo) { return E_NOTIMPL; }
+	STDMETHODIMP GetTypeInfo(UINT itinfo, LCID lcid, ITypeInfo FAR* FAR* pptinfo) { return E_NOTIMPL; }
+	STDMETHODIMP GetIDsOfNames(REFIID riid, OLECHAR FAR* FAR* rgszNames, UINT cNames, LCID lcid, DISPID FAR* rgdispid) { return E_NOTIMPL; }
+	STDMETHODIMP Invoke(DISPID dispidMember, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS FAR* pdispparams, VARIANT FAR* pvarResult, EXCEPINFO FAR* pexcepinfo, UINT FAR* puArgErr) { return E_NOTIMPL; }
+
+	// IAMMediaContent
+	STDMETHODIMP get_AuthorName(THIS_ BSTR FAR* pbstrAuthorName) { return E_NOTIMPL; }
+	STDMETHODIMP get_Title(THIS_ BSTR FAR* pbstrTitle);
+	STDMETHODIMP get_Rating(THIS_ BSTR FAR* pbstrRating) { return E_NOTIMPL; }
+	STDMETHODIMP get_Description(THIS_ BSTR FAR* pbstrDescription) { return E_NOTIMPL; }
+	STDMETHODIMP get_Copyright(THIS_ BSTR FAR* pbstrCopyright) { return E_NOTIMPL; }
+	STDMETHODIMP get_BaseURL(THIS_ BSTR FAR* pbstrBaseURL) { return E_NOTIMPL; }
+	STDMETHODIMP get_LogoURL(THIS_ BSTR FAR* pbstrLogoURL) { return E_NOTIMPL; }
+	STDMETHODIMP get_LogoIconURL(THIS_ BSTR FAR* pbstrLogoURL) { return E_NOTIMPL; }
+	STDMETHODIMP get_WatermarkURL(THIS_ BSTR FAR* pbstrWatermarkURL) { return E_NOTIMPL; }
+	STDMETHODIMP get_MoreInfoURL(THIS_ BSTR FAR* pbstrMoreInfoURL) { return E_NOTIMPL; }
+	STDMETHODIMP get_MoreInfoBannerImage(THIS_ BSTR FAR* pbstrMoreInfoBannerImage) { return E_NOTIMPL; }
+	STDMETHODIMP get_MoreInfoBannerURL(THIS_ BSTR FAR* pbstrMoreInfoBannerURL) { return E_NOTIMPL; }
+	STDMETHODIMP get_MoreInfoText(THIS_ BSTR FAR* pbstrMoreInfoText) { return E_NOTIMPL; }
+private:
+	void Init();
+public:
+	inline LPCWSTR GetCurrentTag() { return this->currentTag; }
+	void SetCurrentTag(LPCWSTR tag);
+	__declspec(property(get = GetCurrentTag, put = SetCurrentTag)) LPCWSTR CurrentTag;
 };
 
 

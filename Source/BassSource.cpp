@@ -27,325 +27,293 @@
 #include "BassAudioSource.h"
 #include <MMReg.h>
 
-/*
-  InstanceCount: Integer = 0;
-*/
 volatile LONG InstanceCount = 0;
 
-/*
-implementation
-*/
+//
+// BassSource
+//
 
-/*** TBassSource **************************************************************/
-
-BassSource::BassSource(LPCWSTR name, IUnknown *unk, REFCLSID clsid, HRESULT &hr)
-  : pin(NULL), currentTag(NULL), fileName(NULL),
-    CSource(name, unk, clsid, &hr) /*
-constructor TBassSource.Create(const Name: string; unk: IUnknown; const clsid: TGUID; out hr: HRESULT);
-*/{//begin
-  //inherited Create(Name, unk, clsid, hr);
-  Init();
-}//end;
+BassSource::BassSource(LPCWSTR name, IUnknown* unk, REFCLSID clsid, HRESULT& hr)
+	: CSource(name, unk, clsid, &hr)
+	, pin(NULL)
+	, currentTag(NULL)
+	, fileName(NULL)
+{
+	Init();
+}
 
 void BassSource::Init()
-{//begin
-  this->metaLock = new CCritSec();
-//  FWriteLock := TBCCritSec.Create;
+{
+	this->metaLock = new CCritSec();
 
-  this->buffersizeMS = PREBUFFER_MAX_SIZE;
-  this->preBufferMS  = this->buffersizeMS * 75 / 100;
-//  FSplitStream  := False;
+	this->buffersizeMS = PREBUFFER_MAX_SIZE;
+	this->preBufferMS = this->buffersizeMS * 75 / 100;
 
-  LoadSettings();
+	LoadSettings();
 
-  InterlockedIncrement(&InstanceCount);
-}//end;
+	InterlockedIncrement(&InstanceCount);
+}
 
 BassSource::BassSource(CFactoryTemplate* factory, LPUNKNOWN controller)
-  : pin(NULL), currentTag(NULL), fileName(NULL),
-    CSource(FromLPWSTR(factory->m_Name, TextBuffer, TextBufferLength), controller, CLSID_BassAudioSource, NULL) /*
-constructor TBassSource.CreateFromFactory(Factory: TBCClassFactory; const Controller: IUnknown);
-*/{//begin
-  //Create(Factory.Name, Controller,CLSID_BassAudioSource, hr);
-  Init();
-}//end;
+	: CSource(FromLPWSTR(factory->m_Name, TextBuffer, TextBufferLength), controller, CLSID_BassAudioSource, NULL)
+	, pin(NULL)
+	, currentTag(NULL)
+	, fileName(NULL)
+{
+	Init();
+}
 
-BassSource::~BassSource() /*
-destructor TBassSource.Destroy;
-*/{//begin
-  InterlockedDecrement(&InstanceCount);
+BassSource::~BassSource()
+{
+	InterlockedDecrement(&InstanceCount);
 
-//  StopWriting;
+	if (this->pin) {
+		delete this->pin;
+		this->pin = NULL;
+	}
 
-  if (this->pin)
-  {
-    delete this->pin;
-    this->pin = NULL;
-  }
+	delete this->metaLock;
 
-  delete this->metaLock;
-//  FWriteLock.Free;
-  if (this->currentTag)
-    free((void*)this->currentTag);
-  if (this->fileName)
-    free((void*)this->fileName);
+	if (this->currentTag) {
+		free((void*)this->currentTag);
+	}
+	if (this->fileName) {
+		free((void*)this->fileName);
+	}
 
-  SaveSettings();
-
-  //inherited Destroy;
-}//end;
+	SaveSettings();
+}
 
 void BassSource::SetCurrentTag(LPCWSTR tag)
 {
-  if (this->currentTag)
-    free((void*)this->currentTag);
-  this->currentTag = _wcsdup(tag);
+	if (this->currentTag) {
+		free((void*)this->currentTag);
+	}
+	this->currentTag = _wcsdup(tag);
 }
 
-void STDMETHODCALLTYPE BassSource::OnShoutcastMetaDataCallback(LPCWSTR text) /*
-procedure TBassSource.OnShoutcastMetaDataCallback(AText: String);
-*/{
-  //oldTag: String;
-//begin
-  this->metaLock->Lock();
-  __try {
-//    oldTag := FCurrentTag;
-    CurrentTag = text;
-
-//    FWriteLock.Lock;
-//    try
-//      if FSplitStream and Assigned(FFileStream) and (oldTag <> FCurrentTag) then
-//      begin
-//        StopWriting;
-//        StartWriting(PWideChar(WideString(FCurrentWritePath)));
-//      end;
-//    finally
-//      FWriteLock.UnLock;
-//    end;
-
-  }
-  __finally {
-    this->metaLock->Unlock();
-  }
-}//end;
-
-void STDMETHODCALLTYPE BassSource::OnShoutcastBufferCallback(const void *buffer, DWORD size) /*
-procedure TBassSource.OnShoutcastBufferCallback(ABuffer: PByte; ASize: Integer);
-*/{//begin
-//  FWriteLock.Lock;
-//  try
-//    if Assigned(FFileStream) and Assigned(ABuffer)
-//      then FFileStream.Write(ABuffer^, ASize);
-//  finally
-//    FWriteLock.UnLock;
-//  end;
-}//end;
-
-bool RegReadInteger(HKEY key, LPCWSTR name, int *value)
+void STDMETHODCALLTYPE BassSource::OnShoutcastMetaDataCallback(LPCWSTR text)
 {
-  BYTE buf[MAX_PATH];
-  memset(buf, 0, MAX_PATH);
-  DWORD type;
-  DWORD len = MAX_PATH;
-  if (RegQueryValueExW(key, name, NULL, &type, buf, &len) != ERROR_SUCCESS)
-    return false;
-  if (!value)
-    return true;
-  switch(type)
-  {
-  case REG_DWORD:
-    *value = *((int*)buf);
-    return true;
-  case REG_BINARY:
-  case REG_QWORD:
-    *value = (int)*((LONGLONG*)buf);
-    return true;
-  case REG_EXPAND_SZ:
-  case REG_SZ:
-    *value = _wtoi((LPCWSTR)buf);
-    return true;
-  default:
-    return false;
-  }
+	this->metaLock->Lock();
+	__try {
+		CurrentTag = text;
+	}
+	__finally {
+		this->metaLock->Unlock();
+	}
 }
+
+void STDMETHODCALLTYPE BassSource::OnShoutcastBufferCallback(const void* buffer, DWORD size)
+{
+}
+
+bool RegReadInteger(HKEY key, LPCWSTR name, int* value)
+{
+	BYTE buf[MAX_PATH];
+	memset(buf, 0, MAX_PATH);
+	DWORD type;
+	DWORD len = MAX_PATH;
+
+	if (RegQueryValueExW(key, name, NULL, &type, buf, &len) != ERROR_SUCCESS) {
+		return false;
+	}
+	if (!value) {
+		return true;
+	}
+
+	switch (type) {
+	case REG_DWORD:
+		*value = *((int*)buf);
+		return true;
+	case REG_BINARY:
+	case REG_QWORD:
+		*value = (int)*((LONGLONG*)buf);
+		return true;
+	case REG_EXPAND_SZ:
+	case REG_SZ:
+		*value = _wtoi((LPCWSTR)buf);
+		return true;
+	default:
+		return false;
+	}
+}
+
 void RegWriteInteger(HKEY key, LPCWSTR name, int value)
 {
-  BYTE buf[MAX_PATH];
-  DWORD type;
-  DWORD len = MAX_PATH;
-  if (RegQueryValueExW(key, name, NULL, &type, NULL, NULL) == ERROR_FILE_NOT_FOUND)
-    type = REG_DWORD;
-  switch(type)
-  {
-  case REG_DWORD:
-  case REG_BINARY:
-    *((DWORD*)buf) = value;
-    RegSetValueExW(key, name, 0, type, buf, sizeof(DWORD));
-    break;
-  case REG_QWORD:
-    *((LONGLONG*)buf) = value;
-    RegSetValueExW(key, name, 0, type, buf, sizeof(LONGLONG));
-    break;
-  case REG_EXPAND_SZ:
-  case REG_SZ:
-    _itow(value, (LPWSTR)buf, 10);
-    RegSetValueExW(key, name, 0, type, buf, DWORD((wcslen((LPWSTR)buf)+1) * sizeof(WCHAR)));
-    break;
-  }
+	BYTE buf[MAX_PATH];
+	DWORD type;
+	DWORD len = MAX_PATH;
+	if (RegQueryValueExW(key, name, NULL, &type, NULL, NULL) == ERROR_FILE_NOT_FOUND) {
+		type = REG_DWORD;
+	}
+
+	switch (type) {
+	case REG_DWORD:
+	case REG_BINARY:
+		*((DWORD*)buf) = value;
+		RegSetValueExW(key, name, 0, type, buf, sizeof(DWORD));
+		break;
+	case REG_QWORD:
+		*((LONGLONG*)buf) = value;
+		RegSetValueExW(key, name, 0, type, buf, sizeof(LONGLONG));
+		break;
+	case REG_EXPAND_SZ:
+	case REG_SZ:
+		_itow(value, (LPWSTR)buf, 10);
+		RegSetValueExW(key, name, 0, type, buf, DWORD((wcslen((LPWSTR)buf) + 1) * sizeof(WCHAR)));
+		break;
+	}
 }
-bool RegReadBool(HKEY key, LPCWSTR name, bool *value)
+
+bool RegReadBool(HKEY key, LPCWSTR name, bool* value)
 {
-  LONGLONG buf = 0;
-  DWORD type;
-  DWORD len = sizeof(LONGLONG);
-  LPCWSTR s;
-  if (RegQueryValueExW(key, name, NULL, &type, (LPBYTE)&buf, &len) != ERROR_SUCCESS)
-    return false;
-  if (!value)
-    return true;
-  switch(type)
-  {
-  case REG_DWORD:
-    *value = !!*((int*)buf);
-    return true;
-  case REG_BINARY:
-  case REG_QWORD:
-    *value = !!*((LONGLONG*)buf);
-    return true;
-  case REG_EXPAND_SZ:
-  case REG_SZ:
-    s = (LPCWSTR)buf;
-    *value =  *s != '0';
-    return wcslen(s) == 1 && (*s == '0' || *s == '1');
-  default:
-    return false;
-  }
+	LONGLONG buf = 0;
+	DWORD type;
+	DWORD len = sizeof(LONGLONG);
+	LPCWSTR s;
+
+	if (RegQueryValueExW(key, name, NULL, &type, (LPBYTE)&buf, &len) != ERROR_SUCCESS) {
+		return false;
+	}
+	if (!value) {
+		return true;
+	}
+
+	switch (type) {
+	case REG_DWORD:
+		*value = !!*((int*)buf);
+		return true;
+	case REG_BINARY:
+	case REG_QWORD:
+		*value = !!*((LONGLONG*)buf);
+		return true;
+	case REG_EXPAND_SZ:
+	case REG_SZ:
+		s = (LPCWSTR)buf;
+		*value = *s != '0';
+		return wcslen(s) == 1 && (*s == '0' || *s == '1');
+	default:
+		return false;
+	}
 }
+
 void RegWriteBool(HKEY key, LPCWSTR name, bool value)
 {
-  LONGLONG buf = 0;
-  DWORD type;
-  DWORD len = sizeof(LONGLONG);
-  if (RegQueryValueExW(key, name, NULL, &type, NULL, NULL) == ERROR_FILE_NOT_FOUND)
-    type = REG_DWORD;
-  switch(type)
-  {
-  case REG_DWORD:
-  case REG_BINARY:
-    *((DWORD*)buf) = value ? 1 : 0;
-    RegSetValueExW(key, name, 0, type, (const BYTE*)&buf, sizeof(DWORD));
-    break;
-  case REG_QWORD:
-    *((LONGLONG*)buf) = value ? 1L : 0L;
-    RegSetValueExW(key, name, 0, type, (const BYTE*)&buf, sizeof(LONGLONG));
-    break;
-  case REG_EXPAND_SZ:
-  case REG_SZ:
-    LPWSTR s = (LPWSTR)buf;
-    s[0] = value ? '1' : '0';
-    s[1] = 0;
-    RegSetValueExW(key, name, 0, type, (const BYTE*)&buf, 2 * sizeof(WCHAR));
-    break;
-  }
+	LONGLONG buf = 0;
+	DWORD type;
+	DWORD len = sizeof(LONGLONG);
+
+	if (RegQueryValueExW(key, name, NULL, &type, NULL, NULL) == ERROR_FILE_NOT_FOUND) {
+		type = REG_DWORD;
+	}
+
+	switch (type) {
+	case REG_DWORD:
+	case REG_BINARY:
+		*((DWORD*)buf) = value ? 1 : 0;
+		RegSetValueExW(key, name, 0, type, (const BYTE*)&buf, sizeof(DWORD));
+		break;
+	case REG_QWORD:
+		*((LONGLONG*)buf) = value ? 1L : 0L;
+		RegSetValueExW(key, name, 0, type, (const BYTE*)&buf, sizeof(LONGLONG));
+		break;
+	case REG_EXPAND_SZ:
+	case REG_SZ:
+		LPWSTR s = (LPWSTR)buf;
+		s[0] = value ? '1' : '0';
+		s[1] = 0;
+		RegSetValueExW(key, name, 0, type, (const BYTE*)&buf, 2 * sizeof(WCHAR));
+		break;
+	}
 }
 
-void BassSource::LoadSettings() /*
-procedure TBassSource.LoadSettings;
-*/{
-  HKEY reg;//: TRegistry;
-//begin
-  int num;
+void BassSource::LoadSettings()
+{
+	HKEY reg;
+	int num;
 
-  if (RegOpenKeyW(HKEY_CURRENT_USER, L"SOFTWARE\\MPC-BE Filters\\BassAudioSource", &reg) == ERROR_SUCCESS) {
-  __try {
-    if (RegReadInteger(reg, L"BuffersizeMS", &num))
-      this->buffersizeMS = std::clamp(num, PREBUFFER_MIN_SIZE, PREBUFFER_MAX_SIZE);
+	if (RegOpenKeyW(HKEY_CURRENT_USER, L"SOFTWARE\\MPC-BE Filters\\BassAudioSource", &reg) == ERROR_SUCCESS)
+	{
+		__try {
+			if (RegReadInteger(reg, L"BuffersizeMS", &num))
+				this->buffersizeMS = std::clamp(num, PREBUFFER_MIN_SIZE, PREBUFFER_MAX_SIZE);
 
-    if (RegReadInteger(reg, L"PreBufferMS", &num))
-      this->preBufferMS = std::clamp(num, PREBUFFER_MIN_SIZE, PREBUFFER_MAX_SIZE);
+			if (RegReadInteger(reg, L"PreBufferMS", &num))
+				this->preBufferMS = std::clamp(num, PREBUFFER_MIN_SIZE, PREBUFFER_MAX_SIZE);
 
-    //if (RegReadBool(reg, L"SplitStream", &flag))
-    //  this->splitStream = flag;
-    
-  }
-  __finally {
-    RegCloseKey(reg);
-  }
-  }
+			//if (RegReadBool(reg, L"SplitStream", &flag))
+			//  this->splitStream = flag;
 
-}//end;
+		}
+		__finally {
+			RegCloseKey(reg);
+		}
+	}
+}
 
-void BassSource::SaveSettings() /*
-procedure TBassSource.SaveSettings;
-*/{
-  HKEY reg;//: TRegistry;
-//begin
+void BassSource::SaveSettings()
+{
+	HKEY reg;
 
-  if (RegCreateKeyW(HKEY_CURRENT_USER, L"SOFTWARE\\MPC-BE Filters\\BassAudioSource", &reg) == ERROR_SUCCESS) {
-  __try {
-    RegWriteInteger(reg, L"BuffersizeMS", this->buffersizeMS);
-    RegWriteInteger(reg, L"PreBufferMS",  this->preBufferMS);
-    //RegWriteBool   (reg, L"SplitStream",  this->splitStream);
-  }
-  __finally {
-    RegCloseKey(reg);
-  }
-  }
+	if (RegCreateKeyW(HKEY_CURRENT_USER, L"SOFTWARE\\MPC-BE Filters\\BassAudioSource", &reg) == ERROR_SUCCESS)
+	{
+		__try {
+			RegWriteInteger(reg, L"BuffersizeMS", this->buffersizeMS);
+			RegWriteInteger(reg, L"PreBufferMS", this->preBufferMS);
+			//RegWriteBool   (reg, L"SplitStream",  this->splitStream);
+		}
+		__finally {
+			RegCloseKey(reg);
+		}
+	}
+}
 
-}//end;
+STDMETHODIMP BassSource::NonDelegatingQueryInterface(REFIID iid, void** ppv)
+{
+	if (IsEqualIID(iid, IID_IFileSourceFilter)/* || IsEqualIID(iid, IID_ISpecifyPropertyPages)*/) {
+		if (SUCCEEDED(GetInterface((LPUNKNOWN)(IFileSourceFilter*)this, ppv))) {
+			return S_OK;
+		}
+		else {
+			return E_NOINTERFACE;
+		}
+	}
+	else {
+		return CSource::NonDelegatingQueryInterface(iid, ppv);
+	}
+}
 
-STDMETHODIMP BassSource::NonDelegatingQueryInterface(REFIID iid, void **ppv) /*
-function TBassSource.NonDelegatingQueryInterface(const IID: TGUID; out Obj): HResult;
-*/{//begin
-  if (IsEqualIID(iid, IID_IFileSourceFilter)/* || IsEqualIID(iid, IID_ISpecifyPropertyPages)*/)
-  {
-    if (SUCCEEDED(GetInterface((LPUNKNOWN)(IFileSourceFilter*)this, ppv)))
-      return S_OK;
-    else return E_NOINTERFACE;
-  } else
-  {
-    return CSource::NonDelegatingQueryInterface(iid, ppv);
-  }
-}//end;
+// IFileSourceFilter
 
-/*** IFileSourceFilter ********************************************************/
+STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
+{
+	HRESULT hr;
 
-STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE *pmt) /*
-function TBassSource.Load(pszFileName: PWCHAR; const pmt: PAMMediaType): HResult;
-*/{
-  HRESULT hr;// : HRESULT;
-//begin
-  if (GetPinCount() > 0)
-  {
-    return VFW_E_ALREADY_CONNECTED;
-    //Exit;
-  }
+	if (GetPinCount() > 0) {
+		return VFW_E_ALREADY_CONNECTED;
+	}
 
-  this->pin = new BassSourceStream(L"Bass Source Stream", hr, this, L"Output", FromLPWSTR(pszFileName, TextBuffer, TextBufferLength), this, this->buffersizeMS, this->preBufferMS);
-  if (FAILED(hr) || !this->pin)
-  {
-    return hr;
-    //Exit;
-  }
+	this->pin = new BassSourceStream(L"Bass Source Stream", hr, this, L"Output", FromLPWSTR(pszFileName, TextBuffer, TextBufferLength), this, this->buffersizeMS, this->preBufferMS);
+	if (FAILED(hr) || !this->pin) {
+		return hr;
+	}
 
-  this->fileName = _wcsdup(pszFileName ? pszFileName : L"");
+	this->fileName = _wcsdup(pszFileName ? pszFileName : L"");
 
-  if (!this->pin->decoder->IsShoutcast) {
-      WCHAR PathBuffer[MAX_PATH + 1];
+	if (!this->pin->decoder->IsShoutcast) {
+		WCHAR PathBuffer[MAX_PATH + 1];
+		CurrentTag = GetFileName(this->fileName, PathBuffer);
+	}
 
-      CurrentTag = GetFileName(this->fileName, PathBuffer);
-  }
+	return S_OK;
+}
 
-  return S_OK;
-}//end;
+STDMETHODIMP BassSource::GetCurFile(LPOLESTR* ppszFileName, AM_MEDIA_TYPE* pmt)
+{
+	CheckPointer(ppszFileName, E_POINTER);
 
-STDMETHODIMP BassSource::GetCurFile(LPOLESTR *ppszFileName, AM_MEDIA_TYPE *pmt) /*
-function TBassSource.GetCurFile(out ppszFileName: PWideChar; pmt: PAMMediaType): HResult;
-*/{//begin
-  CheckPointer(ppszFileName, E_POINTER);
-
-  return AMGetWideString(this->fileName, ppszFileName);
-}//end;
+	return AMGetWideString(this->fileName, ppszFileName);
+}
 
 /*
 (*** ISpecifyPropertyPages ****************************************************)
@@ -353,26 +321,24 @@ function TBassSource.GetCurFile(out ppszFileName: PWideChar; pmt: PAMMediaType):
 (*** IDispatch ****************************************************************)
 */
 
-/*** IAMMediaContent **********************************************************/
+// IAMMediaContent
 
-STDMETHODIMP BassSource::get_Title(THIS_ BSTR FAR* pbstrTitle) /*
-function TBassSource.get_Title(var pbstrTitle: TBSTR): HResult;
-*/{//begin
-  CheckPointer(pbstrTitle, E_POINTER);
+STDMETHODIMP BassSource::get_Title(THIS_ BSTR FAR* pbstrTitle)
+{
+	CheckPointer(pbstrTitle, E_POINTER);
 
-  this->metaLock->Lock();
-  __try {
-    *pbstrTitle = SysAllocString(CurrentTag);
-  }
-  __finally {
-    this->metaLock->Unlock();
-  }
+	this->metaLock->Lock();
 
-  if (!*pbstrTitle)
-  {
-    return E_OUTOFMEMORY;
-    //Exit;
-  }
+	__try {
+		*pbstrTitle = SysAllocString(CurrentTag);
+	}
+	__finally {
+		this->metaLock->Unlock();
+	}
 
-  return S_OK;
-}//end;
+	if (!*pbstrTitle) {
+		return E_OUTOFMEMORY;
+	}
+
+	return S_OK;
+}
