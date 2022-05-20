@@ -28,505 +28,385 @@
 #include <../Include/bass_aac.h>
 #include "BassAudioSource.h"
 
-/*
-implementation
-
-uses
-  BassFilter;
-*/
-
 /*** Utilities ****************************************************************/
 
-LPWSTR GetFilterDirectory(LPWSTR folder) /*
-function GetFilterDirectory: WideString;
-*/{
-  //pathDll: array[0..MAX_PATH -1] of WideChar;
-  DWORD res;//: Cardinal;
-//begin
-  WCHAR PathBuffer[MAX_PATH + 1];
-  int PathBufferLength = MAX_PATH + 1;
+LPWSTR GetFilterDirectory(LPWSTR folder)
+{
+	DWORD res;
+	WCHAR PathBuffer[MAX_PATH + 1];
+	int PathBufferLength = MAX_PATH + 1;
 
-  res = GetModuleFileNameW(HInstance, PathBuffer, PathBufferLength);
-  if (!res)
-  {
-    *folder = 0;
-    return folder;
-  }
+	res = GetModuleFileNameW(HInstance, PathBuffer, PathBufferLength);
+	if (!res) {
+		*folder = 0;
+		return folder;
+	}
 
-  return GetFilePath(PathBuffer, folder);
-}//end;
+	return GetFilePath(PathBuffer, folder);
+}
 
-bool IsMODFile(LPCWSTR fileName) /*
-function IsMODFile(AFileName: WideString): Boolean;
-*/{
-  LPWSTR ext;//: WideString;
-  //i: Integer;
-//begin
-  WCHAR PathBuffer[MAX_PATH + 1];
+bool IsMODFile(LPCWSTR fileName)
+{
+	LPWSTR ext;
+	WCHAR PathBuffer[MAX_PATH + 1];
 
-  ext = GetFileExt(fileName, PathBuffer);
+	ext = GetFileExt(fileName, PathBuffer);
 
-  for (int i = 0; i < BASS_EXTENSIONS_COUNT; i++)
-  {
-    if (lstrcmpiW(BASS_EXTENSIONS[i].Extension, ext) == 0)
-    {
-      return BASS_EXTENSIONS[i].IsMOD;
-      //Exit;
-    }
-  }
+	for (int i = 0; i < BASS_EXTENSIONS_COUNT; i++) {
+		if (lstrcmpiW(BASS_EXTENSIONS[i].Extension, ext) == 0) {
+			return BASS_EXTENSIONS[i].IsMOD;
+		}
+	}
 
-  return false;
-}//end;
+	return false;
+}
 
-bool IsURLPath(LPCWSTR fileName) /*
-function IsURLPath(AFileName: WideString): Boolean;
-*/{//begin
-  return wcsstr(fileName, L"http://") || wcsstr(fileName, L"ftp://");
-}//end;
+bool IsURLPath(LPCWSTR fileName)
+{
+	return wcsstr(fileName, L"http://") || wcsstr(fileName, L"ftp://");
+}
 
 /*** Callbacks ****************************************************************/
 
-void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void *user) /*
-procedure OnMetaData(handle: DWORD; channel, data: DWORD; user: DWORD); stdcall;
-*/{
-  LPWSTR metaStr;//: String;
-  LPWSTR resStr;//: String;
-  LPWSTR idx;//: Integer;
-  BassDecoder* decoder = (BassDecoder*)user; //begin
-  if (decoder->shoutcastEvents)
-  {
-    WCHAR TextBuffer[1024];
-    int TextBufferLength = 1024;
+void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user)
+{
+	LPWSTR metaStr;
+	LPWSTR resStr;
+	LPWSTR idx;
 
-    metaStr = CopyFromLPSTR(/*(LPCSTR)data*/BASS_ChannelGetTags(channel, BASS_TAG_META), TextBuffer, TextBufferLength);
-    resStr = L"";
+	BassDecoder* decoder = (BassDecoder*)user;
+	if (decoder->shoutcastEvents) {
+		WCHAR TextBuffer[1024];
+		int TextBufferLength = 1024;
 
-    idx = wcsstr(metaStr, L"StreamTitle='");
-    if (idx)
-    {
-      // Shoutcast Metadata
-      resStr = idx + 13; if (*resStr) resStr[wcslen(resStr)-1] = 0;
-      //LPWSTR idx2 = wcsstr(resStr, L"';");
-      //if (idx2)
-      //{
-      //  *idx2 = 0;
-      //} else
-      //{
-        idx = wcsstr(resStr, L"'");
-        if (idx)
-        {
-          *idx = 0;
-        }
-      //}
-    } else if ((idx = wcsstr(metaStr, L"TITLE=")) ||
-          (idx = wcsstr(metaStr, L"Title=")) ||
-          (idx = wcsstr(metaStr, L"title=")))
-    {
-      resStr = idx + 6;
-    }
+		metaStr = CopyFromLPSTR(/*(LPCSTR)data*/BASS_ChannelGetTags(channel, BASS_TAG_META), TextBuffer, TextBufferLength);
+		resStr = L"";
 
-    decoder->shoutcastEvents->OnShoutcastMetaDataCallback(resStr);
-  }
-}//end;
+		idx = wcsstr(metaStr, L"StreamTitle='");
+		if (idx) {
+			// Shoutcast Metadata
+			resStr = idx + 13; if (*resStr) resStr[wcslen(resStr) - 1] = 0;
+			//LPWSTR idx2 = wcsstr(resStr, L"';");
+			//if (idx2)
+			//{
+			//  *idx2 = 0;
+			//} else
+			//{
+			idx = wcsstr(resStr, L"'");
+			if (idx)
+			{
+				*idx = 0;
+			}
+			//}
+		}
+		else if ((idx = wcsstr(metaStr, L"TITLE=")) ||
+			(idx = wcsstr(metaStr, L"Title=")) ||
+			(idx = wcsstr(metaStr, L"title=")))
+		{
+			resStr = idx + 6;
+		}
 
-void CALLBACK OnShoutcastData(const void *buffer, DWORD length, void *user) /*
-procedure OnShoutcastData (buffer: PByte; length: DWORD; user: DWORD); stdcall;
-*/{ BassDecoder* decoder = (BassDecoder*)user; //begin
-  if (buffer && decoder->shoutcastEvents)
-    decoder->shoutcastEvents->OnShoutcastBufferCallback(buffer, length);
-}//end;
+		decoder->shoutcastEvents->OnShoutcastMetaDataCallback(resStr);
+	}
+}
 
-/*** TBassDecoder *************************************************************/
+void CALLBACK OnShoutcastData(const void* buffer, DWORD length, void* user)
+{
+	BassDecoder* decoder = (BassDecoder*)user;
+	if (buffer && decoder->shoutcastEvents) {
+		decoder->shoutcastEvents->OnShoutcastBufferCallback(buffer, length);
+	}
+}
+
+//
+// BassDecoder
+//
 
 BassDecoder::BassDecoder(ShoutcastEvents* shoutcastEvents, int buffersizeMS, int prebufferMS)
-  : stream(0), sync(0) /*
-constructor TBassDecoder.Create(AMetaDataCallback: TShoutcastMetaDataCallback; ABufferCallback: TShoutcastBufferCallback; ABuffersizeMS: Integer; APrebufferMS: Integer);
-*/{
-  LPWSTR path;//: WideString;
-//begin
-  //inherited Create;
+	: stream(0), sync(0)
+{
+	LPWSTR path;
+	WCHAR PathBuffer2[MAX_PATH + 1];
 
-  //path = path;
-  WCHAR PathBuffer2[MAX_PATH + 1];
+	path = wcscat(GetFilterDirectory(PathBuffer2), L"OptimFROG.dll");
+	this->optimFROGDLL = LoadLibrary(path);
 
-  path = wcscat(GetFilterDirectory(PathBuffer2), L"OptimFROG.dll");
-  this->optimFROGDLL = LoadLibrary(path);
+	//Use shoutcastEvents instead of FMetaDataCallback and FBufferCallback
+	this->shoutcastEvents = shoutcastEvents;
+	this->buffersizeMS = buffersizeMS;
+	this->prebufferMS = prebufferMS;
 
-  //Use shoutcastEvents instead of FMetaDataCallback and FBufferCallback
-  this->shoutcastEvents = shoutcastEvents;
-  this->buffersizeMS = buffersizeMS;
-  this->prebufferMS = prebufferMS;
+	LoadBASS();
+	LoadPlugins();
+}
 
-  LoadBASS();
-  LoadPlugins();
-}//end;
+BassDecoder::~BassDecoder()
+{
+	Close();
 
-BassDecoder::~BassDecoder() /*
-destructor TBassDecoder.Destroy;
-*/{//begin
-  Close();
+	if (this->optimFROGDLL) {
+		FreeLibrary(this->optimFROGDLL);
+	}
+}
 
-  if (this->optimFROGDLL)
-    FreeLibrary(this->optimFROGDLL);
+void BassDecoder::LoadBASS()
+{
+	BASS_Init(0, 44100, 0, GetDesktopWindow(), NULL);
 
+	if (this->prebufferMS == 0) {
+		this->prebufferMS = 1;
+	}
 
-  //inherited Destroy;
-}//end;
+	BASS_SetConfigPtr(BASS_CONFIG_NET_AGENT, LABEL_BassAudioSource);
+	BASS_SetConfig(BASS_CONFIG_NET_BUFFER, this->buffersizeMS);
+	BASS_SetConfig(BASS_CONFIG_NET_PREBUF, this->buffersizeMS * 100 / this->prebufferMS);
+}
 
-void BassDecoder::LoadBASS() /*
-procedure TBassDecoder.LoadBASS;
-*/{
-  //path: WideString;
-//begin
-//  path := GetFilterDirectory + BASS_DLL;
+void BassDecoder::UnloadBASS()
+{
+	try {
+		if (InstanceCount == 0) {
+			BASS_Free();
+		}
+	}
+	catch (...) {
+		// crashes mplayer2.exe ???
+	}
+}
 
-//  if (GetFileAttributesW(PWideChar(path)) <> Cardinal(-1)) then
-//  begin
-//    FLibrary := LoadLibraryW(PWideChar(path));
-//  end;
+void BassDecoder::LoadPlugins()
+{
+	LPWSTR path;
+	WCHAR PathBuffer2[MAX_PATH + 1];
 
-//  if FLibrary = 0 then
-//  begin
-//    Exit;
-//  end;
+	path = GetFilterDirectory(PathBuffer2);
+	LPWSTR plugin = path + wcslen(path);
 
-//  @BASS_Init                  := GetProcAddress(FLibrary, 'BASS_Init');
-//  @BASS_Free                  := GetProcAddress(FLibrary, 'BASS_Free');
-//  @BASS_PluginLoad            := GetProcAddress(FLibrary, 'BASS_PluginLoad');
-//  @BASS_MusicLoad             := GetProcAddress(FLibrary, 'BASS_MusicLoad');
-//  @BASS_StreamCreateURL       := GetProcAddress(FLibrary, 'BASS_StreamCreateURL');
-//  @BASS_StreamCreateFile      := GetProcAddress(FLibrary, 'BASS_StreamCreateFile');
-//  @BASS_MusicFree             := GetProcAddress(FLibrary, 'BASS_MusicFree');
-//  @BASS_StreamFree            := GetProcAddress(FLibrary, 'BASS_StreamFree');
-//  @BASS_ChannelGetData        := GetProcAddress(FLibrary, 'BASS_ChannelGetData');
-//  @BASS_ChannelGetInfo        := GetProcAddress(FLibrary, 'BASS_ChannelGetInfo');
-//  @BASS_ChannelGetLength      := GetProcAddress(FLibrary, 'BASS_ChannelGetLength');
-//  @BASS_ChannelSetPosition    := GetProcAddress(FLibrary, 'BASS_ChannelSetPosition');
-//  @BASS_ChannelGetPosition    := GetProcAddress(FLibrary, 'BASS_ChannelGetPosition');
-//  @BASS_ChannelSetSync        := GetProcAddress(FLibrary, 'BASS_ChannelSetSync');
-//  @BASS_ChannelRemoveSync     := GetProcAddress(FLibrary, 'BASS_ChannelRemoveSync');
-//  @BASS_ChannelGetTags        := GetProcAddress(FLibrary, 'BASS_ChannelGetTags');
-//  @BASS_SetConfig             := GetProcAddress(FLibrary, 'BASS_SetConfig');
+	for (int i = 0; i < BASS_PLUGINS_COUNT; i++) {
+		wcscpy(plugin, BASS_PLUGINS[i]); BASS_PluginLoad(LPCSTR(path), BASS_TFLAGS);
+	}
+}
 
-  BASS_Init(0, 44100, 0, GetDesktopWindow(), NULL);
+bool BassDecoder::Load(LPCWSTR fileName)
+{
+	Close();
 
-  if (this->prebufferMS == 0)
-    this->prebufferMS = 1;
+	this->isShoutcast = false;
 
-  BASS_SetConfigPtr(BASS_CONFIG_NET_AGENT, LABEL_BassAudioSource);
-  BASS_SetConfig(BASS_CONFIG_NET_BUFFER, this->buffersizeMS);
-  BASS_SetConfig(BASS_CONFIG_NET_PREBUF, this->buffersizeMS * 100 / this->prebufferMS);
-}//end;
+	WCHAR TextBuffer[1024];
 
-void BassDecoder::UnloadBASS() /*
-procedure TBassDecoder.UnloadBASS;
-*/{//begin
-//  if (FLibrary > 0) and Assigned(Bass_Free) then
-//  begin
-    try {
-      if (InstanceCount == 0)
-      {
-        BASS_Free();
-      }
-    } catch(...) {
-      // crashes mplayer2.exe ???
-    }
+	int strPos = wcsncmp(fileName, L"icyx", 4);
+	if (strPos == 0) {
+		// replace ICYX
+		TextBuffer[0] = 'h';
+		TextBuffer[1] = 't';
+		TextBuffer[2] = 't';
+		TextBuffer[3] = 'p';
+		wcscpy(TextBuffer + 4, fileName + 4);
+		fileName = TextBuffer;
+	}
 
-//    FreeLibrary(FLibrary);
-//    FLibrary := 0;
+	this->isMOD = IsMODFile(fileName);
+	this->isURL = IsURLPath(fileName);
 
-//    @BASS_Init                  := nil;
-//    @BASS_Free                  := nil;
-//    @BASS_PluginLoad            := nil;
-//    @BASS_MusicLoad             := nil;
-//    @BASS_StreamCreateURL       := nil;
-//    @BASS_StreamCreateFile      := nil;
-//    @BASS_MusicFree             := nil;
-//    @BASS_StreamFree            := nil;
-//    @BASS_ChannelGetData        := nil;
-//    @BASS_ChannelGetInfo        := nil;
-//    @BASS_ChannelGetLength      := nil;
-//    @BASS_ChannelSetPosition    := nil;
-//    @BASS_ChannelGetPosition    := nil;
-//    @BASS_ChannelSetSync        := nil;
-//    @BASS_ChannelRemoveSync     := nil;
-//    @BASS_ChannelGetTags        := nil;
-//    @BASS_SetConfig             := nil;
-//  end;
-}//end;
+	if (this->isMOD) {
+		if (!this->isURL) {
+			this->stream = BASS_MusicLoad(false, (const void*)fileName, 0, 0, BASS_MUSIC_DECODE | BASS_MUSIC_RAMP | BASS_MUSIC_POSRESET | BASS_MUSIC_PRESCAN | BASS_TFLAGS, 0);
+		}
+	}
+	else {
+		if (this->isURL) {
+			this->stream = BASS_StreamCreateURL(LPCSTR(fileName), 0, BASS_STREAM_DECODE | BASS_TFLAGS, OnShoutcastData, this);
+			this->sync = BASS_ChannelSetSync(this->stream, BASS_SYNC_META, 0, OnMetaData, this);
+			this->isShoutcast = GetDuration() == 0;
+		}
+		else {
+			this->stream = BASS_StreamCreateFile(false, (const void*)fileName, 0, 0, BASS_STREAM_DECODE | BASS_TFLAGS);
+		}
+	}
 
-void BassDecoder::LoadPlugins() /*
-procedure TBassDecoder.LoadPlugins;
-*/{
-  LPWSTR path;//: WideString;
-  //i: Integer;
-//begin
-//  if (FLibrary = 0)
-//    then Exit;
-  WCHAR PathBuffer2[MAX_PATH + 1];
+	if (!this->stream) {
+		return false;
+	}
 
-  path = GetFilterDirectory(PathBuffer2);
-  LPWSTR plugin = path + wcslen(path);
+	if (!GetStreamInfos()) {
+		Close();
+		return false;
+	}
 
-  for(int i = 0; i < BASS_PLUGINS_COUNT; i++)
-  {
-    wcscpy(plugin, BASS_PLUGINS[i]); BASS_PluginLoad(LPCSTR(path), BASS_TFLAGS);
-  }
-}//end;
+	return true;
+}
 
-bool BassDecoder::Load(LPCWSTR fileName) /*
-function TBassDecoder.Load(AFileName: WideString): Boolean;
-*/{//begin
-  Close();
+void BassDecoder::Close()
+{
+	if (!this->stream) {
+		return;
+	}
 
-//  if (FLibrary = 0) then
-//  begin
-//    Result := False;
-//    Exit;
-//  end;
+	if (this->sync) {
+		BASS_ChannelRemoveSync(this->stream, this->sync);
+	}
 
-  this->isShoutcast = false;
+	if (this->isMOD) {
+		BASS_MusicFree(this->stream);
+	}
+	else {
+		BASS_StreamFree(this->stream);
+	}
 
-  WCHAR TextBuffer[1024];
-  int strPos = wcsncmp(fileName, L"icyx", 4);
-  if (strPos == 0)
-  {
-      // ReplaceICYX
-      TextBuffer[0] = 'h';
-      TextBuffer[1] = 't';
-      TextBuffer[2] = 't';
-      TextBuffer[3] = 'p';
-      wcscpy(TextBuffer + 4, fileName + 4);
-      fileName = TextBuffer;
-  }
+	this->channels = 0;
+	this->sampleRate = 0;
+	this->bytesPerSample = 0;
+	this->_float = false;
+	this->mSecConv = 0;
 
-  this->isMOD = IsMODFile(fileName);
-  this->isURL = IsURLPath(fileName);
+	this->stream = 0;
+}
 
-  if (this->isMOD)
-  {
-    if (!this->isURL)
-    {
-      this->stream = BASS_MusicLoad(false, (const void*)fileName, 0, 0, BASS_MUSIC_DECODE | BASS_MUSIC_RAMP | BASS_MUSIC_POSRESET | BASS_MUSIC_PRESCAN | BASS_TFLAGS, 0);
-    }
-  } else
-  {
-    if (this->isURL)
-    {
-      this->stream = BASS_StreamCreateURL(LPCSTR(fileName), 0, BASS_STREAM_DECODE | BASS_TFLAGS, OnShoutcastData, this);
-      this->sync = BASS_ChannelSetSync(this->stream, BASS_SYNC_META, 0, OnMetaData, this);
-      this->isShoutcast = GetDuration() == 0;
-    } else
-    {
-      this->stream = BASS_StreamCreateFile(false, (const void*)fileName, 0, 0, BASS_STREAM_DECODE | BASS_TFLAGS);
-    }
-  }
+int BassDecoder::GetData(void* buffer, int size)
+{
+	return BASS_ChannelGetData(this->stream, buffer, size);
+}
 
-  if (!this->stream)
-  {
-    return false;
-    //Exit;
-  }
+bool BassDecoder::GetStreamInfos()
+{
+	BASS_CHANNELINFO info;
 
-  if (!GetStreamInfos())
-  {
-    Close();
-    return false;
-    //Exit;
-  }
+	if (!BASS_ChannelGetInfo(this->stream, &info)) {
+		return false;
+	}
 
-  return true;
-}//end;
+	if (info.chans == 0 || info.freq == 0) {
+		return false;
+	}
 
-void BassDecoder::Close() /*
-procedure TBassDecoder.Close;
-*/{//begin
-  if (!this->stream)
-    return;
+	this->_float = (info.flags & BASS_SAMPLE_FLOAT) != 0;
+	this->sampleRate = info.freq;
+	this->channels = info.chans;
+	this->type = info.ctype;
 
-  if (this->sync)
-  {
-    BASS_ChannelRemoveSync(this->stream, this->sync);
-  }
+	if (this->_float) {
+		this->bytesPerSample = 4;
+	}
+	else {
+		if (info.flags & BASS_SAMPLE_8BITS) {
+			this->bytesPerSample = 1;
+		}
+		else {
+			this->bytesPerSample = 2;
+		}
+	}
 
-  if (this->isMOD)
-    BASS_MusicFree(this->stream);
-  else BASS_StreamFree(this->stream);
+	this->mSecConv = this->sampleRate * this->channels * this->bytesPerSample;
 
-  this->channels = 0;
-  this->sampleRate = 0;
-  this->bytesPerSample = 0;
-  this->_float = false;
-  this->mSecConv = 0;
+	if (this->mSecConv == 0) {
+		return false;
+	}
 
-  this->stream = 0;
-}//end;
+	GetHTTPInfos();
 
-int BassDecoder::GetData(void *buffer, int size) /*
-function TBassDecoder.GetData(ABuffer: Pointer; ASize: Integer): integer;
-*/{//begin
-  return BASS_ChannelGetData(this->stream, buffer, size);
-}//end;
+	return true;
+}
 
-bool BassDecoder::GetStreamInfos() /*
-function TBassDecoder.GetStreamInfos: Boolean;
-*/{
-  BASS_CHANNELINFO info;//: BASS_CHANNELINFO;
-//begin
-  if (!BASS_ChannelGetInfo(this->stream, &info))
-  {
-    return false;
-    //Exit;
-  }
+void BassDecoder::GetNameTag(LPCSTR string)
+{
+	LPCWSTR tag;
+	WCHAR TextBuffer[1024];
+	int TextBufferLength = 1024;
 
-  if (info.chans == 0 || info.freq == 0)
-  {
-    return false;
-    //Exit;
-  }
+	if (!this->shoutcastEvents) {
+		return;
+	}
 
-  this->_float = (info.flags & BASS_SAMPLE_FLOAT) != 0;
-  this->sampleRate = info.freq;
-  this->channels = info.chans;
-  this->type = info.ctype;
+	LPCWSTR astring = FromLPSTR(string, TextBuffer, TextBufferLength);
+	while (astring && *astring) {
+		tag = astring;
+		if (wcsncmp(L"icy-name:", tag, 9) == 0) {
+			tag += 9;
+			while (*tag && iswspace(*tag)) {
+				tag++;
+			}
+			//if (this->shoutcastEvents)
+			this->shoutcastEvents->OnShoutcastMetaDataCallback(tag);
+		}
 
-  if (this->_float)
-  {
-    this->bytesPerSample = 4;
-  } else
-  {
-    if (info.flags & BASS_SAMPLE_8BITS)
-    {
-      this->bytesPerSample = 1;
-    } else
-    {
-      this->bytesPerSample = 2;
-    }
-  }
+		astring += wcslen(astring) + 1;
+	}
+}
 
-  this->mSecConv = this->sampleRate * this->channels * this->bytesPerSample;
+void BassDecoder::GetHTTPInfos()
+{
+	LPCSTR icyTags;
+	LPCSTR httpHeaders;
 
-  if (this->mSecConv == 0)
-  {
-    return false;
-    //Exit;
-  }
+	if (!this->isShoutcast) {
+		return;
+	}
 
-  GetHTTPInfos();
+	icyTags = BASS_ChannelGetTags(this->stream, BASS_TAG_ICY);
+	if (icyTags) {
+		GetNameTag(icyTags);
+	}
 
-  return true;
-}//end;
+	httpHeaders = BASS_ChannelGetTags(this->stream, BASS_TAG_HTTP);
+	if (httpHeaders) {
+		GetNameTag(httpHeaders);
+	}
+}
 
-/*
-procedure TBassDecoder.GetHTTPInfos;
-*/
+LONGLONG BassDecoder::GetDuration()
+{
+	if (this->mSecConv == 0) {
+		return 0;
+	}
 
-void BassDecoder::GetNameTag(LPCSTR string) /*
-  procedure GetNameTag(AString: PChar);
-*/{
-    LPCWSTR tag;//: String;
-    WCHAR TextBuffer[1024];
-    int TextBufferLength = 1024;
+	if (!this->stream) {
+		return 0;
+	}
 
-    if (!this->shoutcastEvents) return; LPCWSTR astring = FromLPSTR(string, TextBuffer, TextBufferLength); //begin
-    while (astring && *astring)
-    {
-      tag = astring;
-      if (wcsncmp(L"icy-name:", tag, 9) == 0)
-      {
-        tag += 9;
-        while(*tag && iswspace(*tag)) tag++;
-        //if (this->shoutcastEvents)
-          this->shoutcastEvents->OnShoutcastMetaDataCallback(tag);
-      }
+	// bytes = samplerate * channel * bytes_per_second
+	// msecs = (bytes * 1000) / (samplerate * channels * bytes_per_second)
 
-      astring += wcslen(astring) + 1;
-    }
-}//end;
+	return BASS_ChannelGetLength(this->stream, BASS_POS_BYTE) * 1000 / this->mSecConv;
+}
 
-void BassDecoder::GetHTTPInfos() {
-  LPCSTR icyTags;//: PChar;
-  LPCSTR httpHeaders;//: PChar;
-//begin
-  if (!this->isShoutcast)
-    return;
+LONGLONG BassDecoder::GetPosition()
+{
+	if (this->mSecConv == 0) {
+		return 0;
+	}
 
-  icyTags = BASS_ChannelGetTags(this->stream, BASS_TAG_ICY);
-  if (icyTags)
-    GetNameTag(icyTags);
+	if (!this->stream) {
+		return 0;
+	}
 
-  httpHeaders = BASS_ChannelGetTags(this->stream, BASS_TAG_HTTP);
-  if (httpHeaders)
-    GetNameTag(httpHeaders);
-}//end;
+	return BASS_ChannelGetPosition(this->stream, BASS_POS_BYTE) * 1000 / this->mSecConv;
+}
 
-LONGLONG BassDecoder::GetDuration() /*
-function TBassDecoder.GetDuration: Int64;
-*/{//begin
-  if (this->mSecConv == 0)
-  {
-    return 0;
-    //Exit;
-  }
+void BassDecoder::SetPosition(LONGLONG positionMS)
+{
+	LONGLONG pos;
 
-  if (!this->stream)
-  {
-    return 0;
-    //Exit;
-  }
+	if (this->mSecConv == 0) {
+		return;
+	}
 
-  // bytes = samplerate * channel * bytes_per_second
-  // msecs = (bytes * 1000) / (samplerate * channels * bytes_per_second)
+	if (!this - stream) {
+		return;
+	}
 
-  return BASS_ChannelGetLength(this->stream, BASS_POS_BYTE) * 1000 / this->mSecConv;
-}//end;
+	pos = LONGLONG(positionMS * this->mSecConv) / 1000L;
 
-LONGLONG BassDecoder::GetPosition() /*
-function TBassDecoder.GetPosition: Int64;
-*/{//begin
-  if (this->mSecConv == 0)
-  {
-    return 0;
-    //Exit;
-  }
+	BASS_ChannelSetPosition(this->stream, pos, BASS_POS_BYTE);
+}
 
-  if (!this->stream)
-  {
-    return 0;
-    //Exit;
-  }
-
-  return BASS_ChannelGetPosition(this->stream, BASS_POS_BYTE) * 1000 / this->mSecConv;
-}//end;
-
-void BassDecoder::SetPosition(LONGLONG positionMS) /*
-procedure TBassDecoder.SetPosition(APositionMS: Int64);
-*/{
-  LONGLONG pos;//: Int64;
-//begin
-  if (this->mSecConv == 0)
-  {
-    return;
-  }
-
-  if (!this-stream)
-  {
-    return;
-  }
-
-  pos = LONGLONG(positionMS * this->mSecConv) / 1000L;
-
-  BASS_ChannelSetPosition(this->stream, pos, BASS_POS_BYTE);
-}//end;
-
-LPCWSTR BassDecoder::GetExtension() /*
-function TBassDecoder.GetExtension: WideString;
-*/{//begin
-  switch(this->type) {
-  case BASS_CTYPE_STREAM_AAC:  return L"aac";
-  case BASS_CTYPE_STREAM_MP4:  return L"mp4";
-  case BASS_CTYPE_STREAM_MP3:  return L"mp3";
-  case BASS_CTYPE_STREAM_OGG:  return L"ogg";
-  default:                     return L"mp3";
-  }
-}//end;
+LPCWSTR BassDecoder::GetExtension()
+{
+	switch (this->type) {
+	case BASS_CTYPE_STREAM_AAC:  return L"aac";
+	case BASS_CTYPE_STREAM_MP4:  return L"mp4";
+	case BASS_CTYPE_STREAM_MP3:  return L"mp3";
+	case BASS_CTYPE_STREAM_OGG:  return L"ogg";
+	default:                     return L"mp3";
+	}
+}

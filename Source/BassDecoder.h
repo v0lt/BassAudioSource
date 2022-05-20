@@ -22,108 +22,81 @@
 
 //BassDecoder.h
 
-/*
-interface
-*/
-
 #include <DShow.h>
 #include <../Include/bass.h>
 
 #pragma once
 
-class ShoutcastEvents {
+class ShoutcastEvents
+{
 public:
-/*
-  TShoutcastMetaDataCallback = procedure(AText: String) of Object;
-*/
-  virtual void STDMETHODCALLTYPE OnShoutcastMetaDataCallback(LPCWSTR text) = 0;
-/*
-  TShoutcastBufferCallback   = procedure(ABuffer: PByte; ASize: Integer) of Object;
-*/
-  virtual void STDMETHODCALLTYPE OnShoutcastBufferCallback(const void *buffer, DWORD size) = 0;
+	virtual void STDMETHODCALLTYPE OnShoutcastMetaDataCallback(LPCWSTR text) = 0;
+	virtual void STDMETHODCALLTYPE OnShoutcastBufferCallback(const void* buffer, DWORD size) = 0;
 };
 
-class BassDecoder {/*
-  TBassDecoder = class
-*/protected:
-    //BASS_Init:                  function(device: Integer; freq, flags: DWORD; win: HWND; clsid: PGUID): BOOL; stdcall;
-    //BASS_Free:                  function: BOOL; stdcall;
-    //BASS_PluginLoad:            function(filename: Pointer; flags: DWORD): Cardinal; stdcall;
-    //BASS_MusicLoad:             function(mem: BOOL; f: Pointer; offset: Int64; length, flags, freq: DWORD): Cardinal; stdcall;
-    //BASS_StreamCreateURL:       function(url: Pointer; offset: DWORD; flags: DWORD; proc: Pointer; user: Pointer): Cardinal; stdcall;
-    //BASS_StreamCreateFile:      function(mem: BOOL; f: Pointer; offset, length: Int64; flags: DWORD): Cardinal; stdcall;
-    //BASS_MusicFree:             function(handle: Cardinal): BOOL; stdcall;
-    //BASS_StreamFree:            function(handle: Cardinal): BOOL; stdcall;
-    //BASS_ChannelGetData:        function(handle: DWORD; buffer: Pointer; length: DWORD): DWORD; stdcall;
-    //BASS_ChannelGetInfo:        function(handle: DWORD; var info: BASS_CHANNELINFO): BOOL;stdcall;
-    //BASS_ChannelGetLength:      function(handle, mode: DWORD): Int64; stdcall;
-    //BASS_ChannelSetPosition:    function(handle: DWORD; pos: Int64; mode: DWORD): BOOL; stdcall;
-    //BASS_ChannelGetPosition:    function(handle, mode: DWORD): Int64; stdcall;
-    //BASS_ChannelSetSync:        function(handle: DWORD; type_: DWORD; param: int64; proc: Pointer; user: Pointer): DWORD; stdcall;
-    //BASS_ChannelRemoveSync:     function(handle: DWORD; sync: DWORD): BOOL; stdcall;
-    //BASS_ChannelGetTags:        function(handle: DWORD; tags: DWORD): PChar; stdcall;
-    //BASS_SetConfig:             function(option, value: DWORD): DWORD; stdcall;
+class BassDecoder
+{
+protected:
+	//Use shoutcastEvents instead of FMetaDataCallback and FBufferCallback
+	ShoutcastEvents* shoutcastEvents;
+	int buffersizeMS;
+	int prebufferMS;
 
-    //Use shoutcastEvents instead of FMetaDataCallback and FBufferCallback
-    ShoutcastEvents* shoutcastEvents;
-    int buffersizeMS;//: Integer;
-    int prebufferMS;//: Integer;
+	HMODULE optimFROGDLL;
+	HSTREAM stream;
+	HSYNC sync;
+	bool isMOD;
+	bool isURL;
 
-    //FLibrary: THandle;
-    HMODULE optimFROGDLL;//: THandle;
-    HSTREAM stream;//: Cardinal;
-    HSYNC sync;//: Cardinal;
-    bool isMOD;//: Boolean;
-    bool isURL;//: Boolean;
+	int channels;
+	int sampleRate;
+	int bytesPerSample;
+	bool _float;
+	LONGLONG mSecConv;
+	bool isShoutcast;
+	DWORD type;
 
-    int channels;//: Integer;
-    int sampleRate;//: Integer;
-    int bytesPerSample;//: Integer;
-    bool _float;//: Boolean;
-    LONGLONG mSecConv;//: Int64;
-    bool isShoutcast;//: Boolean;
-    DWORD type;//: Cardinal;
+	void LoadBASS();
+	void UnloadBASS();
+	void LoadPlugins();
 
-    void LoadBASS();
-    void UnloadBASS();
-    void LoadPlugins();
+	bool GetStreamInfos();
+	void GetHTTPInfos();
+	void GetNameTag(LPCSTR string);
+public:
+	LONGLONG GetDuration();
+	LONGLONG GetPosition();
+	void SetPosition(LONGLONG positionMS);
+	LPCWSTR GetExtension();
 
-    bool GetStreamInfos();
-    void GetHTTPInfos();
-    void GetNameTag(LPCSTR string);
+public:
+	BassDecoder(ShoutcastEvents* shoutcastEvents, int buffersizeMS, int prebufferMS);
+	~BassDecoder();
 
-    public: LONGLONG GetDuration();
-    public: LONGLONG GetPosition();
-    public: void SetPosition(LONGLONG positionMS);
-    public: LPCWSTR GetExtension();
-  public:
-    BassDecoder(ShoutcastEvents* shoutcastEvents, int buffersizeMS, int prebufferMS);
-    ~BassDecoder();
+	bool Load(LPCWSTR fileName);
+	void Close();
 
-    bool Load(LPCWSTR fileName);
-    void Close();
+	int GetData(void* buffer, int size);
 
-    int GetData(void *buffer, int size);
-  public:
-    __declspec(property(get = GetDuration)) LONGLONG DurationMS;
-    __declspec(property(get = GetPosition, put = SetPosition)) LONGLONG PositionMS;
+	__declspec(property(get = GetDuration)) LONGLONG DurationMS;
+	__declspec(property(get = GetPosition, put = SetPosition)) LONGLONG PositionMS;
 
-    __declspec(property(get = GetChannels)) int Channels;
-    __declspec(property(get = GetSampleRate)) int SampleRate;
-    __declspec(property(get = GetBytesPerSample)) int BytesPerSample;
-    __declspec(property(get = GetFloat)) bool Float;
-    __declspec(property(get = GetMSecConv)) LONGLONG MSecConv;
-    __declspec(property(get = GetIsShoutcast)) bool IsShoutcast;
-    __declspec(property(get = GetExtension)) LPWSTR Extension;
-  public:
-    inline int GetChannels() { return this->channels; }
-    inline int GetSampleRate() { return this->sampleRate; }
-    inline int GetBytesPerSample() { return this->bytesPerSample; }
-    inline bool GetFloat() { return this->_float; }
-    inline LONGLONG GetMSecConv() { return this->mSecConv; }
-    inline bool GetIsShoutcast() { return this->isShoutcast; }
-    friend void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void *user);
-    friend void CALLBACK OnShoutcastData(const void *buffer, DWORD length, void *user);
-};//end;
+	__declspec(property(get = GetChannels)) int Channels;
+	__declspec(property(get = GetSampleRate)) int SampleRate;
+	__declspec(property(get = GetBytesPerSample)) int BytesPerSample;
+	__declspec(property(get = GetFloat)) bool Float;
+	__declspec(property(get = GetMSecConv)) LONGLONG MSecConv;
+	__declspec(property(get = GetIsShoutcast)) bool IsShoutcast;
+	__declspec(property(get = GetExtension)) LPWSTR Extension;
+
+	inline int GetChannels() { return this->channels; }
+	inline int GetSampleRate() { return this->sampleRate; }
+	inline int GetBytesPerSample() { return this->bytesPerSample; }
+	inline bool GetFloat() { return this->_float; }
+	inline LONGLONG GetMSecConv() { return this->mSecConv; }
+	inline bool GetIsShoutcast() { return this->isShoutcast; }
+	friend void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user);
+	friend void CALLBACK OnShoutcastData(const void* buffer, DWORD length, void* user);
+};
 
 LPWSTR GetFilterDirectory(LPWSTR folder);
