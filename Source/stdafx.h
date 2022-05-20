@@ -10,3 +10,5 @@
 #include <windows.h>
 
 #include "../external/BaseClasses/streams.h"
+
+#include <algorithm>

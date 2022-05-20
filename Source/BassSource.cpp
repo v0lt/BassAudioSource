@@ -255,13 +255,13 @@ procedure TBassSource.LoadSettings;
 //begin
   int num;
 
-  if (RegOpenKey(HKEY_CURRENT_USER, L"SOFTWARE\\MPC-BE Filters\\BassAudioSource", &reg) == ERROR_SUCCESS) {
+  if (RegOpenKeyW(HKEY_CURRENT_USER, L"SOFTWARE\\MPC-BE Filters\\BassAudioSource", &reg) == ERROR_SUCCESS) {
   try {
     if (RegReadInteger(reg, L"BuffersizeMS", &num))
-      this->buffersizeMS = __min(__max(num, PREBUFFER_MIN_SIZE), PREBUFFER_MAX_SIZE);
+      this->buffersizeMS = std::clamp(num, PREBUFFER_MIN_SIZE, PREBUFFER_MAX_SIZE);
 
     if (RegReadInteger(reg, L"PreBufferMS", &num))
-      this->preBufferMS = __min(__max(num, PREBUFFER_MIN_SIZE), PREBUFFER_MAX_SIZE);
+      this->preBufferMS = std::clamp(num, PREBUFFER_MIN_SIZE, PREBUFFER_MAX_SIZE);
 
     //if (RegReadBool(reg, L"SplitStream", &flag))
     //  this->splitStream = flag;
@@ -278,7 +278,7 @@ procedure TBassSource.SaveSettings;
   HKEY reg;//: TRegistry;
 //begin
 
-  if (RegCreateKey(HKEY_CURRENT_USER, L"SOFTWARE\\DSP-worx\\DC-Bass Source", &reg) == ERROR_SUCCESS) {
+  if (RegCreateKeyW(HKEY_CURRENT_USER, L"SOFTWARE\\MPC-BE Filters\\BassAudioSource", &reg) == ERROR_SUCCESS) {
   try {
     RegWriteInteger(reg, L"BuffersizeMS", this->buffersizeMS);
     RegWriteInteger(reg, L"PreBufferMS",  this->preBufferMS);

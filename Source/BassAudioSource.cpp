@@ -92,7 +92,7 @@ BassExtension BASS_EXTENSIONS[] = {
     {L".umx",  true, L"bass.dll"},
     {L".xm",   true, L"bass.dll"}
 };
-const int BASS_EXTENSIONS_COUNT = sizeof(BASS_EXTENSIONS) / sizeof(BASS_EXTENSIONS[0]);
+const int BASS_EXTENSIONS_COUNT = std::size(BASS_EXTENSIONS);
 
 LPWSTR BASS_PLUGINS[] = {
     L"bass_aac.dll",
@@ -106,7 +106,7 @@ LPWSTR BASS_PLUGINS[] = {
 #endif
     L"basswv.dll"
 };
-const int BASS_PLUGINS_COUNT = sizeof(BASS_PLUGINS) / sizeof(BASS_PLUGINS[0]);
+const int BASS_PLUGINS_COUNT = std::size(BASS_PLUGINS);
 
 // COM global table of objects in this dll
 
@@ -119,7 +119,7 @@ CFactoryTemplate g_Templates[] = {
   , NULL
   , &sudBassAudioSourceax }
 };
-int g_cTemplates = sizeof(g_Templates) / sizeof(g_Templates[0]);
+int g_cTemplates = std::size(g_Templates);
 
 /*
 implementation
@@ -143,7 +143,7 @@ implementation
 bool FileExists(LPCWSTR fileName) {
   WIN32_FILE_ATTRIBUTE_DATA info;
 
-  return !!GetFileAttributesEx(fileName, GetFileExInfoStandard, &info);
+  return !!GetFileAttributesExW(fileName, GetFileExInfoStandard, &info);
 }
 
 /*
@@ -166,7 +166,7 @@ function RegisterFormat(AFormat: WideString): Boolean;
   if (*format == '.')
     format++;
 
-  switch(GetPrivateProfileInt(L"Register", format, 0, fileName))
+  switch(GetPrivateProfileIntW(L"Register", format, 0, fileName))
   {
   case 1:
     return true;
@@ -218,14 +218,14 @@ function DllRegisterServer: HResult;
   dllPath = GetFilterDirectory(PathBuffer2);
   plugin = dllPath + wcslen(dllPath);
 
-  if (RegCreateKeyEx(HKEY_CLASSES_ROOT, DIRECTSHOW_SOURCE_FILTER_PATH, 0, NULL, 0, KEY_ALL_ACCESS, NULL, &reg, NULL) == ERROR_SUCCESS) {
+  if (RegCreateKeyExW(HKEY_CLASSES_ROOT, DIRECTSHOW_SOURCE_FILTER_PATH, 0, NULL, 0, KEY_ALL_ACCESS, NULL, &reg, NULL) == ERROR_SUCCESS) {
   try {
 
   for (int i = 0; i < BASS_EXTENSIONS_COUNT; i++)
   {
     ext = BASS_EXTENSIONS[i].Extension;
 
-    if (RegOpenKeyEx(reg, ext, 0, KEY_QUERY_VALUE, &reg2) != ERROR_SUCCESS)
+    if (RegOpenKeyExW(reg, ext, 0, KEY_QUERY_VALUE, &reg2) != ERROR_SUCCESS)
       reg2 = NULL;
     else RegCloseKey(reg2);
     if (RegisterFormat(ext, reg2 != NULL))
@@ -234,9 +234,9 @@ function DllRegisterServer: HResult;
       if (FileExists(dllPath))
       {
         //if reg.KeyExists(path)
-          RegDeleteKey(reg, ext);
+          RegDeleteKeyW(reg, ext);
 
-        if (RegCreateKeyEx(reg, ext, 0, NULL, 0, KEY_ALL_ACCESS, NULL, &reg2, NULL) == ERROR_SUCCESS) {
+        if (RegCreateKeyExW(reg, ext, 0, NULL, 0, KEY_ALL_ACCESS, NULL, &reg2, NULL) == ERROR_SUCCESS) {
         try {
           RegWriteString(reg2, L"Source Filter", STR_CLSID_BassAudioSource);
 
@@ -277,7 +277,7 @@ function DllUnregisterServer: HResult;
   WCHAR TextBuffer[1024];
   int TextBufferLength = 1024;
 
-  if (RegOpenKey(HKEY_CLASSES_ROOT, DIRECTSHOW_SOURCE_FILTER_PATH, &reg) == ERROR_SUCCESS) {
+  if (RegOpenKeyW(HKEY_CLASSES_ROOT, DIRECTSHOW_SOURCE_FILTER_PATH, &reg) == ERROR_SUCCESS) {
   try {
 
   for (int i = 0; i < BASS_EXTENSIONS_COUNT; i++)
@@ -305,7 +305,7 @@ function DllUnregisterServer: HResult;
       // Special handling of MP3 Files
       if (lstrcmpiW(ext, L".mp3") == 0)
       {
-        if (RegCreateKey(reg, ext, &reg2)) {
+        if (RegCreateKeyW(reg, ext, &reg2)) {
         try {
           RegWriteString(reg2, L"Source Filter", L"{E436EBB5-524F-11CE-9F53-0020AF0BA770}");
           RegWriteString(reg2, L"Media Type", L"{E436EB83-524F-11CE-9F53-0020AF0BA770}");
