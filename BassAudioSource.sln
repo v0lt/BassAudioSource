@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32510.428
+MinimumVisualStudioVersion = 15.0.27130.2036
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BassAudioSource", "Source\BassAudioSource.vcxproj", "{D194CB2A-3270-4CD4-A427-E214334F5D0E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include", "Include", "{C7CAE27C-03BC-45F2-BF8E-DEE05DBF37B8}"
+	ProjectSection(SolutionItems) = preProject
+		Include\bass.h = Include\bass.h
+		Include\bass_aac.h = Include\bass_aac.h
+		Include\bass_alac.h = Include\bass_alac.h
+		Include\bass_ape.h = Include\bass_ape.h
+		Include\bass_mpc.h = Include\bass_mpc.h
+		Include\bass_ofr.h = Include\bass_ofr.h
+		Include\bass_tta.h = Include\bass_tta.h
+		Include\bassflac.h = Include\bassflac.h
+		Include\basswv.h = Include\basswv.h
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BaseClasses", "external\BaseClasses.vcxproj", "{E8A3F6FA-AE1C-4C8E-A0B6-9C8480324EAA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D194CB2A-3270-4CD4-A427-E214334F5D0E}.Debug|x64.ActiveCfg = Debug|x64
+		{D194CB2A-3270-4CD4-A427-E214334F5D0E}.Debug|x64.Build.0 = Debug|x64
+		{D194CB2A-3270-4CD4-A427-E214334F5D0E}.Debug|x86.ActiveCfg = Debug|Win32
+		{D194CB2A-3270-4CD4-A427-E214334F5D0E}.Debug|x86.Build.0 = Debug|Win32
+		{D194CB2A-3270-4CD4-A427-E214334F5D0E}.Release|x64.ActiveCfg = Release|x64
+		{D194CB2A-3270-4CD4-A427-E214334F5D0E}.Release|x64.Build.0 = Release|x64
+		{D194CB2A-3270-4CD4-A427-E214334F5D0E}.Release|x86.ActiveCfg = Release|Win32
+		{D194CB2A-3270-4CD4-A427-E214334F5D0E}.Release|x86.Build.0 = Release|Win32
+		{E8A3F6FA-AE1C-4C8E-A0B6-9C8480324EAA}.Debug|x64.ActiveCfg = Debug|x64
+		{E8A3F6FA-AE1C-4C8E-A0B6-9C8480324EAA}.Debug|x64.Build.0 = Debug|x64
+		{E8A3F6FA-AE1C-4C8E-A0B6-9C8480324EAA}.Debug|x86.ActiveCfg = Debug|Win32
+		{E8A3F6FA-AE1C-4C8E-A0B6-9C8480324EAA}.Debug|x86.Build.0 = Debug|Win32
+		{E8A3F6FA-AE1C-4C8E-A0B6-9C8480324EAA}.Release|x64.ActiveCfg = Release|x64
+		{E8A3F6FA-AE1C-4C8E-A0B6-9C8480324EAA}.Release|x64.Build.0 = Release|x64
+		{E8A3F6FA-AE1C-4C8E-A0B6-9C8480324EAA}.Release|x86.ActiveCfg = Release|Win32
+		{E8A3F6FA-AE1C-4C8E-A0B6-9C8480324EAA}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5D7781ED-53B1-4197-9C68-D2EDD94EC59B}
+	EndGlobalSection
+EndGlobal
