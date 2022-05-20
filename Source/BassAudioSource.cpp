@@ -203,7 +203,7 @@ function DllRegisterServer: HResult;
   plugin = dllPath + wcslen(dllPath);
 
   if (RegCreateKeyExW(HKEY_CLASSES_ROOT, DIRECTSHOW_SOURCE_FILTER_PATH, 0, NULL, 0, KEY_ALL_ACCESS, NULL, &reg, NULL) == ERROR_SUCCESS) {
-  try {
+  __try {
 
   for (int i = 0; i < BASS_EXTENSIONS_COUNT; i++)
   {
@@ -221,7 +221,7 @@ function DllRegisterServer: HResult;
           RegDeleteKeyW(reg, ext);
 
         if (RegCreateKeyExW(reg, ext, 0, NULL, 0, KEY_ALL_ACCESS, NULL, &reg2, NULL) == ERROR_SUCCESS) {
-        try {
+        __try {
           RegWriteString(reg2, L"Source Filter", STR_CLSID_BassAudioSource);
 
           // Special handling of MP3 Files
@@ -231,16 +231,20 @@ function DllRegisterServer: HResult;
             RegWriteString(reg2, L"Subtype", L"{E436EB87-524F-11CE-9F53-0020AF0BA770}");
           }
 
-        } finally (
+        }
+		__finally {
           RegCloseKey(reg2);
-        )}
+		}
+		}
       }
     }
   }
 
-  } finally (
+  }
+  __finally {
     RegCloseKey(reg);
-  )}
+  }
+  }
 
   return AMovieDllRegisterServer2(TRUE);
 } // DllRegisterServer
@@ -262,7 +266,7 @@ function DllUnregisterServer: HResult;
   int TextBufferLength = 1024;
 
   if (RegOpenKeyW(HKEY_CLASSES_ROOT, DIRECTSHOW_SOURCE_FILTER_PATH, &reg) == ERROR_SUCCESS) {
-  try {
+  __try {
 
   for (int i = 0; i < BASS_EXTENSIONS_COUNT; i++)
   {
@@ -272,12 +276,13 @@ function DllUnregisterServer: HResult;
       reg2 = NULL;
     else
     {
-      try {
+      __try {
         if (!RegReadString(reg2, L"Source Filter", TextBuffer, TextBufferLength))
           *TextBuffer = 0;
-      } finally (
+	  }
+	  __finally {
         RegCloseKey(reg2);
-      )
+	  }
       if (lstrcmpiW(TextBuffer, STR_CLSID_BassAudioSource) != 0)
         reg2 = NULL;
     }
@@ -290,20 +295,24 @@ function DllUnregisterServer: HResult;
       if (lstrcmpiW(ext, L".mp3") == 0)
       {
         if (RegCreateKeyW(reg, ext, &reg2)) {
-        try {
+        __try {
           RegWriteString(reg2, L"Source Filter", L"{E436EBB5-524F-11CE-9F53-0020AF0BA770}");
           RegWriteString(reg2, L"Media Type", L"{E436EB83-524F-11CE-9F53-0020AF0BA770}");
           RegWriteString(reg2, L"Subtype", L"{E436EB87-524F-11CE-9F53-0020AF0BA770}");
-        } finally (
+		}
+		__finally {
           RegCloseKey(reg2);
-        )}
+		}
+		}
       }
     }
   }
 
-  } finally (
+  }
+  __finally {
     RegCloseKey(reg);
-  )}
+  }
+  }
 
   return AMovieDllRegisterServer2(FALSE);
 } // DllUnregisterServer

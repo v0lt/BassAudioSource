@@ -108,7 +108,7 @@ procedure TBassSource.OnShoutcastMetaDataCallback(AText: String);
   //oldTag: String;
 //begin
   this->metaLock->Lock();
-  try {
+  __try {
 //    oldTag := FCurrentTag;
     CurrentTag = text;
 
@@ -123,9 +123,10 @@ procedure TBassSource.OnShoutcastMetaDataCallback(AText: String);
 //      FWriteLock.UnLock;
 //    end;
 
-  } finally (
+  }
+  __finally {
     this->metaLock->Unlock();
-  )
+  }
 }//end;
 
 void STDMETHODCALLTYPE BassSource::OnShoutcastBufferCallback(const void *buffer, DWORD size) /*
@@ -256,7 +257,7 @@ procedure TBassSource.LoadSettings;
   int num;
 
   if (RegOpenKeyW(HKEY_CURRENT_USER, L"SOFTWARE\\MPC-BE Filters\\BassAudioSource", &reg) == ERROR_SUCCESS) {
-  try {
+  __try {
     if (RegReadInteger(reg, L"BuffersizeMS", &num))
       this->buffersizeMS = std::clamp(num, PREBUFFER_MIN_SIZE, PREBUFFER_MAX_SIZE);
 
@@ -266,9 +267,11 @@ procedure TBassSource.LoadSettings;
     //if (RegReadBool(reg, L"SplitStream", &flag))
     //  this->splitStream = flag;
     
-  } finally (
+  }
+  __finally {
     RegCloseKey(reg);
-  )}
+  }
+  }
 
 }//end;
 
@@ -279,13 +282,15 @@ procedure TBassSource.SaveSettings;
 //begin
 
   if (RegCreateKeyW(HKEY_CURRENT_USER, L"SOFTWARE\\MPC-BE Filters\\BassAudioSource", &reg) == ERROR_SUCCESS) {
-  try {
+  __try {
     RegWriteInteger(reg, L"BuffersizeMS", this->buffersizeMS);
     RegWriteInteger(reg, L"PreBufferMS",  this->preBufferMS);
     //RegWriteBool   (reg, L"SplitStream",  this->splitStream);
-  } finally (
+  }
+  __finally {
     RegCloseKey(reg);
-  )}
+  }
+  }
 
 }//end;
 
@@ -356,11 +361,12 @@ function TBassSource.get_Title(var pbstrTitle: TBSTR): HResult;
   CheckPointer(pbstrTitle, E_POINTER);
 
   this->metaLock->Lock();
-  try {
+  __try {
     *pbstrTitle = SysAllocString(CurrentTag);
-  } finally (
+  }
+  __finally {
     this->metaLock->Unlock();
-  )
+  }
 
   if (!*pbstrTitle)
   {

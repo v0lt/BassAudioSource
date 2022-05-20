@@ -111,7 +111,7 @@ function TBassSourceStream.DecideBufferSize(Allocator: IMemAllocator; Properties
   CheckPointer(ppropInputRequest, E_POINTER);
 
   this->m_pFilter->pStateLock()->Lock();
-  try {
+  __try {
     ppropInputRequest->cBuffers = 1;
     // Set the Buffersize to our Buffersize
     ppropInputRequest->cbBuffer = BASS_BLOCK_SIZE * 2; // Double Size, just in case we receive more than needed
@@ -125,9 +125,10 @@ function TBassSourceStream.DecideBufferSize(Allocator: IMemAllocator; Properties
         result = E_FAIL;
       else result = S_OK;
     }
-  } finally (
+  }
+  __finally {
     this->m_pFilter->pStateLock()->Unlock();
-  )
+  }
   return result;
 }//end;
 
@@ -140,7 +141,7 @@ function TBassSourceStream.FillBuffer(Samp: IMediaSample): HRESULT;
   LONGLONG sampleTime;//: Int64;
   HRESULT result = S_OK; //begin
   this->lock->Lock();
-  try {
+  __try {
     if (this->mediaTime >= this->stop && !this->decoder->IsShoutcast)
     {
       result = S_FALSE;
@@ -187,9 +188,10 @@ function TBassSourceStream.FillBuffer(Samp: IMediaSample): HRESULT;
       this->discontinuity = false;
     }}
 
-  } finally (
+  }
+  __finally {
     this->lock->Unlock();
-  )
+  }
   return result;
 }//end;
 
@@ -205,7 +207,7 @@ function TBassSourceStream.GetMediaType(MediaType: PAMMediaType): HRESULT;
   }
 
   this->m_pFilter->pStateLock()->Lock();
-  try {
+  __try {
     pMediaType->majortype            = MEDIATYPE_Audio;
     pMediaType->subtype              = MEDIASUBTYPE_PCM;
     pMediaType->formattype           = FORMAT_WaveFormatEx;
@@ -248,9 +250,10 @@ function TBassSourceStream.GetMediaType(MediaType: PAMMediaType): HRESULT;
       else wfe->SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
     }
 
-  } finally (
+  }
+  __finally {
     this->m_pFilter->pStateLock()->Unlock();
-  )
+  }
   return S_OK;
 }//end;
 
@@ -281,16 +284,17 @@ HRESULT BassSourceStream::ChangeRate() /*
 function TBassSourceStream.ChangeRate: HRESULT;
 */{ HRESULT result = S_OK; //begin
   this->lock->Lock();
-  try {
+  __try {
     if (this->rateSeeking <= 0.0)
     {
       this->rateSeeking = 1.0;
       result = E_FAIL;
       //Exit;
     }
-  } finally (
+  }
+  __finally {
     this->lock->Unlock();
-  )
+  }
 
   if (SUCCEEDED(result)) UpdateFromSeek();
 
@@ -372,11 +376,12 @@ STDMETHODIMP BassSourceStream::GetDuration(LONGLONG *pDuration) /*
 function TBassSourceStream.GetDuration(out pDuration: int64): HResult;
 */{ CheckPointer(pDuration, E_POINTER); //begin
   this->lock->Lock();
-  try {
+  __try {
     *pDuration = this->duration;
-  } finally (
+  }
+  __finally {
     this->lock->Unlock();
-  )
+  }
   return S_OK;
 }//end;
 
@@ -384,11 +389,12 @@ STDMETHODIMP BassSourceStream::GetStopPosition(LONGLONG *pStop) /*
 function TBassSourceStream.GetStopPosition(out pStop: int64): HResult;
 */{ CheckPointer(pStop, E_POINTER); //begin
   this->lock->Lock();
-  try {
+  __try {
     *pStop = this->stop;
-  } finally (
+  }
+  __finally {
     this->lock->Unlock();
-  )
+  }
   return S_OK;
 }//end;
 
@@ -440,7 +446,7 @@ function TBassSourceStream.SetPositions(var pCurrent: int64; dwCurrentFlags: DWO
   }
 
   this->lock->Lock();
-  try {
+  __try {
     if (startPosBits == AM_SEEKING_AbsolutePositioning)
     {
       this->start = *pCurrent;
@@ -461,9 +467,10 @@ function TBassSourceStream.SetPositions(var pCurrent: int64; dwCurrentFlags: DWO
     {
       this->stop += *pStop;
     }
-  } finally (
+  }
+  __finally {
     this->lock->Unlock();
-  )
+  }
 
   HRESULT result = S_OK;
 
@@ -494,11 +501,12 @@ function TBassSourceStream.GetAvailable(out pEarliest, pLatest: int64): HResult;
   *pEarliest = 0LL;
 
   this->lock->Lock();
-  try {
+  __try {
     *pLatest = this->duration;
-  } finally (
+  }
+  __finally {
     this->lock->Unlock();
-  )
+  }
 
   return S_OK;
 }//end;
@@ -507,11 +515,12 @@ STDMETHODIMP BassSourceStream::SetRate(double dRate) /*
 function TBassSourceStream.SetRate(dRate: double): HResult;
 */{//begin
   this->lock->Lock();
-  try {
+  __try {
     this->rateSeeking = dRate;
-  } finally (
+  }
+  __finally {
     this->lock->Unlock();
-  )
+  }
 
   return ChangeRate();
 }//end;
@@ -520,11 +529,12 @@ STDMETHODIMP BassSourceStream::GetRate(double *pdRate) /*
 function TBassSourceStream.GetRate(out pdRate: double): HResult;
 */{ CheckPointer(pdRate, E_POINTER); //begin
   this->lock->Lock();
-  try {
+  __try {
     *pdRate = this->rateSeeking;
-  } finally (
+  }
+  __finally {
     this->lock->Unlock();
-  )
+  }
 
   return S_OK;
 }//end;
