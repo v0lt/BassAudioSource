@@ -8,9 +8,9 @@ extern HMODULE HInstance;
 
 struct BassExtension {
 public:
-	LPWSTR Extension;
-	bool IsMOD;
-	LPWSTR DLL;
+	LPCWSTR Extension;
+	const bool IsMOD;
+	LPCWSTR DLL;
 };
 
 extern BassExtension BASS_EXTENSIONS[];

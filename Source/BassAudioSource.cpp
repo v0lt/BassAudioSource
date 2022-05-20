@@ -37,74 +37,69 @@ HMODULE HInstance;
 
 // Setup data
 
-const AMOVIESETUP_MEDIATYPE sudOpPinTypes = {/*
-  DSHOW_PIN_TYPE: TRegPinTypes = (
-*/
-    &MEDIATYPE_Audio,       // Major type
-    &MEDIASUBTYPE_PCM       // Minor type
+const AMOVIESETUP_MEDIATYPE sudOpPinTypes = {
+	&MEDIATYPE_Audio,       // Major type
+	&MEDIASUBTYPE_PCM       // Minor type
 };
 
-const AMOVIESETUP_PIN sudOpPin = {/*
-  DSHOW_PINS : TRegFilterPins = (
-*/
-    L"Output",              // Pin string name
-    FALSE,                  // Is it rendered
-    TRUE,                   // Is it an output
-    FALSE,                  // Can we have none
-    FALSE,                  // Can we have many
-    &CLSID_NULL,            // Connects to filter
-    NULL,                   // Connects to pin
-    1,                      // Number of types
-    &sudOpPinTypes };       // Pin details
-
-const AMOVIESETUP_FILTER sudBassAudioSourceax =
-{
-    &CLSID_BassAudioSource,    // Filter CLSID
-    LABEL_BassAudioSource,    // String name
-    MERIT_UNLIKELY,         // Filter merit
-    1,                      // Number pins
-    &sudOpPin               // Pin details
+const AMOVIESETUP_PIN sudOpPin = {
+	L"Output",              // Pin string name
+	FALSE,                  // Is it rendered
+	TRUE,                   // Is it an output
+	FALSE,                  // Can we have none
+	FALSE,                  // Can we have many
+	&CLSID_NULL,            // Connects to filter
+	NULL,                   // Connects to pin
+	1,                      // Number of types
+	&sudOpPinTypes          // Pin details
 };
 
+const AMOVIESETUP_FILTER sudBassAudioSourceax = {
+	&CLSID_BassAudioSource, // Filter CLSID
+	LABEL_BassAudioSource,  // String name
+	MERIT_UNLIKELY,         // Filter merit
+	1,                      // Number pins
+	&sudOpPin               // Pin details
+};
 
 BassExtension BASS_EXTENSIONS[] = {
-    {L".aac",  false, L"bass_aac.dll"},
-    {L".alac", false, L"bass_alac.dll"},
-    {L".als",  false, L"bass_alac.dll"},
-    {L".ape",  false, L"bass_ape.dll"},
-    {L".flac", false, L"bassflac.dll"},
-    {L".m4a",  false, L"bass_aac.dll"},
-    {L".mp4",  false, L"bass_aac.dll"},
-    {L".mac",  false, L"bass_ape.dll"},
-    {L".mp3",  false, L"bass.dll"},
-    {L".ogg",  false, L"bass.dll"},
-    {L".mpc",  false, L"bass_mpc.dll"},
-    {L".wv",   false, L"basswv.dll"},
+	{L".aac",  false, L"bass_aac.dll"},
+	{L".alac", false, L"bass_alac.dll"},
+	{L".als",  false, L"bass_alac.dll"},
+	{L".ape",  false, L"bass_ape.dll"},
+	{L".flac", false, L"bassflac.dll"},
+	{L".m4a",  false, L"bass_aac.dll"},
+	{L".mp4",  false, L"bass_aac.dll"},
+	{L".mac",  false, L"bass_ape.dll"},
+	{L".mp3",  false, L"bass.dll"},
+	{L".ogg",  false, L"bass.dll"},
+	{L".mpc",  false, L"bass_mpc.dll"},
+	{L".wv",   false, L"basswv.dll"},
 #ifndef _WIN64
-    {L".tta",  false, L"bass_tta.dll"},
-    {L".ofr",  false, L"bass_ofr.dll"},
+	{L".tta",  false, L"bass_tta.dll"},
+	{L".ofr",  false, L"bass_ofr.dll"},
 #endif
-    {L".it",   true, L"bass.dll"},
-    {L".mo3",  true, L"bass.dll"},
-    {L".mod",  true, L"bass.dll"},
-    {L".mtm",  true, L"bass.dll"},
-    {L".s3m",  true, L"bass.dll"},
-    {L".umx",  true, L"bass.dll"},
-    {L".xm",   true, L"bass.dll"}
+	{L".it",   true, L"bass.dll"},
+	{L".mo3",  true, L"bass.dll"},
+	{L".mod",  true, L"bass.dll"},
+	{L".mtm",  true, L"bass.dll"},
+	{L".s3m",  true, L"bass.dll"},
+	{L".umx",  true, L"bass.dll"},
+	{L".xm",   true, L"bass.dll"}
 };
 const int BASS_EXTENSIONS_COUNT = std::size(BASS_EXTENSIONS);
 
 LPWSTR BASS_PLUGINS[] = {
-    L"bass_aac.dll",
-    L"bass_alac.dll",
-    L"bass_ape.dll",
-    L"bassflac.dll",
-    L"bass_mpc.dll",
+	L"bass_aac.dll",
+	L"bass_alac.dll",
+	L"bass_ape.dll",
+	L"bassflac.dll",
+	L"bass_mpc.dll",
 #ifndef _WIN64
-    L"bass_tta.dll",
-    L"bass_ofr.dll",
+	L"bass_tta.dll",
+	L"bass_ofr.dll",
 #endif
-    L"basswv.dll"
+	L"basswv.dll"
 };
 const int BASS_PLUGINS_COUNT = std::size(BASS_PLUGINS);
 
@@ -113,26 +108,14 @@ const int BASS_PLUGINS_COUNT = std::size(BASS_PLUGINS);
 CUnknown * WINAPI CreateBassAudioSourceInstance(LPUNKNOWN lpunk, HRESULT *phr);
 
 CFactoryTemplate g_Templates[] = {
-  { LABEL_BassAudioSource
-  , &CLSID_BassAudioSource
-  , CreateBassAudioSourceInstance
-  , NULL
-  , &sudBassAudioSourceax }
+	{ LABEL_BassAudioSource
+	, &CLSID_BassAudioSource
+	, CreateBassAudioSourceInstance
+	, NULL
+	, &sudBassAudioSourceax }
 };
 int g_cTemplates = std::size(g_Templates);
 
-/*
-implementation
-
-{*** TBassSource **************************************************************}
-{*** IFileSourceFilter ********************************************************}
-(*** ISpecifyPropertyPages ****************************************************)
-(*** IBassAudioSource ************************************************************)
-(*** IDispatch ****************************************************************)
-(*** IAMMediaContent **********************************************************)
-{*** TBassSourceStream ********************************************************}
-(*** IMediaSeeking ************************************************************)
-*/
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -140,10 +123,11 @@ implementation
 //
 ////////////////////////////////////////////////////////////////////////
 
-bool FileExists(LPCWSTR fileName) {
-  WIN32_FILE_ATTRIBUTE_DATA info;
+bool FileExists(LPCWSTR fileName)
+{
+	WIN32_FILE_ATTRIBUTE_DATA info;
 
-  return !!GetFileAttributesExW(fileName, GetFileExInfoStandard, &info);
+	return !!GetFileAttributesExW(fileName, GetFileExInfoStandard, &info);
 }
 
 /*
@@ -152,50 +136,50 @@ function DllGetClassObject(const CLSID, IID: TGUID; var Obj): HResult;
 function DllCanUnloadNow: HResult;
 */
 
-bool RegisterFormat(LPCWSTR format, bool exist) /*
-function RegisterFormat(AFormat: WideString): Boolean;
-*/{
-  LPWSTR fileName;//: WideString;
-//begin
-  WCHAR PathBuffer2[MAX_PATH + 1];
+bool RegisterFormat(LPCWSTR format, bool exist)
+{
+	LPWSTR fileName;
+	WCHAR PathBuffer2[MAX_PATH + 1];
 
-  fileName = wcscat(GetFilterDirectory(PathBuffer2), REGISTER_EXTENSION_FILE);
-  if (!FileExists(fileName))
-    return false;
+	fileName = wcscat(GetFilterDirectory(PathBuffer2), REGISTER_EXTENSION_FILE);
+	if (!FileExists(fileName)) {
+		return false;
+	}
 
-  if (*format == '.')
-    format++;
+	if (*format == '.') {
+		format++;
+	}
 
-  switch(GetPrivateProfileIntW(L"Register", format, 0, fileName))
-  {
-  case 1:
-    return true;
-  case 2:
-    return !exist;
-  default:
-    return false;
-  }
+	switch (GetPrivateProfileIntW(L"Register", format, 0, fileName)) {
+	case 1:
+		return true;
+	case 2:
+		return !exist;
+	default:
+		return false;
+	}
 }
 
 void RegWriteString(HKEY key, LPCWSTR name, LPCWSTR value)
 {
-  RegSetValueExW(key, name, 0, REG_SZ, (BYTE*)value, DWORD((wcslen(value)+1) * sizeof(WCHAR)));
+	RegSetValueExW(key, name, 0, REG_SZ, (BYTE*)value, DWORD((wcslen(value) + 1) * sizeof(WCHAR)));
 }
 
 bool RegReadString(HKEY key, LPCWSTR name, LPWSTR value, int len)
 {
-  DWORD type;
-  DWORD cbuf = len * sizeof(WCHAR);
-  if (RegQueryValueExW(key, name, NULL, &type, (LPBYTE)value, &cbuf) != ERROR_SUCCESS)
-    return false;
-  switch(type)
-  {
-  case REG_EXPAND_SZ:
-  case REG_SZ:
-    return true;
-  default:
-    return false;
-  }
+	DWORD type;
+	DWORD cbuf = len * sizeof(WCHAR);
+	if (RegQueryValueExW(key, name, NULL, &type, (LPBYTE)value, &cbuf) != ERROR_SUCCESS) {
+		return false;
+	}
+
+	switch (type) {
+	case REG_EXPAND_SZ:
+	case REG_SZ:
+		return true;
+	default:
+		return false;
+	}
 }
 
 //
@@ -329,19 +313,23 @@ function DllUnregisterServer: HResult;
 //
 extern "C" BOOL WINAPI DllEntryPoint(HINSTANCE, ULONG, LPVOID);
 
-BOOL APIENTRY DllMain(HMODULE hModule, 
-                      DWORD  dwReason, 
-                      LPVOID lpReserved) {
-  if (dwReason == DLL_PROCESS_ATTACH)
-    HInstance = hModule;
-  return DllEntryPoint((HINSTANCE)(hModule), dwReason, lpReserved);
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD  dwReason, LPVOID lpReserved)
+{
+	if (dwReason == DLL_PROCESS_ATTACH) {
+		HInstance = hModule;
+	}
+
+	return DllEntryPoint((HINSTANCE)(hModule), dwReason, lpReserved);
 }
 
-CUnknown * WINAPI CreateBassAudioSourceInstance(LPUNKNOWN lpunk, HRESULT *phr) {
-  CUnknown *punk = new BassSource(LABEL_BassAudioSource, lpunk, CLSID_BassAudioSource, *phr);
-  if(!punk) {
-    if(phr)
-      *phr = E_OUTOFMEMORY;
-  }
-  return punk;
+CUnknown* WINAPI CreateBassAudioSourceInstance(LPUNKNOWN lpunk, HRESULT* phr)
+{
+	CUnknown* punk = new BassSource(LABEL_BassAudioSource, lpunk, CLSID_BassAudioSource, *phr);
+	if (!punk) {
+		if (phr) {
+			*phr = E_OUTOFMEMORY;
+		}
+	}
+
+	return punk;
 }

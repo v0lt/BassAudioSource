@@ -9,12 +9,6 @@ catch ( ... ) { \
 } \
 Saver
 
-#define FreeObject(obj) \
-if (obj) { \
-  obj->Release(); \
-  obj = NULL; \
-}
-
 LPCSTR ToLPSTR(LPCWSTR text, LPSTR convertBuffer, int len);
 #define ToLPWSTR(text, convertBuffer, len) (text)
 LPCWSTR FromLPSTR(LPCSTR text, LPWSTR buf, int len);
