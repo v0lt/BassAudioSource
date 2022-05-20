@@ -22,10 +22,6 @@
 
 //BassSourceStream.h
 
-/*
-interface
-*/
-
 #include "BassDecoder.h"
 
 #pragma once
@@ -34,52 +30,54 @@ interface
 #define MSEC_REFTIME_FACTOR           10000
 
 
-class BassSourceStream: public CSourceStream, public IMediaSeeking {
-    friend class BassSource; /*
-  TBassSourceStream = class(TBCSourceStream, IMediaSeeking)
-*/private:
-    BassDecoder* decoder;//: TBassDecoder;
-    double rateSeeking;//: Double;
-    DWORD seekingCaps;//: DWORD;
-    LONGLONG duration;//: Int64;
-    REFERENCE_TIME start;//: Int64;
-    REFERENCE_TIME stop;//: Int64;
-    bool discontinuity;//: Boolean;
-    REFERENCE_TIME sampleTime;//: Int64;
-    REFERENCE_TIME mediaTime;//: Int64;
-    CCritSec* lock;//: TBCCritSec;
-    HRESULT ChangeStart();
-    HRESULT ChangeStop();
-    HRESULT ChangeRate();
-    void UpdateFromSeek();
-  public:
-    BassSourceStream(LPCWSTR objectName, HRESULT &hr, CSource* filter, LPCWSTR name, LPCWSTR filename,
-                     ShoutcastEvents* shoutcastEvents,
-                     int buffersizeMS, int prebufferMS);
-    ~BassSourceStream();
-    HRESULT GetMediaType(CMediaType *pMediaType);
-    HRESULT FillBuffer(IMediaSample *pSamp);
-    HRESULT DecideBufferSize(IMemAllocator * pAlloc, ALLOCATOR_PROPERTIES * ppropInputRequest);
-    STDMETHODIMP NonDelegatingQueryInterface(REFIID, void **);
-    HRESULT OnThreadStartPlay();
+class BassSourceStream : public CSourceStream, public IMediaSeeking
+{
+	friend class BassSource;
+private:
+	BassDecoder* decoder;
+	double rateSeeking;
+	DWORD seekingCaps;
+	LONGLONG duration;
+	REFERENCE_TIME start;
+	REFERENCE_TIME stop;
+	bool discontinuity;
+	REFERENCE_TIME sampleTime;
+	REFERENCE_TIME mediaTime;
+	CCritSec* lock;
+	HRESULT ChangeStart();
+	HRESULT ChangeStop();
+	HRESULT ChangeRate();
+	void UpdateFromSeek();
 
-    DECLARE_IUNKNOWN
-    // IMediaSeeking methods
-    STDMETHODIMP GetCapabilities(DWORD *pCapabilities);
-    STDMETHODIMP CheckCapabilities(DWORD *pCapabilities);
-    STDMETHODIMP IsFormatSupported(const GUID *pFormat);
-    STDMETHODIMP QueryPreferredFormat(GUID *pFormat);
-    STDMETHODIMP GetTimeFormat(GUID *pFormat);
-    STDMETHODIMP IsUsingTimeFormat(const GUID *pFormat);
-    STDMETHODIMP SetTimeFormat(const GUID *pFormat);
-    STDMETHODIMP GetDuration(LONGLONG *pDuration);
-    STDMETHODIMP GetStopPosition(LONGLONG *pStop);
-    STDMETHODIMP GetCurrentPosition(LONGLONG *pCurrent);
-    STDMETHODIMP ConvertTimeFormat(LONGLONG *pTarget, const GUID *pTargetFormat, LONGLONG Source, const GUID *pSourceFormat);
-    STDMETHODIMP SetPositions(LONGLONG *pCurrent, DWORD dwCurrentFlags, LONGLONG *pStop, DWORD dwStopFlags);
-    STDMETHODIMP GetPositions(LONGLONG *pCurrent, LONGLONG *pStop);
-    STDMETHODIMP GetAvailable(LONGLONG *pEarliest, LONGLONG *pLatest);
-    STDMETHODIMP SetRate(double dRate);
-    STDMETHODIMP GetRate(double *pdRate);
-    STDMETHODIMP GetPreroll(LONGLONG *pllPreroll);
+public:
+	BassSourceStream(LPCWSTR objectName, HRESULT& hr, CSource* filter, LPCWSTR name, LPCWSTR filename,
+		ShoutcastEvents* shoutcastEvents,
+		int buffersizeMS, int prebufferMS);
+	~BassSourceStream();
+
+	HRESULT GetMediaType(CMediaType* pMediaType);
+	HRESULT FillBuffer(IMediaSample* pSamp);
+	HRESULT DecideBufferSize(IMemAllocator* pAlloc, ALLOCATOR_PROPERTIES* ppropInputRequest);
+	STDMETHODIMP NonDelegatingQueryInterface(REFIID, void**);
+	HRESULT OnThreadStartPlay();
+
+	DECLARE_IUNKNOWN
+	// IMediaSeeking methods
+	STDMETHODIMP GetCapabilities(DWORD* pCapabilities);
+	STDMETHODIMP CheckCapabilities(DWORD* pCapabilities);
+	STDMETHODIMP IsFormatSupported(const GUID* pFormat);
+	STDMETHODIMP QueryPreferredFormat(GUID* pFormat);
+	STDMETHODIMP GetTimeFormat(GUID* pFormat);
+	STDMETHODIMP IsUsingTimeFormat(const GUID* pFormat);
+	STDMETHODIMP SetTimeFormat(const GUID* pFormat);
+	STDMETHODIMP GetDuration(LONGLONG* pDuration);
+	STDMETHODIMP GetStopPosition(LONGLONG* pStop);
+	STDMETHODIMP GetCurrentPosition(LONGLONG* pCurrent);
+	STDMETHODIMP ConvertTimeFormat(LONGLONG* pTarget, const GUID* pTargetFormat, LONGLONG Source, const GUID* pSourceFormat);
+	STDMETHODIMP SetPositions(LONGLONG* pCurrent, DWORD dwCurrentFlags, LONGLONG* pStop, DWORD dwStopFlags);
+	STDMETHODIMP GetPositions(LONGLONG* pCurrent, LONGLONG* pStop);
+	STDMETHODIMP GetAvailable(LONGLONG* pEarliest, LONGLONG* pLatest);
+	STDMETHODIMP SetRate(double dRate);
+	STDMETHODIMP GetRate(double* pdRate);
+	STDMETHODIMP GetPreroll(LONGLONG* pllPreroll);
 };
