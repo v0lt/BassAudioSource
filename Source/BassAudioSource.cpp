@@ -78,13 +78,15 @@ BassExtension BASS_EXTENSIONS[] = {
 	{L".wv",   false, L"basswv.dll"},
 	{L".tta",  false, L"bass_tta.dll"},
 	{L".ofr",  false, L"bass_ofr.dll"},
-	{L".it",   true, L"bass.dll"},
-	{L".mo3",  true, L"bass.dll"},
-	{L".mod",  true, L"bass.dll"},
-	{L".mtm",  true, L"bass.dll"},
-	{L".s3m",  true, L"bass.dll"},
-	{L".umx",  true, L"bass.dll"},
-	{L".xm",   true, L"bass.dll"}
+	{L".it",   true,  L"bass.dll"},
+	{L".mo3",  true,  L"bass.dll"},
+	{L".mod",  true,  L"bass.dll"},
+	{L".mtm",  true,  L"bass.dll"},
+	{L".s3m",  true,  L"bass.dll"},
+	{L".umx",  true,  L"bass.dll"},
+	{L".xm",   true,  L"bass.dll"},
+	{L".pt2",  false, L"basszxtune.dll"},
+	{L".pt3",  false, L"basszxtune.dll"},
 };
 const int BASS_EXTENSIONS_COUNT = (int)std::size(BASS_EXTENSIONS);
 
@@ -97,7 +99,8 @@ LPWSTR BASS_PLUGINS[] = {
 	L"bass_tta.dll",
 	L"bass_ofr.dll",
 	L"bassopus.dll",
-	L"basswv.dll"
+	L"basswv.dll",
+	L"basszxtune.dll",
 };
 const int BASS_PLUGINS_COUNT = (int)std::size(BASS_PLUGINS);
 
