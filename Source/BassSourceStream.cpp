@@ -130,7 +130,7 @@ HRESULT BassSourceStream::DecideBufferSize(IMemAllocator* pAlloc, ALLOCATOR_PROP
 HRESULT BassSourceStream::FillBuffer(IMediaSample* pSamp)
 {
 	BYTE* buffer;
-	int received;
+	int received = 0;
 	REFERENCE_TIME timeStart, timeStop;
 	LONGLONG sampleTime;
 	HRESULT result = S_OK;

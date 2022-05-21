@@ -9,12 +9,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include", "Include", "{C7CA
 	ProjectSection(SolutionItems) = preProject
 		Include\bass.h = Include\bass.h
 		Include\bass_aac.h = Include\bass_aac.h
-		Include\bass_alac.h = Include\bass_alac.h
-		Include\bass_ape.h = Include\bass_ape.h
 		Include\bass_mpc.h = Include\bass_mpc.h
 		Include\bass_ofr.h = Include\bass_ofr.h
 		Include\bass_tta.h = Include\bass_tta.h
+		Include\bassalac.h = Include\bassalac.h
+		Include\bassape.h = Include\bassape.h
 		Include\bassflac.h = Include\bassflac.h
+		Include\bassopus.h = Include\bassopus.h
 		Include\basswv.h = Include\basswv.h
 	EndProjectSection
 EndProject
