@@ -64,21 +64,19 @@ const AMOVIESETUP_FILTER sudBassAudioSourceax = {
 
 BassExtension BASS_EXTENSIONS[] = {
 	{L".aac",  false, L"bass_aac.dll"},
-	{L".alac", false, L"bass_alac.dll"},
-	{L".als",  false, L"bass_alac.dll"},
-	{L".ape",  false, L"bass_ape.dll"},
+	{L".alac", false, L"bassalac.dll"},
+	{L".als",  false, L"bassalac.dll"},
+	{L".ape",  false, L"bassape.dll"},
 	{L".flac", false, L"bassflac.dll"},
 	{L".m4a",  false, L"bass_aac.dll"},
 	{L".mp4",  false, L"bass_aac.dll"},
-	{L".mac",  false, L"bass_ape.dll"},
+	{L".mac",  false, L"bassape.dll"},
 	{L".mp3",  false, L"bass.dll"},
 	{L".ogg",  false, L"bass.dll"},
 	{L".mpc",  false, L"bass_mpc.dll"},
 	{L".wv",   false, L"basswv.dll"},
-#ifndef _WIN64
 	{L".tta",  false, L"bass_tta.dll"},
 	{L".ofr",  false, L"bass_ofr.dll"},
-#endif
 	{L".it",   true, L"bass.dll"},
 	{L".mo3",  true, L"bass.dll"},
 	{L".mod",  true, L"bass.dll"},
@@ -91,14 +89,12 @@ const int BASS_EXTENSIONS_COUNT = (int)std::size(BASS_EXTENSIONS);
 
 LPWSTR BASS_PLUGINS[] = {
 	L"bass_aac.dll",
-	L"bass_alac.dll",
-	L"bass_ape.dll",
+	L"bassalac.dll",
+	L"bassape.dll",
 	L"bassflac.dll",
 	L"bass_mpc.dll",
-#ifndef _WIN64
 	L"bass_tta.dll",
 	L"bass_ofr.dll",
-#endif
 	L"basswv.dll"
 };
 const int BASS_PLUGINS_COUNT = (int)std::size(BASS_PLUGINS);

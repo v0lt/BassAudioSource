@@ -38,11 +38,17 @@ LPWSTR GetFileExt(LPCWSTR path, LPWSTR ext) {
 bool CommandParamExist(LPCWSTR command, LPCWSTR opt) {
 	size_t len = wcslen(opt);
 	LPCWSTR pos = wcsstr(command, opt);
-	if (!pos) return false;
+	if (!pos) {
+		return false;
+	}
 	pos -= 1;
-	if (*pos != ' ' && *pos != '"') return false;
+	if (*pos != ' ' && *pos != '"') {
+		return false;
+	}
 	pos += len+1;
-	if (*pos != ' ' && *pos != '"' && *pos) return false;
+	if (*pos != ' ' && *pos != '"' && *pos) {
+		return false;
+	}
 	return true;
 }
 
