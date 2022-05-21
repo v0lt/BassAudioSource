@@ -7,9 +7,7 @@ extern HMODULE HInstance;
 #define BASS_TFLAGS BASS_UNICODE
 
 struct BassExtension {
-public:
 	LPCWSTR Extension;
-	const bool IsMOD;
 	LPCWSTR DLL;
 };
 

@@ -47,14 +47,16 @@ LPWSTR GetFilterDirectory(LPWSTR folder)
 
 bool IsMODFile(LPCWSTR fileName)
 {
+	static LPCWSTR mod_exts[] = { L".it", L".mo3", L".mod", L".mtm", L".s3m", L".umx", L".xm" };
+
 	LPWSTR ext;
 	WCHAR PathBuffer[MAX_PATH + 1];
 
 	ext = GetFileExt(fileName, PathBuffer);
 
-	for (int i = 0; i < BASS_EXTENSIONS_COUNT; i++) {
-		if (lstrcmpiW(BASS_EXTENSIONS[i].Extension, ext) == 0) {
-			return BASS_EXTENSIONS[i].IsMOD;
+	for (const auto& mod_ext : mod_exts) {
+		if (lstrcmpiW(mod_ext, ext) == 0) {
+			return true;
 		}
 	}
 
@@ -183,7 +185,8 @@ void BassDecoder::LoadPlugins()
 	LPWSTR plugin = path + wcslen(path);
 
 	for (int i = 0; i < BASS_PLUGINS_COUNT; i++) {
-		wcscpy(plugin, BASS_PLUGINS[i]); BASS_PluginLoad(LPCSTR(path), BASS_TFLAGS);
+		wcscpy(plugin, BASS_PLUGINS[i]);
+		BASS_PluginLoad(LPCSTR(path), BASS_TFLAGS);
 	}
 }
 
