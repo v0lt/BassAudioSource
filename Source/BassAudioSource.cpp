@@ -20,10 +20,6 @@
  *  http://www.gnu.org/copyleft/gpl.html
  */
 
-/*
-interface
-*/
-
 #include "stdafx.h"
 #include <Dshow.h>
 #include <InitGuid.h>
@@ -32,6 +28,8 @@ interface
 #include "BassAudioSource.h"
 #include "BassSource.h"
 #include "Common.h"
+
+#define REGISTERING_FILE_EXTENSIONS 0
 
 HMODULE HInstance;
 
@@ -190,6 +188,7 @@ bool RegReadString(HKEY key, LPCWSTR name, LPWSTR value, int len)
 //
 STDAPI DllRegisterServer()
 {
+#if REGISTERING_FILE_EXTENSIONS
 	HKEY reg, reg2;
 	LPCWSTR ext;
 	LPWSTR dllPath;
@@ -242,6 +241,7 @@ STDAPI DllRegisterServer()
 			RegCloseKey(reg);
 		}
 	}
+#endif
 
 	return AMovieDllRegisterServer2(TRUE);
 }
@@ -251,6 +251,7 @@ STDAPI DllRegisterServer()
 //
 STDAPI DllUnregisterServer()
 {
+#if REGISTERING_FILE_EXTENSIONS
 	HKEY reg;
 	LPCWSTR ext;
 	HKEY reg2;
@@ -306,6 +307,7 @@ STDAPI DllUnregisterServer()
 			RegCloseKey(reg);
 		}
 	}
+#endif
 
 	return AMovieDllRegisterServer2(FALSE);
 }
