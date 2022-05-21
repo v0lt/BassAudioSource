@@ -49,6 +49,9 @@
       <ModuleDefinitionFile>BassAudioSource.def</ModuleDefinitionFile>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
+    <PreBuildEvent>
+      <Command>..\update_revision.cmd</Command>
+    </PreBuildEvent>
     <ClCompile>
       <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -73,7 +76,7 @@
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="app.rc" />
+    <ResourceCompile Include="BassAudioSource.rc" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\external\BaseClasses.vcxproj">
