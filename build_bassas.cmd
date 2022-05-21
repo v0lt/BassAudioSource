@@ -120,7 +120,7 @@ IF DEFINED SEVENZIP (
 
     TITLE Creating archive %PCKG_NAME_X64%.zip...
     START "7z" /B /WAIT "%SEVENZIP%" a -tzip -mx9 "_bin\%PCKG_NAME_X64%.zip" ^
-.\_bin\Filter_x64%SUFFIX%\%PROJECT%.ax ^
+.\_bin\Filter_x64%SUFFIX%\%PROJECT%64.ax ^
 .\distrib\x64\*.dll ^
 .\Readme.md
     IF %ERRORLEVEL% NEQ 0 CALL :SubMsg "ERROR" "Unable to create %PCKG_NAME_X64%.zip!"
