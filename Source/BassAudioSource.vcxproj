@@ -65,6 +65,7 @@
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Utils\StringUtil.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BassDecoder.h" />
@@ -74,6 +75,7 @@
     <ClInclude Include="BassAudioSource.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Utils\StringUtil.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BassAudioSource.rc" />

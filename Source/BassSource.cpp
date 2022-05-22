@@ -26,6 +26,7 @@
 #include "BassSource.h"
 #include "BassAudioSource.h"
 #include <MMReg.h>
+#include "Utils/StringUtil.h"
 
 volatile LONG InstanceCount = 0;
 
@@ -287,6 +288,33 @@ STDMETHODIMP BassSource::NonDelegatingQueryInterface(REFIID iid, void** ppv)
 
 STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 {
+	static LPCSTR bass_exts[] = {
+		// bass.dll
+		"mp3", "mp2", "mp1", "ogg", "wav", "aiff",
+		"it", "mod", "mtm", "s3m", "umx", "xm", "mo3",
+		// bass_aac.dll
+		"aac", "m4a",
+		// bass_mpc.dll
+		"mpc",
+		// bass_ofr.dll
+		"ofr",
+		// bass_tta.dll
+		"tta",
+		// bassalac.dll
+		"alac"
+		// bassape.dll
+		"ape",
+		// bassflac.dll
+		"flac",
+		// bassopus.dll
+		"opus",
+		// basswv.dll
+		"wv",
+		// basszxtune.dll
+		"pt2", "pt3", "ay", "stc",
+	};
+
+
 	HRESULT hr;
 
 	if (GetPinCount() > 0) {
@@ -294,21 +322,22 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 	}
 
 	if (pszFileName) {
-		LPWSTR ext;
-		WCHAR PathBuffer[MAX_PATH + 1];
+		WCHAR PathBuffer[MAX_PATH + 1] = {};
 
-		ext = GetFileExt(pszFileName, PathBuffer);
-		
-		if (lstrcmpiW(ext, L".avi") == 0
-			|| lstrcmpiW(ext, L".mp4") == 0
-			|| lstrcmpiW(ext, L".mkv") == 0
-			|| lstrcmpiW(ext, L".webm") == 0
-			|| lstrcmpiW(ext, L".flv") == 0
-			|| lstrcmpiW(ext, L".vob") == 0
-			|| lstrcmpiW(ext, L".m2ts") == 0
-			|| lstrcmpiW(ext, L".ts") == 0) {
+		GetFileExt(pszFileName, PathBuffer);
+		if (PathBuffer[0] == L'.') {
+			std::string ext = ConvertWideToANSI(std::wstring(&PathBuffer[1]));
 
-			return VFW_E_CANNOT_LOAD_SOURCE_FILTER;
+			size_t i = 0;
+			for (; i < std::size(bass_exts); i++) {
+				if (ext.compare(bass_exts[i]) == 0) {
+					break;
+				}
+			}
+
+			if (i == std::size(bass_exts)) {
+				return VFW_E_CANNOT_LOAD_SOURCE_FILTER;
+			}
 		}
 	}
 

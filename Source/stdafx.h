@@ -12,3 +12,5 @@
 #include "../external/BaseClasses/streams.h"
 
 #include <algorithm>
+#include <vector>
+#include <string>
