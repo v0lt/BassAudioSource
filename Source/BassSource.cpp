@@ -108,143 +108,38 @@ void STDMETHODCALLTYPE BassSource::OnShoutcastBufferCallback(const void* buffer,
 {
 }
 
-bool RegReadInteger(HKEY key, LPCWSTR name, int* value)
+bool RegReadDword(HKEY key, LPCWSTR name, DWORD& dwValue)
 {
-	BYTE buf[MAX_PATH];
-	memset(buf, 0, MAX_PATH);
-	DWORD type;
-	DWORD len = MAX_PATH;
+	DWORD dwType;
+	ULONG nBytes = sizeof(DWORD);
 
-	if (RegQueryValueExW(key, name, nullptr, &type, buf, &len) != ERROR_SUCCESS) {
-		return false;
-	}
-	if (!value) {
-		return true;
-	}
-
-	switch (type) {
-	case REG_DWORD:
-		*value = *((int*)buf);
-		return true;
-	case REG_BINARY:
-	case REG_QWORD:
-		*value = (int)*((LONGLONG*)buf);
-		return true;
-	case REG_EXPAND_SZ:
-	case REG_SZ:
-		*value = _wtoi((LPCWSTR)buf);
-		return true;
-	default:
-		return false;
-	}
+	LONG lRes = ::RegQueryValueExW(key, name, nullptr, &dwType, reinterpret_cast<LPBYTE>(&dwValue), &nBytes);
+	
+	return (lRes == ERROR_SUCCESS && dwType == REG_DWORD);
 }
 
-void RegWriteInteger(HKEY key, LPCWSTR name, int value)
+void RegWriteDword(HKEY key, LPCWSTR name, DWORD dwValue)
 {
-	BYTE buf[MAX_PATH];
-	DWORD type;
-	DWORD len = MAX_PATH;
-	if (RegQueryValueExW(key, name, nullptr, &type, nullptr, nullptr) == ERROR_FILE_NOT_FOUND) {
-		type = REG_DWORD;
-	}
+	LONG lRes = ::RegSetValueExW(key, name, 0, REG_DWORD, reinterpret_cast<const BYTE*>(&dwValue), sizeof(DWORD));
 
-	switch (type) {
-	case REG_DWORD:
-	case REG_BINARY:
-		*((DWORD*)buf) = value;
-		RegSetValueExW(key, name, 0, type, buf, sizeof(DWORD));
-		break;
-	case REG_QWORD:
-		*((LONGLONG*)buf) = value;
-		RegSetValueExW(key, name, 0, type, buf, sizeof(LONGLONG));
-		break;
-	case REG_EXPAND_SZ:
-	case REG_SZ:
-		_itow(value, (LPWSTR)buf, 10);
-		RegSetValueExW(key, name, 0, type, buf, DWORD((wcslen((LPWSTR)buf) + 1) * sizeof(WCHAR)));
-		break;
-	}
-}
-
-bool RegReadBool(HKEY key, LPCWSTR name, bool* value)
-{
-	LONGLONG buf = 0;
-	DWORD type;
-	DWORD len = sizeof(LONGLONG);
-	LPCWSTR s;
-
-	if (RegQueryValueExW(key, name, nullptr, &type, (LPBYTE)&buf, &len) != ERROR_SUCCESS) {
-		return false;
-	}
-	if (!value) {
-		return true;
-	}
-
-	switch (type) {
-	case REG_DWORD:
-		*value = !!*((int*)buf);
-		return true;
-	case REG_BINARY:
-	case REG_QWORD:
-		*value = !!*((LONGLONG*)buf);
-		return true;
-	case REG_EXPAND_SZ:
-	case REG_SZ:
-		s = (LPCWSTR)buf;
-		*value = *s != '0';
-		return wcslen(s) == 1 && (*s == '0' || *s == '1');
-	default:
-		return false;
-	}
-}
-
-void RegWriteBool(HKEY key, LPCWSTR name, bool value)
-{
-	LONGLONG buf = 0;
-	DWORD type;
-	DWORD len = sizeof(LONGLONG);
-
-	if (RegQueryValueExW(key, name, nullptr, &type, nullptr, nullptr) == ERROR_FILE_NOT_FOUND) {
-		type = REG_DWORD;
-	}
-
-	switch (type) {
-	case REG_DWORD:
-	case REG_BINARY:
-		*((DWORD*)buf) = value ? 1 : 0;
-		RegSetValueExW(key, name, 0, type, (const BYTE*)&buf, sizeof(DWORD));
-		break;
-	case REG_QWORD:
-		*((LONGLONG*)buf) = value ? 1L : 0L;
-		RegSetValueExW(key, name, 0, type, (const BYTE*)&buf, sizeof(LONGLONG));
-		break;
-	case REG_EXPAND_SZ:
-	case REG_SZ:
-		LPWSTR s = (LPWSTR)buf;
-		s[0] = value ? '1' : '0';
-		s[1] = 0;
-		RegSetValueExW(key, name, 0, type, (const BYTE*)&buf, 2 * sizeof(WCHAR));
-		break;
-	}
+	return;
 }
 
 void BassSource::LoadSettings()
 {
 	HKEY reg;
-	int num;
+	DWORD num;
 
 	if (RegOpenKeyW(HKEY_CURRENT_USER, L"SOFTWARE\\MPC-BE Filters\\BassAudioSource", &reg) == ERROR_SUCCESS)
 	{
 		__try {
-			if (RegReadInteger(reg, L"BuffersizeMS", &num))
-				this->buffersizeMS = std::clamp(num, PREBUFFER_MIN_SIZE, PREBUFFER_MAX_SIZE);
+			if (RegReadDword(reg, L"BuffersizeMS", num)) {
+				this->buffersizeMS = std::clamp<int>(num, PREBUFFER_MIN_SIZE, PREBUFFER_MAX_SIZE);
+			}
 
-			if (RegReadInteger(reg, L"PreBufferMS", &num))
-				this->preBufferMS = std::clamp(num, PREBUFFER_MIN_SIZE, PREBUFFER_MAX_SIZE);
-
-			//if (RegReadBool(reg, L"SplitStream", &flag))
-			//  this->splitStream = flag;
-
+			if (RegReadDword(reg, L"PreBufferMS", num)) {
+				this->preBufferMS = std::clamp<int>(num, PREBUFFER_MIN_SIZE, PREBUFFER_MAX_SIZE);
+			}
 		}
 		__finally {
 			RegCloseKey(reg);
@@ -259,9 +154,8 @@ void BassSource::SaveSettings()
 	if (RegCreateKeyW(HKEY_CURRENT_USER, L"SOFTWARE\\MPC-BE Filters\\BassAudioSource", &reg) == ERROR_SUCCESS)
 	{
 		__try {
-			RegWriteInteger(reg, L"BuffersizeMS", this->buffersizeMS);
-			RegWriteInteger(reg, L"PreBufferMS", this->preBufferMS);
-			//RegWriteBool   (reg, L"SplitStream",  this->splitStream);
+			RegWriteDword(reg, L"BuffersizeMS", this->buffersizeMS);
+			RegWriteDword(reg, L"PreBufferMS", this->preBufferMS);
 		}
 		__finally {
 			RegCloseKey(reg);
