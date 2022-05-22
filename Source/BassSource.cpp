@@ -293,6 +293,20 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 		return VFW_E_ALREADY_CONNECTED;
 	}
 
+	if (pszFileName) {
+		LPWSTR ext;
+		WCHAR PathBuffer[MAX_PATH + 1];
+
+		ext = GetFileExt(pszFileName, PathBuffer);
+		
+		if (lstrcmpiW(ext, L".avi") == 0
+			|| lstrcmpiW(ext, L".mp4") == 0
+			|| lstrcmpiW(ext, L".ts") == 0) {
+
+			return VFW_E_CANNOT_LOAD_SOURCE_FILTER;
+		}
+	}
+
 	this->pin = new BassSourceStream(L"Bass Source Stream", hr, this, L"Output", pszFileName, this, this->buffersizeMS, this->preBufferMS);
 	if (FAILED(hr) || !this->pin) {
 		return hr;
