@@ -28,5 +28,7 @@ BASS audio library and Add-ons - http://www.un4seen.com/bass.html
 
 BASSZXTUNE - chiptune support for BASS - http://www.un4seen.com/forum/?topic=15694
 
+DC-Bass Source Mod - https://rwijnsma.home.xs4all.nl/dc-bsm/index.htm
+
 
 These components are provided "AS IS". Use at own risk.
