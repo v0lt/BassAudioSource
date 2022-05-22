@@ -47,7 +47,7 @@ LPWSTR GetFilterDirectory(LPWSTR folder)
 
 bool IsMODFile(LPCWSTR fileName)
 {
-	static LPCWSTR mod_exts[] = { L".it", L".mo3", L".mod", L".mtm", L".s3m", L".umx", L".xm" };
+	static LPCWSTR mod_exts[] = { L".it", L".mo3", L".mod", L".mptm", L".mtm", L".s3m", L".umx", L".xm"};
 
 	LPWSTR ext;
 	WCHAR PathBuffer[MAX_PATH + 1];
