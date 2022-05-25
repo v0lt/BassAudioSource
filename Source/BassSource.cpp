@@ -28,6 +28,10 @@
 #include <MMReg.h>
 #include "Utils/StringUtil.h"
 
+#define OPT_REGKEY_BassAudioSource L"Software\\MPC-BE Filters\\BassAudioSource"
+#define OPT_BuffersizeMS           L"BuffersizeMS"
+#define OPT_PreBufferMS            L"PreBufferMS"
+
 volatile LONG InstanceCount = 0;
 
 //
@@ -130,15 +134,15 @@ void BassSource::LoadSettings()
 	HKEY reg;
 	DWORD num;
 
-	if (RegOpenKeyW(HKEY_CURRENT_USER, L"SOFTWARE\\MPC-BE Filters\\BassAudioSource", &reg) == ERROR_SUCCESS)
+	if (RegOpenKeyW(HKEY_CURRENT_USER, OPT_REGKEY_BassAudioSource, &reg) == ERROR_SUCCESS)
 	{
 		__try {
-			if (RegReadDword(reg, L"BuffersizeMS", num)) {
+			if (RegReadDword(reg, OPT_BuffersizeMS, num)) {
 				this->buffersizeMS = std::clamp<int>(num, PREBUFFER_MIN_SIZE, PREBUFFER_MAX_SIZE);
 			}
 
-			if (RegReadDword(reg, L"PreBufferMS", num)) {
-				this->preBufferMS = std::clamp<int>(num, PREBUFFER_MIN_SIZE, PREBUFFER_MAX_SIZE);
+			if (RegReadDword(reg, OPT_PreBufferMS, num)) {
+				this->preBufferMS = std::clamp<int>(num, PREBUFFER_MIN_SIZE, this->buffersizeMS);
 			}
 		}
 		__finally {
@@ -151,11 +155,11 @@ void BassSource::SaveSettings()
 {
 	HKEY reg;
 
-	if (RegCreateKeyW(HKEY_CURRENT_USER, L"SOFTWARE\\MPC-BE Filters\\BassAudioSource", &reg) == ERROR_SUCCESS)
+	if (RegCreateKeyW(HKEY_CURRENT_USER, OPT_REGKEY_BassAudioSource, &reg) == ERROR_SUCCESS)
 	{
 		__try {
-			RegWriteDword(reg, L"BuffersizeMS", this->buffersizeMS);
-			RegWriteDword(reg, L"PreBufferMS", this->preBufferMS);
+			RegWriteDword(reg, OPT_BuffersizeMS, this->buffersizeMS);
+			RegWriteDword(reg, OPT_PreBufferMS, this->preBufferMS);
 		}
 		__finally {
 			RegCloseKey(reg);
