@@ -75,7 +75,7 @@ void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user)
 	if (decoder->shoutcastEvents) {
 		WCHAR TextBuffer[1024];
 
-		LPWSTR metaStr = (LPWSTR)FromLPSTR(BASS_ChannelGetTags(channel, BASS_TAG_META), TextBuffer, (int)std::size(TextBuffer));
+		LPWSTR metaStr = (LPWSTR)FromUtf8ToWide(BASS_ChannelGetTags(channel, BASS_TAG_META), TextBuffer, (int)std::size(TextBuffer));
 		LPWSTR resStr = L"";
 
 		LPWSTR idx = wcsstr(metaStr, L"StreamTitle='");
@@ -314,7 +314,7 @@ void BassDecoder::GetNameTag(LPCSTR string)
 		return;
 	}
 
-	LPCWSTR astring = FromLPSTR(string, TextBuffer, (int)std::size(TextBuffer));
+	LPCWSTR astring = FromAnsiToWide(string, TextBuffer, (int)std::size(TextBuffer));
 	while (astring && *astring) {
 		tag = astring;
 		if (wcsncmp(L"icy-name:", tag, 9) == 0) {
@@ -353,7 +353,7 @@ void BassDecoder::GetHTTPInfos()
 	if (metaTags) {
 		WCHAR TextBuffer[1024];
 
-		LPWSTR metaStr = (LPWSTR)FromLPSTR(metaTags, TextBuffer, (int)std::size(TextBuffer));
+		LPWSTR metaStr = (LPWSTR)FromUtf8ToWide(metaTags, TextBuffer, (int)std::size(TextBuffer));
 		LPWSTR resStr = L"";
 
 		LPWSTR idx = wcsstr(metaStr, L"StreamTitle='");

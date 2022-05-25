@@ -4,15 +4,24 @@
 
 #pragma unmanaged
 
-LPCSTR ToLPSTR(LPCWSTR text, LPSTR convertBuffer, int len) {
+LPCSTR FromWideToANSI(LPCWSTR text, LPSTR convertBuffer, int len)
+{
 	WideCharToMultiByte(CP_ACP, 0, text, -1, convertBuffer, len, nullptr, nullptr);
 	return convertBuffer;
 }
 
-LPCWSTR FromLPSTR(LPCSTR text, LPWSTR buf, int len) {
+LPCWSTR FromAnsiToWide(LPCSTR text, LPWSTR buf, int len)
+{
 	MultiByteToWideChar(CP_ACP, 0, text, -1, buf, len);
 	return buf;
 }
+
+LPCWSTR FromUtf8ToWide(LPCSTR text, LPWSTR buf, int len)
+{
+	MultiByteToWideChar(CP_UTF8, 0, text, -1, buf, len);
+	return buf;
+}
+
 
 //
 

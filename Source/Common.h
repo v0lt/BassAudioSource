@@ -2,8 +2,9 @@
 
 #pragma once
 
-LPCSTR ToLPSTR(LPCWSTR text, LPSTR convertBuffer, int len);
-LPCWSTR FromLPSTR(LPCSTR text, LPWSTR buf, int len);
+LPCSTR FromWideToANSI(LPCWSTR text, LPSTR convertBuffer, int len);
+LPCWSTR FromAnsiToWide(LPCSTR text, LPWSTR buf, int len);
+LPCWSTR FromUtf8ToWide(LPCSTR text, LPWSTR buf, int len);
 
 LPWSTR GetFileName(LPCWSTR path, LPWSTR filename);
 LPWSTR GetFilePath(LPCWSTR path, LPWSTR folder);
