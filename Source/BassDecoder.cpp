@@ -32,11 +32,9 @@
 
 LPWSTR GetFilterDirectory(LPWSTR folder)
 {
-	DWORD res;
 	WCHAR PathBuffer[MAX_PATH + 1];
-	int PathBufferLength = MAX_PATH + 1;
 
-	res = GetModuleFileNameW(HInstance, PathBuffer, PathBufferLength);
+	DWORD res = GetModuleFileNameW(HInstance, PathBuffer, (DWORD)std::size(PathBuffer));
 	if (!res) {
 		*folder = 0;
 		return folder;
@@ -79,32 +77,31 @@ void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user)
 	BassDecoder* decoder = (BassDecoder*)user;
 	if (decoder->shoutcastEvents) {
 		WCHAR TextBuffer[1024];
-		int TextBufferLength = 1024;
 
-		metaStr = CopyFromLPSTR(/*(LPCSTR)data*/BASS_ChannelGetTags(channel, BASS_TAG_META), TextBuffer, TextBufferLength);
+		metaStr = (LPWSTR)FromLPSTR(BASS_ChannelGetTags(channel, BASS_TAG_META), TextBuffer, (int)std::size(TextBuffer));
 		resStr = L"";
 
 		idx = wcsstr(metaStr, L"StreamTitle='");
 		if (idx) {
 			// Shoutcast Metadata
-			resStr = idx + 13; if (*resStr) resStr[wcslen(resStr) - 1] = 0;
+			resStr = idx + 13;
+			if (*resStr) {
+				resStr[wcslen(resStr) - 1] = 0;
+			}
 			//LPWSTR idx2 = wcsstr(resStr, L"';");
-			//if (idx2)
-			//{
-			//  *idx2 = 0;
+			//if (idx2) {
+			//	*idx2 = 0;
 			//} else
 			//{
 			idx = wcsstr(resStr, L"'");
-			if (idx)
-			{
+			if (idx) {
 				*idx = 0;
 			}
 			//}
 		}
 		else if ((idx = wcsstr(metaStr, L"TITLE=")) ||
-			(idx = wcsstr(metaStr, L"Title=")) ||
-			(idx = wcsstr(metaStr, L"title=")))
-		{
+				(idx = wcsstr(metaStr, L"Title=")) ||
+				(idx = wcsstr(metaStr, L"title="))) {
 			resStr = idx + 6;
 		}
 
@@ -315,13 +312,12 @@ void BassDecoder::GetNameTag(LPCSTR string)
 {
 	LPCWSTR tag;
 	WCHAR TextBuffer[1024];
-	int TextBufferLength = 1024;
 
 	if (!this->shoutcastEvents) {
 		return;
 	}
 
-	LPCWSTR astring = FromLPSTR(string, TextBuffer, TextBufferLength);
+	LPCWSTR astring = FromLPSTR(string, TextBuffer, (int)std::size(TextBuffer));
 	while (astring && *astring) {
 		tag = astring;
 		if (wcsncmp(L"icy-name:", tag, 9) == 0) {

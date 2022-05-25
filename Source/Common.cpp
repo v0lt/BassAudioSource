@@ -54,8 +54,7 @@ bool CommandParamExist(LPCWSTR command, LPCWSTR opt) {
 
 void TraceException(LPCWSTR method) {
 	WCHAR textBuffer[1024];
-	int textBufferLength = 1024;
 
-	_snwprintf(textBuffer, textBufferLength, L"Exception in %s\r\n", method);
+	_snwprintf(textBuffer, std::size(textBuffer), L"Exception in %s\r\n", method);
 	OutputDebugStringW(textBuffer);
 }

@@ -164,21 +164,18 @@ void RegWriteString(HKEY key, LPCWSTR name, LPCWSTR value)
 	RegSetValueExW(key, name, 0, REG_SZ, (BYTE*)value, DWORD((wcslen(value) + 1) * sizeof(WCHAR)));
 }
 
-bool RegReadString(HKEY key, LPCWSTR name, LPWSTR value, int len)
+bool RegReadString(HKEY key, LPCWSTR name, LPWSTR value, unsigned len)
 {
 	DWORD type;
 	DWORD cbuf = len * sizeof(WCHAR);
-	if (RegQueryValueExW(key, name, nullptr, &type, (LPBYTE)value, &cbuf) != ERROR_SUCCESS) {
-		return false;
+
+	LONG lRes = ::RegQueryValueExW(key, name, nullptr, &type, (LPBYTE)value, &cbuf);
+
+	if (lRes == ERROR_SUCCESS && (type == REG_SZ || type == REG_EXPAND_SZ)) {
+		return true;
 	}
 
-	switch (type) {
-	case REG_EXPAND_SZ:
-	case REG_SZ:
-		return true;
-	default:
-		return false;
-	}
+	return false;
 }
 
 //
@@ -256,7 +253,6 @@ STDAPI DllUnregisterServer()
 	LPCWSTR ext;
 	HKEY reg2;
 	WCHAR TextBuffer[1024];
-	int TextBufferLength = 1024;
 
 	if (RegOpenKeyW(HKEY_CLASSES_ROOT, DIRECTSHOW_SOURCE_FILTER_PATH, &reg) == ERROR_SUCCESS)
 	{
@@ -270,7 +266,7 @@ STDAPI DllUnregisterServer()
 				}
 				else {
 					__try {
-						if (!RegReadString(reg2, L"Source Filter", TextBuffer, TextBufferLength))
+						if (!RegReadString(reg2, L"Source Filter", TextBuffer, (unsigned)std::size(TextBuffer)))
 							*TextBuffer = 0;
 					}
 					__finally {
