@@ -32,7 +32,11 @@
 #define PREBUFFER_MIN_SIZE 100
 #define PREBUFFER_MAX_SIZE 5000
 
-class BassSource : public CSource, protected ShoutcastEvents, public IFileSourceFilter, public IAMMediaContent
+class BassSource
+	: public CSource
+	, protected ShoutcastEvents
+	, public IFileSourceFilter
+	, public IAMMediaContent
 {
 protected:
 	CCritSec* metaLock;

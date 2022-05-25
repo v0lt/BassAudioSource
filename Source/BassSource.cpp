@@ -172,8 +172,14 @@ STDMETHODIMP BassSource::NonDelegatingQueryInterface(REFIID iid, void** ppv)
 	if (IsEqualIID(iid, IID_IFileSourceFilter)/* || IsEqualIID(iid, IID_ISpecifyPropertyPages)*/) {
 		if (SUCCEEDED(GetInterface((LPUNKNOWN)(IFileSourceFilter*)this, ppv))) {
 			return S_OK;
+		} else {
+			return E_NOINTERFACE;
 		}
-		else {
+	}
+	else if (IsEqualIID(iid, IID_IAMMediaContent)) {
+		if (SUCCEEDED(GetInterface((LPUNKNOWN)(IAMMediaContent*)this, ppv))) {
+			return S_OK;
+		} else {
 			return E_NOINTERFACE;
 		}
 	}

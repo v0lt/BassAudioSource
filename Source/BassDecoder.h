@@ -52,7 +52,7 @@ protected:
 	int sampleRate;
 	int bytesPerSample;
 	bool _float;
-	LONGLONG mSecConv;
+	LONGLONG mSecConv = 0;
 	bool isShoutcast;
 	DWORD type;
 

@@ -70,18 +70,15 @@ bool IsURLPath(LPCWSTR fileName)
 
 void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user)
 {
-	LPWSTR metaStr;
-	LPWSTR resStr;
-	LPWSTR idx;
-
 	BassDecoder* decoder = (BassDecoder*)user;
+
 	if (decoder->shoutcastEvents) {
 		WCHAR TextBuffer[1024];
 
-		metaStr = (LPWSTR)FromLPSTR(BASS_ChannelGetTags(channel, BASS_TAG_META), TextBuffer, (int)std::size(TextBuffer));
-		resStr = L"";
+		LPWSTR metaStr = (LPWSTR)FromLPSTR(BASS_ChannelGetTags(channel, BASS_TAG_META), TextBuffer, (int)std::size(TextBuffer));
+		LPWSTR resStr = L"";
 
-		idx = wcsstr(metaStr, L"StreamTitle='");
+		LPWSTR idx = wcsstr(metaStr, L"StreamTitle='");
 		if (idx) {
 			// Shoutcast Metadata
 			resStr = idx + 13;
@@ -350,6 +347,40 @@ void BassDecoder::GetHTTPInfos()
 	httpHeaders = BASS_ChannelGetTags(this->stream, BASS_TAG_HTTP);
 	if (httpHeaders) {
 		GetNameTag(httpHeaders);
+	}
+
+	LPCSTR metaTags = BASS_ChannelGetTags(this->stream, BASS_TAG_META);
+	if (metaTags) {
+		WCHAR TextBuffer[1024];
+
+		LPWSTR metaStr = (LPWSTR)FromLPSTR(metaTags, TextBuffer, (int)std::size(TextBuffer));
+		LPWSTR resStr = L"";
+
+		LPWSTR idx = wcsstr(metaStr, L"StreamTitle='");
+		if (idx) {
+			// Shoutcast Metadata
+			resStr = idx + 13;
+			if (*resStr) {
+				resStr[wcslen(resStr) - 1] = 0;
+			}
+			//LPWSTR idx2 = wcsstr(resStr, L"';");
+			//if (idx2) {
+			//	*idx2 = 0;
+			//} else
+			//{
+			idx = wcsstr(resStr, L"'");
+			if (idx) {
+				*idx = 0;
+			}
+			//}
+		}
+		else if ((idx = wcsstr(metaStr, L"TITLE=")) ||
+			(idx = wcsstr(metaStr, L"Title=")) ||
+			(idx = wcsstr(metaStr, L"title="))) {
+			resStr = idx + 6;
+		}
+
+		this->shoutcastEvents->OnShoutcastMetaDataCallback(resStr);
 	}
 }
 
