@@ -38,23 +38,24 @@ class BassDecoder
 {
 protected:
 	//Use shoutcastEvents instead of FMetaDataCallback and FBufferCallback
-	ShoutcastEvents* shoutcastEvents;
-	int buffersizeMS;
-	int prebufferMS;
+	ShoutcastEvents* m_shoutcastEvents;
+	int m_buffersizeMS;
+	int m_prebufferMS;
 
-	HMODULE optimFROGDLL;
-	HSTREAM stream = 0;
-	HSYNC sync = 0;
-	bool isMOD;
-	bool isURL;
+	HMODULE m_optimFROGDLL = nullptr;
+	HSTREAM m_stream = 0;
+	HSYNC m_sync = 0;
+	bool m_isMOD = false;
+	bool m_isURL = false;
+	bool m_isShoutcast = false;
 
-	int channels;
-	int sampleRate;
-	int bytesPerSample;
-	bool _float;
-	LONGLONG mSecConv = 0;
-	bool isShoutcast;
-	DWORD type;
+	int m_channels;
+	int m_sampleRate;
+	int m_bytesPerSample;
+	bool m_float;
+	LONGLONG m_mSecConv = 0;
+
+	DWORD m_type;
 
 	void LoadBASS();
 	void UnloadBASS();
@@ -78,12 +79,12 @@ public:
 
 	int GetData(void* buffer, int size);
 
-	inline int GetChannels() { return this->channels; }
-	inline int GetSampleRate() { return this->sampleRate; }
-	inline int GetBytesPerSample() { return this->bytesPerSample; }
-	inline bool GetFloat() { return this->_float; }
-	inline LONGLONG GetMSecConv() { return this->mSecConv; }
-	inline bool GetIsShoutcast() { return this->isShoutcast; }
+	inline int GetChannels()       { return m_channels; }
+	inline int GetSampleRate()     { return m_sampleRate; }
+	inline int GetBytesPerSample() { return m_bytesPerSample; }
+	inline bool GetFloat()         { return m_float; }
+	inline LONGLONG GetMSecConv()  { return m_mSecConv; }
+	inline bool GetIsShoutcast()   { return m_isShoutcast; }
 	friend void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user);
 	friend void CALLBACK OnShoutcastData(const void* buffer, DWORD length, void* user);
 };
