@@ -43,8 +43,8 @@ protected:
 	int prebufferMS;
 
 	HMODULE optimFROGDLL;
-	HSTREAM stream;
-	HSYNC sync;
+	HSTREAM stream = 0;
+	HSYNC sync = 0;
 	bool isMOD;
 	bool isURL;
 

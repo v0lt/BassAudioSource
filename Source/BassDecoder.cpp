@@ -119,7 +119,6 @@ void CALLBACK OnShoutcastData(const void* buffer, DWORD length, void* user)
 //
 
 BassDecoder::BassDecoder(ShoutcastEvents* shoutcastEvents, int buffersizeMS, int prebufferMS)
-	: stream(0), sync(0)
 {
 	LPWSTR path;
 	WCHAR PathBuffer2[MAX_PATH + 1];
@@ -421,7 +420,7 @@ void BassDecoder::SetPosition(LONGLONG positionMS)
 		return;
 	}
 
-	if (!this - stream) {
+	if (!this->stream) {
 		return;
 	}
 

@@ -40,15 +40,18 @@ class BassSource
 {
 protected:
 	CCritSec* metaLock;
-	BassSourceStream* pin;
-	LPCWSTR fileName;
-	LPCWSTR currentTag;
+	BassSourceStream* pin = nullptr;
+	LPCWSTR fileName = nullptr;
+	std::wstring m_currentTag;
 	int buffersizeMS;
 	int preBufferMS;
 	void STDMETHODCALLTYPE OnShoutcastMetaDataCallback(LPCWSTR text);
 	void STDMETHODCALLTYPE OnShoutcastBufferCallback(const void* buffer, DWORD size);
 	void LoadSettings();
 	void SaveSettings();
+
+	void Init();
+
 public:
 	BassSource(LPCWSTR name, IUnknown* unk, REFCLSID clsid, HRESULT& hr);
 	BassSource(CFactoryTemplate* factory, LPUNKNOWN controller);
@@ -81,12 +84,6 @@ public:
 	STDMETHODIMP get_MoreInfoBannerImage(THIS_ BSTR FAR* pbstrMoreInfoBannerImage) { return E_NOTIMPL; }
 	STDMETHODIMP get_MoreInfoBannerURL(THIS_ BSTR FAR* pbstrMoreInfoBannerURL) { return E_NOTIMPL; }
 	STDMETHODIMP get_MoreInfoText(THIS_ BSTR FAR* pbstrMoreInfoText) { return E_NOTIMPL; }
-private:
-	void Init();
-public:
-	inline LPCWSTR GetCurrentTag() { return this->currentTag; }
-	void SetCurrentTag(LPCWSTR tag);
-	__declspec(property(get = GetCurrentTag, put = SetCurrentTag)) LPCWSTR CurrentTag;
 };
 
 

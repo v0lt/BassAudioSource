@@ -40,30 +40,12 @@ volatile LONG InstanceCount = 0;
 
 BassSource::BassSource(LPCWSTR name, IUnknown* unk, REFCLSID clsid, HRESULT& hr)
 	: CSource(name, unk, clsid, &hr)
-	, pin(nullptr)
-	, currentTag(nullptr)
-	, fileName(nullptr)
 {
 	Init();
 }
 
-void BassSource::Init()
-{
-	this->metaLock = new CCritSec();
-
-	this->buffersizeMS = PREBUFFER_MAX_SIZE;
-	this->preBufferMS = this->buffersizeMS * 75 / 100;
-
-	LoadSettings();
-
-	InterlockedIncrement(&InstanceCount);
-}
-
 BassSource::BassSource(CFactoryTemplate* factory, LPUNKNOWN controller)
 	: CSource(factory->m_Name, controller, CLSID_BassAudioSource, nullptr)
-	, pin(nullptr)
-	, currentTag(nullptr)
-	, fileName(nullptr)
 {
 	Init();
 }
@@ -79,9 +61,6 @@ BassSource::~BassSource()
 
 	delete this->metaLock;
 
-	if (this->currentTag) {
-		free((void*)this->currentTag);
-	}
 	if (this->fileName) {
 		free((void*)this->fileName);
 	}
@@ -89,19 +68,23 @@ BassSource::~BassSource()
 	SaveSettings();
 }
 
-void BassSource::SetCurrentTag(LPCWSTR tag)
+void BassSource::Init()
 {
-	if (this->currentTag) {
-		free((void*)this->currentTag);
-	}
-	this->currentTag = _wcsdup(tag);
+	this->metaLock = new CCritSec();
+
+	this->buffersizeMS = PREBUFFER_MAX_SIZE;
+	this->preBufferMS = this->buffersizeMS * 75 / 100;
+
+	LoadSettings();
+
+	InterlockedIncrement(&InstanceCount);
 }
 
 void STDMETHODCALLTYPE BassSource::OnShoutcastMetaDataCallback(LPCWSTR text)
 {
 	this->metaLock->Lock();
 	__try {
-		CurrentTag = text;
+		m_currentTag = text;
 	}
 	__finally {
 		this->metaLock->Unlock();
@@ -254,7 +237,7 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 
 	if (!this->pin->decoder->IsShoutcast) {
 		WCHAR PathBuffer[MAX_PATH + 1];
-		CurrentTag = GetFileName(this->fileName, PathBuffer);
+		m_currentTag = GetFileName(this->fileName, PathBuffer);
 	}
 
 	return S_OK;
@@ -282,7 +265,7 @@ STDMETHODIMP BassSource::get_Title(THIS_ BSTR FAR* pbstrTitle)
 	this->metaLock->Lock();
 
 	__try {
-		*pbstrTitle = SysAllocString(CurrentTag);
+		*pbstrTitle = SysAllocString(m_currentTag.c_str());
 	}
 	__finally {
 		this->metaLock->Unlock();
