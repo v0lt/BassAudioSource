@@ -35,15 +35,16 @@ class BassSourceStream : public CSourceStream, public IMediaSeeking
 	friend class BassSource;
 private:
 	BassDecoder* m_decoder = nullptr;
-	double rateSeeking;
-	DWORD seekingCaps;
-	LONGLONG duration;
-	REFERENCE_TIME start;
-	REFERENCE_TIME stop;
-	bool discontinuity;
-	REFERENCE_TIME sampleTime;
-	REFERENCE_TIME mediaTime;
+	double m_rateSeeking = 1.0;
+	DWORD m_seekingCaps = 0;
+	LONGLONG m_duration = 0;
+	REFERENCE_TIME m_start = 0;
+	REFERENCE_TIME m_stop = 0;
+	bool m_discontinuity = false;
+	REFERENCE_TIME m_sampleTime = 0;
+	REFERENCE_TIME m_mediaTime = 0;
 	CCritSec* m_lock = nullptr;
+
 	HRESULT ChangeStart();
 	HRESULT ChangeStop();
 	HRESULT ChangeRate();

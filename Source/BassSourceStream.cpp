@@ -49,22 +49,16 @@ BassSourceStream::BassSourceStream(
 		return;
 	}
 
-	this->rateSeeking = 1.0;
 	m_lock = new CCritSec();
-	this->seekingCaps = AM_SEEKING_CanSeekForwards | AM_SEEKING_CanSeekBackwards |
+	m_seekingCaps = AM_SEEKING_CanSeekForwards | AM_SEEKING_CanSeekBackwards |
 		AM_SEEKING_CanSeekAbsolute | AM_SEEKING_CanGetStopPos | AM_SEEKING_CanGetDuration;
 
-	this->stop = m_decoder->GetDuration() * MSEC_REFTIME_FACTOR;
+	m_stop = m_decoder->GetDuration() * MSEC_REFTIME_FACTOR;
 	// If Duration = 0 then it's most likely a Shoutcast Stream
-	if (this->stop == 0) {
-		this->stop = MSEC_REFTIME_FACTOR * 50;
+	if (m_stop == 0) {
+		m_stop = MSEC_REFTIME_FACTOR * 50;
 	}
-	this->duration = this->stop;
-	this->start = 0;
-
-	this->discontinuity = false;
-	this->sampleTime = 0;
-	this->mediaTime = 0;
+	m_duration = m_stop;
 }
 
 BassSourceStream::~BassSourceStream()
@@ -100,7 +94,7 @@ HRESULT BassSourceStream::DecideBufferSize(IMemAllocator* pAlloc, ALLOCATOR_PROP
 	CheckPointer(pAlloc, E_POINTER);
 	CheckPointer(ppropInputRequest, E_POINTER);
 
-	this->m_pFilter->pStateLock()->Lock();
+	m_pFilter->pStateLock()->Lock();
 
 	__try {
 		ppropInputRequest->cBuffers = 1;
@@ -119,7 +113,7 @@ HRESULT BassSourceStream::DecideBufferSize(IMemAllocator* pAlloc, ALLOCATOR_PROP
 		}
 	}
 	__finally {
-		this->m_pFilter->pStateLock()->Unlock();
+		m_pFilter->pStateLock()->Unlock();
 	}
 
 	return result;
@@ -136,7 +130,7 @@ HRESULT BassSourceStream::FillBuffer(IMediaSample* pSamp)
 	m_lock->Lock();
 
 	__try {
-		if (this->mediaTime >= this->stop && !m_decoder->GetIsShoutcast()) {
+		if (m_mediaTime >= m_stop && !m_decoder->GetIsShoutcast()) {
 			result = S_FALSE;
 		}
 		else {
@@ -163,21 +157,21 @@ HRESULT BassSourceStream::FillBuffer(IMediaSample* pSamp)
 
 			pSamp->SetActualDataLength(received);
 
-			timeStart = this->sampleTime;
-			this->sampleTime += sampleTime;
-			timeStop = this->sampleTime;
+			timeStart = m_sampleTime;
+			m_sampleTime += sampleTime;
+			timeStop = m_sampleTime;
 			pSamp->SetTime(&timeStart, &timeStop);
 
-			timeStart = this->mediaTime;
-			this->mediaTime += sampleTime;
-			timeStop = this->mediaTime;
+			timeStart = m_mediaTime;
+			m_mediaTime += sampleTime;
+			timeStop = m_mediaTime;
 			pSamp->SetMediaTime(&timeStart, &timeStop);
 
 			pSamp->SetSyncPoint(true);
 
-			if (this->discontinuity) {
+			if (m_discontinuity) {
 				pSamp->SetDiscontinuity(true);
-				this->discontinuity = false;
+				m_discontinuity = false;
 			}
 		}
 
@@ -197,7 +191,7 @@ HRESULT BassSourceStream::GetMediaType(CMediaType* pMediaType)
 		return E_FAIL;
 	}
 
-	this->m_pFilter->pStateLock()->Lock();
+	m_pFilter->pStateLock()->Lock();
 
 	__try {
 		pMediaType->majortype = MEDIATYPE_Audio;
@@ -247,7 +241,7 @@ HRESULT BassSourceStream::GetMediaType(CMediaType* pMediaType)
 
 	}
 	__finally {
-		this->m_pFilter->pStateLock()->Unlock();
+		m_pFilter->pStateLock()->Unlock();
 	}
 
 	return S_OK;
@@ -255,15 +249,15 @@ HRESULT BassSourceStream::GetMediaType(CMediaType* pMediaType)
 
 HRESULT BassSourceStream::OnThreadStartPlay()
 {
-	this->discontinuity = true;
+	m_discontinuity = true;
 
-	return DeliverNewSegment(this->start, this->stop, this->rateSeeking);
+	return DeliverNewSegment(m_start, m_stop, m_rateSeeking);
 }
 
 HRESULT BassSourceStream::ChangeStart()
 {
-	this->sampleTime = 0LL;
-	this->mediaTime = this->start;
+	m_sampleTime = 0LL;
+	m_mediaTime = m_start;
 	UpdateFromSeek();
 
 	return S_OK;
@@ -283,8 +277,8 @@ HRESULT BassSourceStream::ChangeRate()
 	m_lock->Lock();
 
 	__try {
-		if (this->rateSeeking <= 0.0) {
-			this->rateSeeking = 1.0;
+		if (m_rateSeeking <= 0.0) {
+			m_rateSeeking = 1.0;
 			result = E_FAIL;
 		}
 	}
@@ -301,15 +295,15 @@ HRESULT BassSourceStream::ChangeRate()
 
 void BassSourceStream::UpdateFromSeek()
 {
-	if (this->ThreadExists()) {
+	if (ThreadExists()) {
 		DeliverBeginFlush();
 		Stop();
-		m_decoder->SetPosition(this->start / MSEC_REFTIME_FACTOR);
+		m_decoder->SetPosition(m_start / MSEC_REFTIME_FACTOR);
 		DeliverEndFlush();
 		Run();
 	}
 	else {
-		m_decoder->SetPosition(this->start / MSEC_REFTIME_FACTOR);
+		m_decoder->SetPosition(m_start / MSEC_REFTIME_FACTOR);
 	}
 }
 
@@ -318,7 +312,7 @@ void BassSourceStream::UpdateFromSeek()
 STDMETHODIMP BassSourceStream::GetCapabilities(DWORD* pCapabilities)
 {
 	CheckPointer(pCapabilities, E_POINTER);
-	*pCapabilities = this->seekingCaps;
+	*pCapabilities = m_seekingCaps;
 
 	return S_OK;
 }
@@ -327,7 +321,7 @@ STDMETHODIMP BassSourceStream::CheckCapabilities(DWORD* pCapabilities)
 {
 	CheckPointer(pCapabilities, E_POINTER);
 
-	if ((~this->seekingCaps) & *pCapabilities) {
+	if ((~m_seekingCaps) & *pCapabilities) {
 		return S_FALSE;
 	}
 	else {
@@ -394,7 +388,7 @@ STDMETHODIMP BassSourceStream::GetDuration(LONGLONG* pDuration)
 	m_lock->Lock();
 
 	__try {
-		*pDuration = this->duration;
+		*pDuration = m_duration;
 	}
 	__finally {
 		m_lock->Unlock();
@@ -410,7 +404,7 @@ STDMETHODIMP BassSourceStream::GetStopPosition(LONGLONG* pStop)
 	m_lock->Lock();
 
 	__try {
-		*pStop = this->stop;
+		*pStop = m_stop;
 	}
 	__finally {
 		m_lock->Unlock();
@@ -462,20 +456,20 @@ STDMETHODIMP BassSourceStream::SetPositions(LONGLONG* pCurrent, DWORD dwCurrentF
 
 	__try {
 		if (startPosBits == AM_SEEKING_AbsolutePositioning) {
-			this->start = *pCurrent;
+			m_start = *pCurrent;
 		}
 		else if (startPosBits == AM_SEEKING_RelativePositioning) {
-			this->start += *pCurrent;
+			m_start += *pCurrent;
 		}
 
 		if (stopPosBits == AM_SEEKING_AbsolutePositioning) {
-			this->stop = *pStop;
+			m_stop = *pStop;
 		}
 		else if (stopPosBits == AM_SEEKING_IncrementalPositioning) {
-			this->stop = this->start + *pStop;
+			m_stop = m_start + *pStop;
 		}
 		else if (stopPosBits == AM_SEEKING_RelativePositioning) {
-			this->stop += *pStop;
+			m_stop += *pStop;
 		}
 	}
 	__finally {
@@ -500,8 +494,8 @@ STDMETHODIMP BassSourceStream::GetPositions(LONGLONG* pCurrent, LONGLONG* pStop)
 	CheckPointer(pCurrent, E_POINTER);
 	CheckPointer(pStop, E_POINTER);
 
-	*pCurrent = this->start;
-	*pStop = this->stop;
+	*pCurrent = m_start;
+	*pStop = m_stop;
 
 	return S_OK;
 }
@@ -516,7 +510,7 @@ STDMETHODIMP BassSourceStream::GetAvailable(LONGLONG* pEarliest, LONGLONG* pLate
 	m_lock->Lock();
 
 	__try {
-		*pLatest = this->duration;
+		*pLatest = m_duration;
 	}
 	__finally {
 		m_lock->Unlock();
@@ -530,7 +524,7 @@ STDMETHODIMP BassSourceStream::SetRate(double dRate)
 	m_lock->Lock();
 
 	__try {
-		this->rateSeeking = dRate;
+		m_rateSeeking = dRate;
 	}
 	__finally {
 		m_lock->Unlock();
@@ -546,7 +540,7 @@ STDMETHODIMP BassSourceStream::GetRate(double* pdRate)
 	m_lock->Lock();
 
 	__try {
-		*pdRate = this->rateSeeking;
+		*pdRate = m_rateSeeking;
 	}
 	__finally {
 		m_lock->Unlock();
