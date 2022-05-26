@@ -39,8 +39,8 @@ class BassSource
 	, public IAMMediaContent
 {
 protected:
-	CCritSec* metaLock;
-	BassSourceStream* pin = nullptr;
+	CCritSec* m_metaLock = nullptr;
+	BassSourceStream* m_pin = nullptr;
 	LPCWSTR fileName = nullptr;
 	std::wstring m_currentTag;
 	int buffersizeMS;

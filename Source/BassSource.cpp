@@ -54,12 +54,12 @@ BassSource::~BassSource()
 {
 	InterlockedDecrement(&InstanceCount);
 
-	if (this->pin) {
-		delete this->pin;
-		this->pin = nullptr;
+	if (m_pin) {
+		delete m_pin;
+		m_pin = nullptr;
 	}
 
-	delete this->metaLock;
+	delete m_metaLock;
 
 	if (this->fileName) {
 		free((void*)this->fileName);
@@ -70,7 +70,7 @@ BassSource::~BassSource()
 
 void BassSource::Init()
 {
-	this->metaLock = new CCritSec();
+	m_metaLock = new CCritSec();
 
 	this->buffersizeMS = PREBUFFER_MAX_SIZE;
 	this->preBufferMS = this->buffersizeMS * 75 / 100;
@@ -82,12 +82,12 @@ void BassSource::Init()
 
 void STDMETHODCALLTYPE BassSource::OnShoutcastMetaDataCallback(LPCWSTR text)
 {
-	this->metaLock->Lock();
+	m_metaLock->Lock();
 	__try {
 		m_currentTag = text;
 	}
 	__finally {
-		this->metaLock->Unlock();
+		m_metaLock->Unlock();
 	}
 }
 
@@ -228,14 +228,14 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 		}
 	}
 
-	this->pin = new BassSourceStream(L"Bass Source Stream", hr, this, L"Output", pszFileName, this, this->buffersizeMS, this->preBufferMS);
-	if (FAILED(hr) || !this->pin) {
+	m_pin = new BassSourceStream(L"Bass Source Stream", hr, this, L"Output", pszFileName, this, this->buffersizeMS, this->preBufferMS);
+	if (FAILED(hr) || !m_pin) {
 		return hr;
 	}
 
 	this->fileName = _wcsdup(pszFileName ? pszFileName : L"");
 
-	if (!this->pin->decoder->GetIsShoutcast()) {
+	if (!m_pin->m_decoder->GetIsShoutcast()) {
 		WCHAR PathBuffer[MAX_PATH + 1];
 		m_currentTag = GetFileName(this->fileName, PathBuffer);
 	}
@@ -262,13 +262,13 @@ STDMETHODIMP BassSource::get_Title(THIS_ BSTR FAR* pbstrTitle)
 {
 	CheckPointer(pbstrTitle, E_POINTER);
 
-	this->metaLock->Lock();
+	m_metaLock->Lock();
 
 	__try {
 		*pbstrTitle = SysAllocString(m_currentTag.c_str());
 	}
 	__finally {
-		this->metaLock->Unlock();
+		m_metaLock->Unlock();
 	}
 
 	if (!*pbstrTitle) {

@@ -38,25 +38,23 @@ BassSourceStream::BassSourceStream(
 	int buffersizeMS, int prebufferMS
 )
 	: CSourceStream(objectName, &hr, filter, name)
-	, decoder(nullptr)
-	, lock(nullptr)
 {
 	if (FAILED(hr)) {
 		return;
 	}
 
-	this->decoder = new BassDecoder(shoutcastEvents, buffersizeMS, prebufferMS);
-	if (!this->decoder->Load(filename)) {
+	m_decoder = new BassDecoder(shoutcastEvents, buffersizeMS, prebufferMS);
+	if (!m_decoder->Load(filename)) {
 		hr = E_FAIL;
 		return;
 	}
 
 	this->rateSeeking = 1.0;
-	this->lock = new CCritSec();
+	m_lock = new CCritSec();
 	this->seekingCaps = AM_SEEKING_CanSeekForwards | AM_SEEKING_CanSeekBackwards |
 		AM_SEEKING_CanSeekAbsolute | AM_SEEKING_CanGetStopPos | AM_SEEKING_CanGetDuration;
 
-	this->stop = this->decoder->GetDuration() * MSEC_REFTIME_FACTOR;
+	this->stop = m_decoder->GetDuration() * MSEC_REFTIME_FACTOR;
 	// If Duration = 0 then it's most likely a Shoutcast Stream
 	if (this->stop == 0) {
 		this->stop = MSEC_REFTIME_FACTOR * 50;
@@ -71,19 +69,19 @@ BassSourceStream::BassSourceStream(
 
 BassSourceStream::~BassSourceStream()
 {
-	if (this->decoder) {
-		delete this->decoder;
+	if (m_decoder) {
+		delete m_decoder;
 	}
 
-	if (this->lock) {
-		delete this->lock;
+	if (m_lock) {
+		delete m_lock;
 	}
 }
 
 STDMETHODIMP BassSourceStream::NonDelegatingQueryInterface(REFIID iid, void** ppv)
 {
 	if (IsEqualIID(iid, IID_IMediaSeeking)) {
-		if (!this->decoder->GetIsShoutcast() && SUCCEEDED(GetInterface((LPUNKNOWN)(IMediaSeeking*)this, ppv))) {
+		if (!m_decoder->GetIsShoutcast() && SUCCEEDED(GetInterface((LPUNKNOWN)(IMediaSeeking*)this, ppv))) {
 			return S_OK;
 		}
 		else {
@@ -135,18 +133,18 @@ HRESULT BassSourceStream::FillBuffer(IMediaSample* pSamp)
 	LONGLONG sampleTime;
 	HRESULT result = S_OK;
 
-	this->lock->Lock();
+	m_lock->Lock();
 
 	__try {
-		if (this->mediaTime >= this->stop && !this->decoder->GetIsShoutcast()) {
+		if (this->mediaTime >= this->stop && !m_decoder->GetIsShoutcast()) {
 			result = S_FALSE;
 		}
 		else {
 			pSamp->GetPointer(&buffer);
-			received = this->decoder->GetData(buffer, BASS_BLOCK_SIZE);
+			received = m_decoder->GetData(buffer, BASS_BLOCK_SIZE);
 
 			if (received <= 0) {
-				if (this->decoder->GetIsShoutcast()) {
+				if (m_decoder->GetIsShoutcast()) {
 					received = BASS_BLOCK_SIZE;
 					memset(buffer, BASS_BLOCK_SIZE, 0);
 				}
@@ -156,8 +154,8 @@ HRESULT BassSourceStream::FillBuffer(IMediaSample* pSamp)
 			}
 		}
 		if (SUCCEEDED(result)) {
-			if (this->decoder->GetMSecConv() > 0) {
-				sampleTime = (LONGLONG(received) * 1000LL * 10000LL) / this->decoder->GetMSecConv();
+			if (m_decoder->GetMSecConv() > 0) {
+				sampleTime = (LONGLONG(received) * 1000LL * 10000LL) / m_decoder->GetMSecConv();
 			}
 			else {
 				sampleTime = 1024LL; // Dummy Value .. should never happen though ...
@@ -185,7 +183,7 @@ HRESULT BassSourceStream::FillBuffer(IMediaSample* pSamp)
 
 	}
 	__finally {
-		this->lock->Unlock();
+		m_lock->Unlock();
 	}
 
 	return result;
@@ -205,25 +203,27 @@ HRESULT BassSourceStream::GetMediaType(CMediaType* pMediaType)
 		pMediaType->majortype = MEDIATYPE_Audio;
 		pMediaType->subtype = MEDIASUBTYPE_PCM;
 		pMediaType->formattype = FORMAT_WaveFormatEx;
-		pMediaType->lSampleSize = this->decoder->GetChannels() * this->decoder->GetBytesPerSample();
+		pMediaType->lSampleSize = m_decoder->GetChannels() * m_decoder->GetBytesPerSample();
 		pMediaType->bFixedSizeSamples = true;
 		pMediaType->bTemporalCompression = false;
 
-		useExtensible = this->decoder->GetChannels() > 2 || this->decoder->GetFloat();
+		useExtensible = m_decoder->GetChannels() > 2 || m_decoder->GetFloat();
 
-		if (useExtensible)
+		if (useExtensible) {
 			pMediaType->cbFormat = sizeof(WAVEFORMATEXTENSIBLE);
-		else pMediaType->cbFormat = sizeof(WAVEFORMATEX);
+		} else {
+			pMediaType->cbFormat = sizeof(WAVEFORMATEX);
+		}
 
 		pMediaType->pbFormat = (BYTE*)CoTaskMemAlloc(pMediaType->cbFormat);
 
 		PWAVEFORMATEX wf = PWAVEFORMATEX(pMediaType->pbFormat);
 		{
 			wf->wFormatTag = WAVE_FORMAT_PCM;
-			wf->nChannels = this->decoder->GetChannels();
-			wf->nSamplesPerSec = this->decoder->GetSampleRate();
-			wf->wBitsPerSample = this->decoder->GetBytesPerSample() * 8;
-			wf->nBlockAlign = this->decoder->GetChannels() * this->decoder->GetBytesPerSample();
+			wf->nChannels = m_decoder->GetChannels();
+			wf->nSamplesPerSec = m_decoder->GetSampleRate();
+			wf->wBitsPerSample = m_decoder->GetBytesPerSample() * 8;
+			wf->nBlockAlign = m_decoder->GetChannels() * m_decoder->GetBytesPerSample();
 			wf->nAvgBytesPerSec = wf->nSamplesPerSec * wf->nBlockAlign;
 			wf->cbSize = 0;
 		}
@@ -235,13 +235,12 @@ HRESULT BassSourceStream::GetMediaType(CMediaType* pMediaType)
 				wfe->Format.cbSize = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
 			}
 
-			wfe->Samples.wValidBitsPerSample = this->decoder->GetBytesPerSample() * 8;
+			wfe->Samples.wValidBitsPerSample = m_decoder->GetBytesPerSample() * 8;
 			wfe->dwChannelMask = 0;
 
-			if (this->decoder->GetFloat()) {
+			if (m_decoder->GetFloat()) {
 				wfe->SubFormat = KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
-			}
-			else {
+			} else {
 				wfe->SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
 			}
 		}
@@ -281,7 +280,7 @@ HRESULT BassSourceStream::ChangeRate()
 {
 	HRESULT result = S_OK;
 
-	this->lock->Lock();
+	m_lock->Lock();
 
 	__try {
 		if (this->rateSeeking <= 0.0) {
@@ -290,7 +289,7 @@ HRESULT BassSourceStream::ChangeRate()
 		}
 	}
 	__finally {
-		this->lock->Unlock();
+		m_lock->Unlock();
 	}
 
 	if (SUCCEEDED(result)) {
@@ -305,12 +304,12 @@ void BassSourceStream::UpdateFromSeek()
 	if (this->ThreadExists()) {
 		DeliverBeginFlush();
 		Stop();
-		this->decoder->SetPosition(this->start / MSEC_REFTIME_FACTOR);
+		m_decoder->SetPosition(this->start / MSEC_REFTIME_FACTOR);
 		DeliverEndFlush();
 		Run();
 	}
 	else {
-		this->decoder->SetPosition(this->start / MSEC_REFTIME_FACTOR);
+		m_decoder->SetPosition(this->start / MSEC_REFTIME_FACTOR);
 	}
 }
 
@@ -392,13 +391,13 @@ STDMETHODIMP BassSourceStream::GetDuration(LONGLONG* pDuration)
 {
 	CheckPointer(pDuration, E_POINTER);
 
-	this->lock->Lock();
+	m_lock->Lock();
 
 	__try {
 		*pDuration = this->duration;
 	}
 	__finally {
-		this->lock->Unlock();
+		m_lock->Unlock();
 	}
 
 	return S_OK;
@@ -408,13 +407,13 @@ STDMETHODIMP BassSourceStream::GetStopPosition(LONGLONG* pStop)
 {
 	CheckPointer(pStop, E_POINTER);
 
-	this->lock->Lock();
+	m_lock->Lock();
 
 	__try {
 		*pStop = this->stop;
 	}
 	__finally {
-		this->lock->Unlock();
+		m_lock->Unlock();
 	}
 
 	return S_OK;
@@ -459,7 +458,7 @@ STDMETHODIMP BassSourceStream::SetPositions(LONGLONG* pCurrent, DWORD dwCurrentF
 		}
 	}
 
-	this->lock->Lock();
+	m_lock->Lock();
 
 	__try {
 		if (startPosBits == AM_SEEKING_AbsolutePositioning) {
@@ -480,7 +479,7 @@ STDMETHODIMP BassSourceStream::SetPositions(LONGLONG* pCurrent, DWORD dwCurrentF
 		}
 	}
 	__finally {
-		this->lock->Unlock();
+		m_lock->Unlock();
 	}
 
 	HRESULT result = S_OK;
@@ -514,13 +513,13 @@ STDMETHODIMP BassSourceStream::GetAvailable(LONGLONG* pEarliest, LONGLONG* pLate
 
 	*pEarliest = 0LL;
 
-	this->lock->Lock();
+	m_lock->Lock();
 
 	__try {
 		*pLatest = this->duration;
 	}
 	__finally {
-		this->lock->Unlock();
+		m_lock->Unlock();
 	}
 
 	return S_OK;
@@ -528,13 +527,13 @@ STDMETHODIMP BassSourceStream::GetAvailable(LONGLONG* pEarliest, LONGLONG* pLate
 
 STDMETHODIMP BassSourceStream::SetRate(double dRate)
 {
-	this->lock->Lock();
+	m_lock->Lock();
 
 	__try {
 		this->rateSeeking = dRate;
 	}
 	__finally {
-		this->lock->Unlock();
+		m_lock->Unlock();
 	}
 
 	return ChangeRate();
@@ -544,13 +543,13 @@ STDMETHODIMP BassSourceStream::GetRate(double* pdRate)
 {
 	CheckPointer(pdRate, E_POINTER);
 
-	this->lock->Lock();
+	m_lock->Lock();
 
 	__try {
 		*pdRate = this->rateSeeking;
 	}
 	__finally {
-		this->lock->Unlock();
+		m_lock->Unlock();
 	}
 
 	return S_OK;
