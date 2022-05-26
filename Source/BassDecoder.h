@@ -78,17 +78,6 @@ public:
 
 	int GetData(void* buffer, int size);
 
-	__declspec(property(get = GetDuration)) LONGLONG DurationMS;
-	__declspec(property(get = GetPosition, put = SetPosition)) LONGLONG PositionMS;
-
-	__declspec(property(get = GetChannels)) int Channels;
-	__declspec(property(get = GetSampleRate)) int SampleRate;
-	__declspec(property(get = GetBytesPerSample)) int BytesPerSample;
-	__declspec(property(get = GetFloat)) bool Float;
-	__declspec(property(get = GetMSecConv)) LONGLONG MSecConv;
-	__declspec(property(get = GetIsShoutcast)) bool IsShoutcast;
-	__declspec(property(get = GetExtension)) LPWSTR Extension;
-
 	inline int GetChannels() { return this->channels; }
 	inline int GetSampleRate() { return this->sampleRate; }
 	inline int GetBytesPerSample() { return this->bytesPerSample; }

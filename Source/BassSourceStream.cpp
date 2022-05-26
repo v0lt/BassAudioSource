@@ -56,7 +56,7 @@ BassSourceStream::BassSourceStream(
 	this->seekingCaps = AM_SEEKING_CanSeekForwards | AM_SEEKING_CanSeekBackwards |
 		AM_SEEKING_CanSeekAbsolute | AM_SEEKING_CanGetStopPos | AM_SEEKING_CanGetDuration;
 
-	this->stop = this->decoder->DurationMS * MSEC_REFTIME_FACTOR;
+	this->stop = this->decoder->GetDuration() * MSEC_REFTIME_FACTOR;
 	// If Duration = 0 then it's most likely a Shoutcast Stream
 	if (this->stop == 0) {
 		this->stop = MSEC_REFTIME_FACTOR * 50;
@@ -83,7 +83,7 @@ BassSourceStream::~BassSourceStream()
 STDMETHODIMP BassSourceStream::NonDelegatingQueryInterface(REFIID iid, void** ppv)
 {
 	if (IsEqualIID(iid, IID_IMediaSeeking)) {
-		if (!this->decoder->IsShoutcast && SUCCEEDED(GetInterface((LPUNKNOWN)(IMediaSeeking*)this, ppv))) {
+		if (!this->decoder->GetIsShoutcast() && SUCCEEDED(GetInterface((LPUNKNOWN)(IMediaSeeking*)this, ppv))) {
 			return S_OK;
 		}
 		else {
@@ -138,7 +138,7 @@ HRESULT BassSourceStream::FillBuffer(IMediaSample* pSamp)
 	this->lock->Lock();
 
 	__try {
-		if (this->mediaTime >= this->stop && !this->decoder->IsShoutcast) {
+		if (this->mediaTime >= this->stop && !this->decoder->GetIsShoutcast()) {
 			result = S_FALSE;
 		}
 		else {
@@ -146,7 +146,7 @@ HRESULT BassSourceStream::FillBuffer(IMediaSample* pSamp)
 			received = this->decoder->GetData(buffer, BASS_BLOCK_SIZE);
 
 			if (received <= 0) {
-				if (this->decoder->IsShoutcast) {
+				if (this->decoder->GetIsShoutcast()) {
 					received = BASS_BLOCK_SIZE;
 					memset(buffer, BASS_BLOCK_SIZE, 0);
 				}
@@ -156,8 +156,8 @@ HRESULT BassSourceStream::FillBuffer(IMediaSample* pSamp)
 			}
 		}
 		if (SUCCEEDED(result)) {
-			if (this->decoder->MSecConv > 0) {
-				sampleTime = (LONGLONG(received) * 1000LL * 10000LL) / this->decoder->MSecConv;
+			if (this->decoder->GetMSecConv() > 0) {
+				sampleTime = (LONGLONG(received) * 1000LL * 10000LL) / this->decoder->GetMSecConv();
 			}
 			else {
 				sampleTime = 1024LL; // Dummy Value .. should never happen though ...
@@ -205,11 +205,11 @@ HRESULT BassSourceStream::GetMediaType(CMediaType* pMediaType)
 		pMediaType->majortype = MEDIATYPE_Audio;
 		pMediaType->subtype = MEDIASUBTYPE_PCM;
 		pMediaType->formattype = FORMAT_WaveFormatEx;
-		pMediaType->lSampleSize = this->decoder->Channels * this->decoder->BytesPerSample;
+		pMediaType->lSampleSize = this->decoder->GetChannels() * this->decoder->GetBytesPerSample();
 		pMediaType->bFixedSizeSamples = true;
 		pMediaType->bTemporalCompression = false;
 
-		useExtensible = this->decoder->Channels > 2 || this->decoder->Float;
+		useExtensible = this->decoder->GetChannels() > 2 || this->decoder->GetFloat();
 
 		if (useExtensible)
 			pMediaType->cbFormat = sizeof(WAVEFORMATEXTENSIBLE);
@@ -220,10 +220,10 @@ HRESULT BassSourceStream::GetMediaType(CMediaType* pMediaType)
 		PWAVEFORMATEX wf = PWAVEFORMATEX(pMediaType->pbFormat);
 		{
 			wf->wFormatTag = WAVE_FORMAT_PCM;
-			wf->nChannels = this->decoder->Channels;
-			wf->nSamplesPerSec = this->decoder->SampleRate;
-			wf->wBitsPerSample = this->decoder->BytesPerSample * 8;
-			wf->nBlockAlign = this->decoder->Channels * this->decoder->BytesPerSample;
+			wf->nChannels = this->decoder->GetChannels();
+			wf->nSamplesPerSec = this->decoder->GetSampleRate();
+			wf->wBitsPerSample = this->decoder->GetBytesPerSample() * 8;
+			wf->nBlockAlign = this->decoder->GetChannels() * this->decoder->GetBytesPerSample();
 			wf->nAvgBytesPerSec = wf->nSamplesPerSec * wf->nBlockAlign;
 			wf->cbSize = 0;
 		}
@@ -235,10 +235,10 @@ HRESULT BassSourceStream::GetMediaType(CMediaType* pMediaType)
 				wfe->Format.cbSize = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
 			}
 
-			wfe->Samples.wValidBitsPerSample = this->decoder->BytesPerSample * 8;
+			wfe->Samples.wValidBitsPerSample = this->decoder->GetBytesPerSample() * 8;
 			wfe->dwChannelMask = 0;
 
-			if (this->decoder->Float) {
+			if (this->decoder->GetFloat()) {
 				wfe->SubFormat = KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
 			}
 			else {
@@ -305,12 +305,12 @@ void BassSourceStream::UpdateFromSeek()
 	if (this->ThreadExists()) {
 		DeliverBeginFlush();
 		Stop();
-		this->decoder->PositionMS = this->start / MSEC_REFTIME_FACTOR;
+		this->decoder->SetPosition(this->start / MSEC_REFTIME_FACTOR);
 		DeliverEndFlush();
 		Run();
 	}
 	else {
-		this->decoder->PositionMS = this->start / MSEC_REFTIME_FACTOR;
+		this->decoder->SetPosition(this->start / MSEC_REFTIME_FACTOR);
 	}
 }
 

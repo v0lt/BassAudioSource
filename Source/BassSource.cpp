@@ -235,7 +235,7 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 
 	this->fileName = _wcsdup(pszFileName ? pszFileName : L"");
 
-	if (!this->pin->decoder->IsShoutcast) {
+	if (!this->pin->decoder->GetIsShoutcast()) {
 		WCHAR PathBuffer[MAX_PATH + 1];
 		m_currentTag = GetFileName(this->fileName, PathBuffer);
 	}
