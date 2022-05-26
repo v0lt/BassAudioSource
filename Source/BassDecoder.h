@@ -49,13 +49,13 @@ protected:
 	bool m_isURL = false;
 	bool m_isShoutcast = false;
 
-	int m_channels;
-	int m_sampleRate;
-	int m_bytesPerSample;
-	bool m_float;
+	int m_channels = 0;
+	int m_sampleRate = 0;
+	int m_bytesPerSample = 0;
+	bool m_float = false;
 	LONGLONG m_mSecConv = 0;
 
-	DWORD m_type;
+	DWORD m_type = 0;
 
 	void LoadBASS();
 	void UnloadBASS();

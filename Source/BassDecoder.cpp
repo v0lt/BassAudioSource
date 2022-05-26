@@ -275,19 +275,17 @@ bool BassDecoder::GetStreamInfos()
 
 	m_float = (info.flags & BASS_SAMPLE_FLOAT) != 0;
 	m_sampleRate = info.freq;
-	m_channels = info.chans;
-	m_type = info.ctype;
+	m_channels   = info.chans;
+	m_type       = info.ctype;
 
 	if (m_float) {
 		m_bytesPerSample = 4;
 	}
+	else if (info.flags & BASS_SAMPLE_8BITS) {
+		m_bytesPerSample = 1;
+	}
 	else {
-		if (info.flags & BASS_SAMPLE_8BITS) {
-			m_bytesPerSample = 1;
-		}
-		else {
-			m_bytesPerSample = 2;
-		}
+		m_bytesPerSample = 2;
 	}
 
 	m_mSecConv = m_sampleRate * m_channels * m_bytesPerSample;
@@ -385,7 +383,6 @@ LONGLONG BassDecoder::GetDuration()
 	if (m_mSecConv == 0) {
 		return 0;
 	}
-
 	if (!m_stream) {
 		return 0;
 	}
@@ -401,7 +398,6 @@ LONGLONG BassDecoder::GetPosition()
 	if (m_mSecConv == 0) {
 		return 0;
 	}
-
 	if (!m_stream) {
 		return 0;
 	}
@@ -416,7 +412,6 @@ void BassDecoder::SetPosition(LONGLONG positionMS)
 	if (m_mSecConv == 0) {
 		return;
 	}
-
 	if (!m_stream) {
 		return;
 	}
