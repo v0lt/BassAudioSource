@@ -61,8 +61,8 @@ BassSource::~BassSource()
 
 	delete m_metaLock;
 
-	if (this->fileName) {
-		free((void*)this->fileName);
+	if (m_fileName) {
+		free((void*)m_fileName);
 	}
 
 	SaveSettings();
@@ -72,8 +72,8 @@ void BassSource::Init()
 {
 	m_metaLock = new CCritSec();
 
-	this->buffersizeMS = PREBUFFER_MAX_SIZE;
-	this->preBufferMS = this->buffersizeMS * 75 / 100;
+	m_buffersizeMS = PREBUFFER_MAX_SIZE;
+	m_preBufferMS = m_buffersizeMS * 75 / 100;
 
 	LoadSettings();
 
@@ -121,11 +121,11 @@ void BassSource::LoadSettings()
 	{
 		__try {
 			if (RegReadDword(reg, OPT_BuffersizeMS, num)) {
-				this->buffersizeMS = std::clamp<int>(num, PREBUFFER_MIN_SIZE, PREBUFFER_MAX_SIZE);
+				m_buffersizeMS = std::clamp<int>(num, PREBUFFER_MIN_SIZE, PREBUFFER_MAX_SIZE);
 			}
 
 			if (RegReadDword(reg, OPT_PreBufferMS, num)) {
-				this->preBufferMS = std::clamp<int>(num, PREBUFFER_MIN_SIZE, this->buffersizeMS);
+				m_preBufferMS = std::clamp<int>(num, PREBUFFER_MIN_SIZE, m_buffersizeMS);
 			}
 		}
 		__finally {
@@ -141,8 +141,8 @@ void BassSource::SaveSettings()
 	if (RegCreateKeyW(HKEY_CURRENT_USER, OPT_REGKEY_BassAudioSource, &reg) == ERROR_SUCCESS)
 	{
 		__try {
-			RegWriteDword(reg, OPT_BuffersizeMS, this->buffersizeMS);
-			RegWriteDword(reg, OPT_PreBufferMS, this->preBufferMS);
+			RegWriteDword(reg, OPT_BuffersizeMS, m_buffersizeMS);
+			RegWriteDword(reg, OPT_PreBufferMS, m_preBufferMS);
 		}
 		__finally {
 			RegCloseKey(reg);
@@ -228,16 +228,16 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 		}
 	}
 
-	m_pin = new BassSourceStream(L"Bass Source Stream", hr, this, L"Output", pszFileName, this, this->buffersizeMS, this->preBufferMS);
+	m_pin = new BassSourceStream(L"Bass Source Stream", hr, this, L"Output", pszFileName, this, m_buffersizeMS, m_preBufferMS);
 	if (FAILED(hr) || !m_pin) {
 		return hr;
 	}
 
-	this->fileName = _wcsdup(pszFileName ? pszFileName : L"");
+	m_fileName = _wcsdup(pszFileName ? pszFileName : L"");
 
 	if (!m_pin->m_decoder->GetIsShoutcast()) {
 		WCHAR PathBuffer[MAX_PATH + 1];
-		m_currentTag = GetFileName(this->fileName, PathBuffer);
+		m_currentTag = GetFileName(m_fileName, PathBuffer);
 	}
 
 	return S_OK;
@@ -247,7 +247,7 @@ STDMETHODIMP BassSource::GetCurFile(LPOLESTR* ppszFileName, AM_MEDIA_TYPE* pmt)
 {
 	CheckPointer(ppszFileName, E_POINTER);
 
-	return AMGetWideString(this->fileName, ppszFileName);
+	return AMGetWideString(m_fileName, ppszFileName);
 }
 
 /*
