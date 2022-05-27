@@ -198,7 +198,9 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 		// basswv.dll
 		"wv",
 		// basszxtune.dll
-		"ahx", "ay", "nsf", "pt2", "pt3", "sap", "sid", "spc", "stc", "v2m", "ym"
+		"ahx", "ay", "gbs", "nsf", "pt2", "pt3",
+		"sap", "sid", "spc", "stc",
+		"v2m", "vgm", "vgz", "vtx", "ym",
 	};
 
 
