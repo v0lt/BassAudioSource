@@ -96,6 +96,7 @@ LPWSTR BASS_PLUGINS[] = {
 	L"bass_tta.dll",
 	L"bassalac.dll",
 	L"bassape.dll",
+	L"bassdsd.dll",
 	L"bassflac.dll",
 	L"bassopus.dll",
 	L"basswv.dll",

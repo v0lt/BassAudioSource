@@ -193,6 +193,8 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 		"alac"
 		// bassape.dll
 		"ape",
+		// bassdsd.dll
+		"dsf",
 		// bassflac.dll
 		"flac",
 		// bassopus.dll
