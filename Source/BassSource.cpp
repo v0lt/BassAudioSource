@@ -177,7 +177,7 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 {
 	static LPCSTR bass_exts[] = {
 		// bass.dll
-		"mp3", "mp2", "mp1", "ogg", "wav", "aif", "aiff",
+		"mp3", "mp2", "mp1", "ogg", "oga", "wav", "aif", "aiff",
 		"it", "mod", "mptm", "mtm", "s3m", "umx", "xm", "mo3",
 		// bass_aac.dll
 		"aac", "m4a",
@@ -185,6 +185,8 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 		"mpc",
 		// bass_ofr.dll
 		"ofr",
+		// bass_spx.dll
+		"spx",
 		// bass_tta.dll
 		"tta",
 		// bassalac.dll

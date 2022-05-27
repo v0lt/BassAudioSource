@@ -90,12 +90,13 @@ const int BASS_EXTENSIONS_COUNT = (int)std::size(BASS_EXTENSIONS);
 
 LPWSTR BASS_PLUGINS[] = {
 	L"bass_aac.dll",
+	L"bass_mpc.dll",
+	L"bass_ofr.dll",
+	L"bass_spx.dll",
+	L"bass_tta.dll",
 	L"bassalac.dll",
 	L"bassape.dll",
 	L"bassflac.dll",
-	L"bass_mpc.dll",
-	L"bass_tta.dll",
-	L"bass_ofr.dll",
 	L"bassopus.dll",
 	L"basswv.dll",
 	L"basszxtune.dll",
