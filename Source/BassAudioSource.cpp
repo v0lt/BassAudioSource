@@ -238,6 +238,23 @@ STDAPI DllRegisterServer()
 			RegCloseKey(reg);
 		}
 	}
+#else
+	HKEY hKey;
+	LONG ec = ::RegCreateKeyExW(HKEY_CLASSES_ROOT, L"Media Type\\{e436eb83-524f-11ce-9f53-0020af0ba770}\\" STR_CLSID_BassAudioSource, 0, 0, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 0, &hKey, 0);
+	if (ec == ERROR_SUCCESS) {
+		const LPCWSTR value_data0 = STR_CLSID_BassAudioSource;
+		const LPCWSTR value_data1 = L"0,0,00,00"; // connect to any data
+
+		ec = ::RegSetValueExW(hKey, L"Source Filter", 0, REG_SZ,
+			reinterpret_cast<BYTE*>(const_cast<LPWSTR>(value_data0)),
+			(DWORD)(wcslen(value_data0) + 1) * sizeof(WCHAR));
+
+		ec = ::RegSetValueExW(hKey, L"1", 0, REG_SZ,
+			reinterpret_cast<BYTE*>(const_cast<LPWSTR>(value_data1)),
+			(DWORD)(wcslen(value_data1) + 1) * sizeof(WCHAR));
+
+		::RegCloseKey(hKey);;
+	}
 #endif
 
 	return AMovieDllRegisterServer2(TRUE);
@@ -302,6 +319,13 @@ STDAPI DllUnregisterServer()
 		__finally {
 			RegCloseKey(reg);
 		}
+	}
+#else
+	HKEY hKey;
+	LONG ec = ::RegOpenKeyExW(HKEY_CLASSES_ROOT, L"Media Type\\{e436eb83-524f-11ce-9f53-0020af0ba770}", 0, KEY_ALL_ACCESS, &hKey);
+	if (ec == ERROR_SUCCESS) {
+		ec = ::RegDeleteKeyW(hKey, STR_CLSID_BassAudioSource);
+		::RegCloseKey(hKey);
 	}
 #endif
 

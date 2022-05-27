@@ -109,6 +109,8 @@ IF DEFINED SEVENZIP (
     TITLE Creating archive %PCKG_NAME_X86%.zip...
     START "7z" /B /WAIT "%SEVENZIP%" a -tzip -mx9 "_bin\%PCKG_NAME_X86%.zip" ^
 .\_bin\Filter_x86%SUFFIX%\%PROJECT%.ax ^
+.\distrib\Install_BassAudioSource_32.cmd ^
+.\distrib\Uninstall_BassAudioSource_32.cmd ^
 .\distrib\x86\*.dll ^
 .\Readme.md
     IF %ERRORLEVEL% NEQ 0 CALL :SubMsg "ERROR" "Unable to create %PCKG_NAME_X86%.zip!"
@@ -121,6 +123,8 @@ IF DEFINED SEVENZIP (
     TITLE Creating archive %PCKG_NAME_X64%.zip...
     START "7z" /B /WAIT "%SEVENZIP%" a -tzip -mx9 "_bin\%PCKG_NAME_X64%.zip" ^
 .\_bin\Filter_x64%SUFFIX%\%PROJECT%64.ax ^
+.\distrib\Install_BassAudioSource_64.cmd ^
+.\distrib\Uninstall_BassAudioSource_64.cmd ^
 .\distrib\x64\*.dll ^
 .\Readme.md
     IF %ERRORLEVEL% NEQ 0 CALL :SubMsg "ERROR" "Unable to create %PCKG_NAME_X64%.zip!"
