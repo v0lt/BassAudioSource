@@ -4,18 +4,16 @@
 
 extern HMODULE HInstance;
 
-#define BASS_TFLAGS BASS_UNICODE
-
 struct BassExtension {
 	LPCWSTR Extension;
 	LPCWSTR DLL;
 };
 
-extern BassExtension BASS_EXTENSIONS[];
-extern const int BASS_EXTENSIONS_COUNT;
+extern BassExtension BassExtensions[];
+extern const int BassExtensionsCount;
 
-extern LPWSTR BASS_PLUGINS[];
-extern const int BASS_PLUGINS_COUNT;
+extern LPWSTR BassPlugins[];
+extern const int BassPluginsCount;
 
 //------------------------------------------------------------------------------
 // Define GUIDS used in this filter

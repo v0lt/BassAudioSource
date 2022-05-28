@@ -175,9 +175,9 @@ void BassDecoder::LoadPlugins()
 	path = GetFilterDirectory(PathBuffer2);
 	LPWSTR plugin = path + wcslen(path);
 
-	for (int i = 0; i < BASS_PLUGINS_COUNT; i++) {
-		wcscpy(plugin, BASS_PLUGINS[i]);
-		BASS_PluginLoad(LPCSTR(path), BASS_TFLAGS);
+	for (int i = 0; i < BassPluginsCount; i++) {
+		wcscpy(plugin, BassPlugins[i]);
+		BASS_PluginLoad(LPCSTR(path), BASS_UNICODE);
 	}
 }
 
@@ -205,17 +205,17 @@ bool BassDecoder::Load(LPCWSTR fileName)
 
 	if (m_isMOD) {
 		if (!m_isURL) {
-			m_stream = BASS_MusicLoad(false, (const void*)fileName, 0, 0, BASS_MUSIC_DECODE | BASS_MUSIC_RAMP | BASS_MUSIC_POSRESET | BASS_MUSIC_PRESCAN | BASS_TFLAGS, 0);
+			m_stream = BASS_MusicLoad(false, (const void*)fileName, 0, 0, BASS_MUSIC_DECODE | BASS_MUSIC_RAMP | BASS_MUSIC_POSRESET | BASS_MUSIC_PRESCAN | BASS_UNICODE, 0);
 		}
 	}
 	else {
 		if (m_isURL) {
-			m_stream = BASS_StreamCreateURL(LPCSTR(fileName), 0, BASS_STREAM_DECODE | BASS_TFLAGS, OnShoutcastData, this);
+			m_stream = BASS_StreamCreateURL(LPCSTR(fileName), 0, BASS_STREAM_DECODE | BASS_UNICODE, OnShoutcastData, this);
 			m_sync = BASS_ChannelSetSync(m_stream, BASS_SYNC_META, 0, OnMetaData, this);
 			m_isShoutcast = GetDuration() == 0;
 		}
 		else {
-			m_stream = BASS_StreamCreateFile(false, (const void*)fileName, 0, 0, BASS_STREAM_DECODE | BASS_TFLAGS);
+			m_stream = BASS_StreamCreateFile(false, (const void*)fileName, 0, 0, BASS_STREAM_DECODE | BASS_UNICODE);
 		}
 	}
 

@@ -60,7 +60,7 @@ const AMOVIESETUP_FILTER sudBassAudioSourceax = {
 	&sudOpPin               // Pin details
 };
 
-BassExtension BASS_EXTENSIONS[] = {
+BassExtension BassExtensions[] = {
 	{L".aac",  L"bass_aac.dll"},
 	{L".alac", L"bassalac.dll"},
 	{L".als",  L"bassalac.dll"},
@@ -86,9 +86,9 @@ BassExtension BASS_EXTENSIONS[] = {
 	{L".pt2",  L"basszxtune.dll"},
 	{L".pt3",  L"basszxtune.dll"},
 };
-const int BASS_EXTENSIONS_COUNT = (int)std::size(BASS_EXTENSIONS);
+const int BassExtensionsCount = (int)std::size(BassExtensions);
 
-LPWSTR BASS_PLUGINS[] = {
+LPWSTR BassPlugins[] = {
 	L"bass_aac.dll",
 	L"bass_mpc.dll",
 	L"bass_ofr.dll",
@@ -102,7 +102,7 @@ LPWSTR BASS_PLUGINS[] = {
 	L"basswv.dll",
 	L"basszxtune.dll",
 };
-const int BASS_PLUGINS_COUNT = (int)std::size(BASS_PLUGINS);
+const int BassPluginsCount = (int)std::size(BassPlugins);
 
 // COM global table of objects in this dll
 
@@ -200,8 +200,8 @@ STDAPI DllRegisterServer()
 	if (RegCreateKeyExW(HKEY_CLASSES_ROOT, DIRECTSHOW_SOURCE_FILTER_PATH, 0, nullptr, 0, KEY_ALL_ACCESS, nullptr, &reg, nullptr) == ERROR_SUCCESS)
 	{
 		__try {
-			for (int i = 0; i < BASS_EXTENSIONS_COUNT; i++) {
-				ext = BASS_EXTENSIONS[i].Extension;
+			for (int i = 0; i < BassExtensionsCount; i++) {
+				ext = BassExtensions[i].Extension;
 
 				if (RegOpenKeyExW(reg, ext, 0, KEY_QUERY_VALUE, &reg2) != ERROR_SUCCESS) {
 					reg2 = NULL;
@@ -211,7 +211,7 @@ STDAPI DllRegisterServer()
 				}
 
 				if (RegisterFormat(ext, reg2 != NULL)) {
-					wcscpy(plugin, BASS_EXTENSIONS[i].DLL);
+					wcscpy(plugin, BassExtensions[i].DLL);
 
 					if (FileExists(dllPath)) {
 						//if reg.KeyExists(path)
@@ -276,9 +276,9 @@ STDAPI DllUnregisterServer()
 	if (RegOpenKeyW(HKEY_CLASSES_ROOT, DIRECTSHOW_SOURCE_FILTER_PATH, &reg) == ERROR_SUCCESS)
 	{
 		__try {
-			for (int i = 0; i < BASS_EXTENSIONS_COUNT; i++)
+			for (int i = 0; i < BassExtensionsCount; i++)
 			{
-				ext = BASS_EXTENSIONS[i].Extension;
+				ext = BassExtensions[i].Extension;
 
 				if (RegOpenKeyExW(reg, ext, 0, KEY_QUERY_VALUE, &reg2) != ERROR_SUCCESS) {
 					reg2 = NULL;
