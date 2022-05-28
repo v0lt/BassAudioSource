@@ -175,6 +175,12 @@ STDMETHODIMP BassSource::NonDelegatingQueryInterface(REFIID iid, void** ppv)
 
 STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 {
+	if (GetPinCount() > 0) {
+		return VFW_E_ALREADY_CONNECTED;
+	}
+
+	CheckPointer(pszFileName, E_POINTER);
+
 	static LPCSTR bass_exts[] = {
 		// bass.dll
 		"mp3", "mp2", "mp1", "ogg", "oga", "wav", "aif", "aiff",
@@ -207,17 +213,11 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 		"v2m", "vgm", "vgz", "vtx", "ym",
 	};
 
+	WCHAR PathBuffer[MAX_PATH + 1] = {};
 
-	HRESULT hr;
-
-	if (GetPinCount() > 0) {
-		return VFW_E_ALREADY_CONNECTED;
-	}
-
-	if (pszFileName) {
-		WCHAR PathBuffer[MAX_PATH + 1] = {};
-
+	if (IsLikelyFilePath(pszFileName)) {
 		GetFileExt(pszFileName, PathBuffer);
+
 		if (PathBuffer[0] == L'.') {
 			std::string ext = ConvertWideToANSI(std::wstring(&PathBuffer[1]));
 
@@ -234,12 +234,13 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 		}
 	}
 
+	HRESULT hr;
 	m_pin = new BassSourceStream(L"Bass Source Stream", hr, this, L"Output", pszFileName, this, m_buffersizeMS, m_preBufferMS);
 	if (FAILED(hr) || !m_pin) {
 		return hr;
 	}
 
-	m_fileName = _wcsdup(pszFileName ? pszFileName : L"");
+	m_fileName = _wcsdup(pszFileName);
 
 	if (!m_pin->m_decoder->GetIsShoutcast()) {
 		WCHAR PathBuffer[MAX_PATH + 1];

@@ -139,11 +139,9 @@ function DllCanUnloadNow: HResult;
 
 bool RegisterFormat(LPCWSTR format, bool exist)
 {
-	LPWSTR fileName;
-	WCHAR PathBuffer2[MAX_PATH + 1];
+	const std::wstring fileName = GetFilterDirectory().append(REGISTER_EXTENSION_FILE);
 
-	fileName = wcscat(GetFilterDirectory(PathBuffer2), REGISTER_EXTENSION_FILE);
-	if (!FileExists(fileName)) {
+	if (!FileExists(fileName.c_str())) {
 		return false;
 	}
 
@@ -151,7 +149,7 @@ bool RegisterFormat(LPCWSTR format, bool exist)
 		format++;
 	}
 
-	switch (GetPrivateProfileIntW(L"Register", format, 0, fileName)) {
+	switch (GetPrivateProfileIntW(L"Register", format, 0, fileName.c_str())) {
 	case 1:
 		return true;
 	case 2:
@@ -190,12 +188,7 @@ STDAPI DllRegisterServer()
 #if REGISTERING_FILE_EXTENSIONS
 	HKEY reg, reg2;
 	LPCWSTR ext;
-	LPWSTR dllPath;
-	LPWSTR plugin;
-	WCHAR PathBuffer2[MAX_PATH + 1];
-
-	dllPath = GetFilterDirectory(PathBuffer2);
-	plugin = dllPath + wcslen(dllPath);
+	const std::wstring filterPath = GetFilterDirectory();
 
 	if (RegCreateKeyExW(HKEY_CLASSES_ROOT, DIRECTSHOW_SOURCE_FILTER_PATH, 0, nullptr, 0, KEY_ALL_ACCESS, nullptr, &reg, nullptr) == ERROR_SUCCESS)
 	{
@@ -205,15 +198,14 @@ STDAPI DllRegisterServer()
 
 				if (RegOpenKeyExW(reg, ext, 0, KEY_QUERY_VALUE, &reg2) != ERROR_SUCCESS) {
 					reg2 = NULL;
-				}
-				else {
+				} else {
 					RegCloseKey(reg2);
 				}
 
 				if (RegisterFormat(ext, reg2 != NULL)) {
-					wcscpy(plugin, BassExtensions[i].DLL);
+					const std::wstring pluginPath = filterPath + BassPlugins[i];
 
-					if (FileExists(dllPath)) {
+					if (FileExists(pluginPath.c_str())) {
 						//if reg.KeyExists(path)
 						RegDeleteKeyW(reg, ext);
 

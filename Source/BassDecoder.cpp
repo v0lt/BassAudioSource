@@ -30,17 +30,19 @@
 
 /*** Utilities ****************************************************************/
 
-LPWSTR GetFilterDirectory(LPWSTR folder)
+std::wstring GetFilterDirectory()
 {
-	WCHAR PathBuffer[MAX_PATH + 1];
+	std::wstring path(MAX_PATH + 1, '\0');
 
-	DWORD res = GetModuleFileNameW(HInstance, PathBuffer, (DWORD)std::size(PathBuffer));
-	if (!res) {
-		*folder = 0;
-		return folder;
+	DWORD res = GetModuleFileNameW(HInstance, path.data(), (DWORD)(path.size()-1));
+	if (res) {
+		path.resize(path.rfind('\\', res) + 1);
+	}
+	else {
+		path.clear();
 	}
 
-	return GetFilePath(PathBuffer, folder);
+	return path;
 }
 
 bool IsMODFile(LPCWSTR fileName)
@@ -123,11 +125,8 @@ BassDecoder::BassDecoder(ShoutcastEvents* shoutcastEvents, int buffersizeMS, int
 	, m_buffersizeMS(buffersizeMS)
 	, m_prebufferMS(prebufferMS)
 {
-	LPWSTR path;
-	WCHAR PathBuffer2[MAX_PATH + 1];
-
-	path = wcscat(GetFilterDirectory(PathBuffer2), L"OptimFROG.dll");
-	m_optimFROGDLL = LoadLibrary(path);
+	const std::wstring ddlPath = GetFilterDirectory().append(L"OptimFROG.dll");
+	m_optimFROGDLL = LoadLibraryW(ddlPath.c_str());
 
 	LoadBASS();
 	LoadPlugins();
@@ -169,15 +168,11 @@ void BassDecoder::UnloadBASS()
 
 void BassDecoder::LoadPlugins()
 {
-	LPWSTR path;
-	WCHAR PathBuffer2[MAX_PATH + 1];
-
-	path = GetFilterDirectory(PathBuffer2);
-	LPWSTR plugin = path + wcslen(path);
+	const std::wstring filterDir = GetFilterDirectory();
 
 	for (int i = 0; i < BassPluginsCount; i++) {
-		wcscpy(plugin, BassPlugins[i]);
-		BASS_PluginLoad(LPCSTR(path), BASS_UNICODE);
+		const std::wstring pluginPath = filterDir + BassPlugins[i];
+		BASS_PluginLoad(LPCSTR(pluginPath.c_str()), BASS_UNICODE);
 	}
 }
 

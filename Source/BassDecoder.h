@@ -89,4 +89,4 @@ public:
 	friend void CALLBACK OnShoutcastData(const void* buffer, DWORD length, void* user);
 };
 
-LPWSTR GetFilterDirectory(LPWSTR folder);
+std::wstring GetFilterDirectory();
