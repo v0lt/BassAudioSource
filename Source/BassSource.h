@@ -75,10 +75,10 @@ public:
 	STDMETHODIMP Invoke(DISPID dispidMember, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS FAR* pdispparams, VARIANT FAR* pvarResult, EXCEPINFO FAR* pexcepinfo, UINT FAR* puArgErr) { return E_NOTIMPL; }
 
 	// IAMMediaContent
-	STDMETHODIMP get_AuthorName(THIS_ BSTR FAR* pbstrAuthorName) { return E_NOTIMPL; }
+	STDMETHODIMP get_AuthorName(THIS_ BSTR FAR* pbstrAuthorName);
 	STDMETHODIMP get_Title(THIS_ BSTR FAR* pbstrTitle);
 	STDMETHODIMP get_Rating(THIS_ BSTR FAR* pbstrRating) { return E_NOTIMPL; }
-	STDMETHODIMP get_Description(THIS_ BSTR FAR* pbstrDescription) { return E_NOTIMPL; }
+	STDMETHODIMP get_Description(THIS_ BSTR FAR* pbstrDescription);
 	STDMETHODIMP get_Copyright(THIS_ BSTR FAR* pbstrCopyright) { return E_NOTIMPL; }
 	STDMETHODIMP get_BaseURL(THIS_ BSTR FAR* pbstrBaseURL) { return E_NOTIMPL; }
 	STDMETHODIMP get_LogoURL(THIS_ BSTR FAR* pbstrLogoURL) { return E_NOTIMPL; }

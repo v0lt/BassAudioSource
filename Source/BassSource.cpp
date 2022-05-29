@@ -282,20 +282,63 @@ STDMETHODIMP BassSource::GetCurFile(LPOLESTR* ppszFileName, AM_MEDIA_TYPE* pmt)
 
 // IAMMediaContent
 
+STDMETHODIMP BassSource::get_AuthorName(THIS_ BSTR FAR* pbstrAuthorName)
+{
+	CheckPointer(pbstrAuthorName, E_POINTER);
+
+	auto tag = m_pin->m_decoder->GetTagArtist();
+	if (tag.empty()) {
+		return VFW_E_NOT_FOUND;
+	}
+
+	*pbstrAuthorName = SysAllocString(tag.c_str());
+
+	if (!*pbstrAuthorName) {
+		return E_OUTOFMEMORY;
+	}
+
+	return S_OK;
+}
+
 STDMETHODIMP BassSource::get_Title(THIS_ BSTR FAR* pbstrTitle)
 {
 	CheckPointer(pbstrTitle, E_POINTER);
 
-	m_metaLock->Lock();
+	if (m_pin->m_decoder->GetIsShoutcast()) {
+		m_metaLock->Lock();
 
-	__try {
 		*pbstrTitle = SysAllocString(m_currentTag.c_str());
-	}
-	__finally {
+		
 		m_metaLock->Unlock();
+	}
+	else {
+		auto tag = m_pin->m_decoder->GetTagTitle();
+		if (tag.empty()) {
+			return VFW_E_NOT_FOUND;
+		}
+
+		*pbstrTitle = SysAllocString(tag.c_str());
 	}
 
 	if (!*pbstrTitle) {
+		return E_OUTOFMEMORY;
+	}
+
+	return S_OK;
+}
+
+STDMETHODIMP BassSource::get_Description(THIS_ BSTR FAR* pbstrDescription)
+{
+	CheckPointer(pbstrDescription, E_POINTER);
+
+	auto tag = m_pin->m_decoder->GetTagComment();
+	if (tag.empty()) {
+		return VFW_E_NOT_FOUND;
+	}
+
+	*pbstrDescription = SysAllocString(tag.c_str());
+
+	if (!*pbstrDescription) {
 		return E_OUTOFMEMORY;
 	}
 

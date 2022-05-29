@@ -233,6 +233,29 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		return false;
 	}
 
+	//m_tagTitle;
+	//m_tag¿uthor;
+	//m_tagDecsription;
+
+	if (!m_isURL && !m_isMOD) {
+		LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_APE);
+		while (p && *p) {
+			std::string_view str(p);
+			if (str.compare(0, 6, "Title=") == 0) {
+				m_tagTitle = ConvertUtf8ToWide(p + 6);
+			}
+			else if (str.compare(0, 7, "Artist=") == 0) {
+				m_tagArtist = ConvertUtf8ToWide(p + 7);
+			}
+			else if (str.compare(0, 8, "Comment=") == 0) {
+				m_tagComment = ConvertUtf8ToWide(p + 8);
+			}
+
+			p += str.size()+1;
+		}
+		
+	}
+
 	return true;
 }
 

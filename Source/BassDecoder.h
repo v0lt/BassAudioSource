@@ -56,6 +56,10 @@ protected:
 
 	DWORD m_type = 0;
 
+	std::wstring m_tagTitle;
+	std::wstring m_tagArtist;
+	std::wstring m_tagComment;
+
 	void LoadBASS();
 	void UnloadBASS();
 	void LoadPlugins();
@@ -84,6 +88,11 @@ public:
 	inline bool GetFloat()         { return m_float; }
 	inline LONGLONG GetMSecConv()  { return m_mSecConv; }
 	inline bool GetIsShoutcast()   { return m_isShoutcast; }
+	std::wstring GetTagTitle()     { return m_tagTitle; }
+	std::wstring GetTagArtist()    { return m_tagArtist; }
+	std::wstring GetTagComment()   { return m_tagComment; }
+
+
 	friend void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user);
 	friend void CALLBACK OnShoutcastData(const void* buffer, DWORD length, void* user);
 };
