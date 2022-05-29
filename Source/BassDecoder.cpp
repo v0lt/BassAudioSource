@@ -21,11 +21,11 @@
  */
 
 #include "stdafx.h"
-#include "Common.h"
 #include "BassDecoder.h"
 #include "BassSource.h"
 #include <../Include/bass.h>
 #include <../Include/bass_aac.h>
+#include "Utils/StringUtil.h"
 #include "dllmain.h"
 
 /*** Utilities ****************************************************************/
@@ -72,36 +72,39 @@ void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user)
 	BassDecoder* decoder = (BassDecoder*)user;
 
 	if (decoder->m_shoutcastEvents) {
-		WCHAR TextBuffer[1024];
+		LPCSTR metaTagsUtf8 = BASS_ChannelGetTags(channel, BASS_TAG_META);
+		if (metaTagsUtf8) {
+			std::wstring metaTags = ConvertUtf8ToWide(metaTagsUtf8);
 
-		LPWSTR metaStr = (LPWSTR)FromUtf8ToWide(BASS_ChannelGetTags(channel, BASS_TAG_META), TextBuffer, (int)std::size(TextBuffer));
-		LPWSTR resStr = L"";
+			LPWSTR metaStr = (LPWSTR)metaTags.c_str();
+			LPWSTR resStr = L"";
 
-		LPWSTR idx = wcsstr(metaStr, L"StreamTitle='");
-		if (idx) {
-			// Shoutcast Metadata
-			resStr = idx + 13;
-			if (*resStr) {
-				resStr[wcslen(resStr) - 1] = 0;
-			}
-			//LPWSTR idx2 = wcsstr(resStr, L"';");
-			//if (idx2) {
-			//	*idx2 = 0;
-			//} else
-			//{
-			idx = wcsstr(resStr, L"'");
+			LPWSTR idx = wcsstr(metaStr, L"StreamTitle='");
 			if (idx) {
-				*idx = 0;
+				// Shoutcast Metadata
+				resStr = idx + 13;
+				if (*resStr) {
+					resStr[wcslen(resStr) - 1] = 0;
+				}
+				//LPWSTR idx2 = wcsstr(resStr, L"';");
+				//if (idx2) {
+				//	*idx2 = 0;
+				//} else
+				//{
+				idx = wcsstr(resStr, L"'");
+				if (idx) {
+					*idx = 0;
+				}
+				//}
 			}
-			//}
-		}
-		else if ((idx = wcsstr(metaStr, L"TITLE=")) ||
+			else if ((idx = wcsstr(metaStr, L"TITLE=")) ||
 				(idx = wcsstr(metaStr, L"Title=")) ||
 				(idx = wcsstr(metaStr, L"title="))) {
-			resStr = idx + 6;
-		}
+				resStr = idx + 6;
+			}
 
-		decoder->m_shoutcastEvents->OnShoutcastMetaDataCallback(resStr);
+			decoder->m_shoutcastEvents->OnShoutcastMetaDataCallback(resStr);
+		}
 	}
 }
 
@@ -303,16 +306,15 @@ bool BassDecoder::GetStreamInfos()
 
 void BassDecoder::GetNameTag(LPCSTR string)
 {
-	LPCWSTR tag;
-	WCHAR TextBuffer[1024];
-
 	if (!m_shoutcastEvents) {
 		return;
 	}
 
-	LPCWSTR astring = FromAnsiToWide(string, TextBuffer, (int)std::size(TextBuffer));
+	std::wstring strTags = ConvertUtf8ToWide(string);
+
+	LPCWSTR astring = strTags.c_str();
 	while (astring && *astring) {
-		tag = astring;
+		LPCWSTR tag = astring;
 		if (wcsncmp(L"icy-name:", tag, 9) == 0) {
 			tag += 9;
 			while (*tag && iswspace(*tag)) {
@@ -345,11 +347,11 @@ void BassDecoder::GetHTTPInfos()
 		GetNameTag(httpHeaders);
 	}
 
-	LPCSTR metaTags = BASS_ChannelGetTags(m_stream, BASS_TAG_META);
-	if (metaTags) {
-		WCHAR TextBuffer[1024];
+	LPCSTR metaTagsUtf8 = BASS_ChannelGetTags(m_stream, BASS_TAG_META);
+	if (metaTagsUtf8) {
+		std::wstring metaTags = ConvertUtf8ToWide(metaTagsUtf8);
 
-		LPWSTR metaStr = (LPWSTR)FromUtf8ToWide(metaTags, TextBuffer, (int)std::size(TextBuffer));
+		LPWSTR metaStr = metaTags.data();
 		LPWSTR resStr = L"";
 
 		LPWSTR idx = wcsstr(metaStr, L"StreamTitle='");
