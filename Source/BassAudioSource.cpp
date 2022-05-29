@@ -65,7 +65,8 @@ const AMOVIESETUP_FILTER sudFilter = {
 	LABEL_BassAudioSource,  // String name
 	MERIT_UNLIKELY,         // Filter merit
 	1,                      // Number pins
-	&sudOpPin               // Pin details
+	&sudOpPin,              // Pin details
+	CLSID_LegacyAmFilterCategory
 };
 
 // COM global table of objects in this dll
