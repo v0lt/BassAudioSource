@@ -212,7 +212,7 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 		// bass_tta.dll
 		"tta",
 		// bassalac.dll
-		"alac"
+		"alac",
 		// bassape.dll
 		"ape",
 		// bassdsd.dll
