@@ -61,7 +61,7 @@
     <ClCompile Include="BassSource.cpp" />
     <ClCompile Include="BassSourceStream.cpp" />
     <ClCompile Include="Common.cpp" />
-    <ClCompile Include="BassAudioSource.cpp" />
+    <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
@@ -72,7 +72,7 @@
     <ClInclude Include="BassSource.h" />
     <ClInclude Include="BassSourceStream.h" />
     <ClInclude Include="Common.h" />
-    <ClInclude Include="BassAudioSource.h" />
+    <ClInclude Include="dllmain.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Utils\StringUtil.h" />

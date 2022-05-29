@@ -24,7 +24,6 @@
 #include "Common.h"
 #include "BassDecoder.h"
 #include "BassSource.h"
-#include "BassAudioSource.h"
 #include <MMReg.h>
 #include "Utils/StringUtil.h"
 

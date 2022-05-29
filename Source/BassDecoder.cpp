@@ -20,13 +20,13 @@
  *  http://www.gnu.org/copyleft/gpl.html
  */
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "Common.h"
 #include "BassDecoder.h"
 #include "BassSource.h"
 #include <../Include/bass.h>
 #include <../Include/bass_aac.h>
-#include "BassAudioSource.h"
+#include "dllmain.h"
 
 /*** Utilities ****************************************************************/
 

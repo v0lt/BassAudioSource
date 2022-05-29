@@ -22,7 +22,6 @@
 
 //BassSource.h
 
-#include <InitGuid.h>
 #include <qnetwork.h>
 #include "BassSourceStream.h"
 

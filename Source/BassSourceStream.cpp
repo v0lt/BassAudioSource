@@ -20,12 +20,8 @@
  *  http://www.gnu.org/copyleft/gpl.html
  */
 
-#include "StdAfx.h"
-#include "Common.h"
-#include "BassDecoder.h"
-#include "BassSource.h"
+#include "stdafx.h"
 #include "BassSourceStream.h"
-#include "BassAudioSource.h"
 #include <MMReg.h>
 
 //

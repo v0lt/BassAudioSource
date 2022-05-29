@@ -21,12 +21,9 @@
  */
 
 #include "stdafx.h"
-#include "BassSourceStream.h"
-#include "BassAudioSource.h"
+#include <InitGuid.h>
 #include "BassSource.h"
-#include "Common.h"
-
-#define REGISTERING_FILE_EXTENSIONS 0
+#include "dllmain.h"
 
 HMODULE HInstance;
 
