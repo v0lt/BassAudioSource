@@ -59,7 +59,7 @@ protected:
 	void Init();
 
 public:
-	BassSource(IUnknown* unk, REFCLSID clsid, HRESULT& hr);
+	BassSource(LPUNKNOWN lpunk, HRESULT* phr);
 	BassSource(CFactoryTemplate* factory, LPUNKNOWN controller);
 	~BassSource();
 

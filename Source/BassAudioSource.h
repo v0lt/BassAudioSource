@@ -1,7 +1,5 @@
 //BassAudioSource.h
 
-#include <../Include/bass.h>
-
 extern HMODULE HInstance;
 
 struct BassExtension {

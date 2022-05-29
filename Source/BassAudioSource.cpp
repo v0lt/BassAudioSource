@@ -33,9 +33,20 @@
 
 HMODULE HInstance;
 
+template <class T>
+static CUnknown* WINAPI CreateInstance(LPUNKNOWN lpunk, HRESULT* phr)
+{
+	*phr = S_OK;
+	CUnknown* punk = new(std::nothrow) T(lpunk, phr);
+	if (punk == nullptr) {
+		*phr = E_OUTOFMEMORY;
+	}
+	return punk;
+}
+
 // Setup data
 
-const AMOVIESETUP_MEDIATYPE sudOpPinTypes = {
+const AMOVIESETUP_MEDIATYPE sudOpPinType = {
 	&MEDIATYPE_Audio,       // Major type
 	&MEDIASUBTYPE_PCM       // Minor type
 };
@@ -49,10 +60,10 @@ const AMOVIESETUP_PIN sudOpPin = {
 	&CLSID_NULL,            // Connects to filter
 	nullptr,                // Connects to pin
 	1,                      // Number of types
-	&sudOpPinTypes          // Pin details
+	&sudOpPinType           // Pin details
 };
 
-const AMOVIESETUP_FILTER sudBassAudioSourceax = {
+const AMOVIESETUP_FILTER sudFilter = {
 	&__uuidof(BassSource),  // Filter CLSID
 	LABEL_BassAudioSource,  // String name
 	MERIT_UNLIKELY,         // Filter merit
@@ -106,14 +117,12 @@ const int BassPluginsCount = (int)std::size(BassPlugins);
 
 // COM global table of objects in this dll
 
-CUnknown * WINAPI CreateBassAudioSourceInstance(LPUNKNOWN lpunk, HRESULT *phr);
-
 CFactoryTemplate g_Templates[] = {
-	{ LABEL_BassAudioSource
-	, &__uuidof(BassSource)
-	, CreateBassAudioSourceInstance
+	{ sudFilter.strName
+	, sudFilter.clsID
+	, CreateInstance<BassSource>
 	, nullptr
-	, &sudBassAudioSourceax }
+	, &sudFilter }
 };
 int g_cTemplates = (int)std::size(g_Templates);
 
@@ -340,16 +349,4 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  dwReason, LPVOID lpReserved)
 	}
 
 	return DllEntryPoint((HINSTANCE)(hModule), dwReason, lpReserved);
-}
-
-CUnknown* WINAPI CreateBassAudioSourceInstance(LPUNKNOWN lpunk, HRESULT* phr)
-{
-	CUnknown* punk = new BassSource(lpunk, __uuidof(BassSource), *phr);
-	if (!punk) {
-		if (phr) {
-			*phr = E_OUTOFMEMORY;
-		}
-	}
-
-	return punk;
 }
