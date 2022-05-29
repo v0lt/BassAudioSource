@@ -74,7 +74,7 @@ public:
 	BassDecoder(ShoutcastEvents* shoutcastEvents, int buffersizeMS, int prebufferMS);
 	~BassDecoder();
 
-	bool Load(LPCWSTR fileName);
+	bool Load(std::wstring path);
 	void Close();
 
 	int GetData(void* buffer, int size);

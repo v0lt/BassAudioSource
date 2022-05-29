@@ -41,7 +41,7 @@ class BassSource
 protected:
 	CCritSec* m_metaLock = nullptr;
 	BassSourceStream* m_pin = nullptr;
-	LPCWSTR m_fileName = nullptr;
+	std::wstring m_fileName;
 	std::wstring m_currentTag;
 	int m_buffersizeMS = 0;
 	int m_preBufferMS = 0;

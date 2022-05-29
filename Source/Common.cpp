@@ -46,25 +46,6 @@ bool IsLikelyFilePath(const std::wstring_view str)
 	return false;
 }
 
-LPWSTR GetFileName(LPCWSTR path, LPWSTR filename) {
-	WCHAR ext[MAX_PATH];
-	_wsplitpath(path, nullptr, nullptr, filename, ext);
-	wcscat(filename, ext);
-	return filename;
-}
-
-LPWSTR GetFilePath(LPCWSTR path, LPWSTR folder) {
-	WCHAR dir[MAX_PATH];
-	_wsplitpath(path, folder, dir, nullptr, nullptr);
-	wcscat(folder, dir);
-	return folder;
-}
-
-LPWSTR GetFileExt(LPCWSTR path, LPWSTR ext) {
-	_wsplitpath(path, nullptr, nullptr, nullptr, ext);
-	return ext;
-}
-
 bool CommandParamExist(LPCWSTR command, LPCWSTR opt) {
 	size_t len = wcslen(opt);
 	LPCWSTR pos = wcsstr(command, opt);

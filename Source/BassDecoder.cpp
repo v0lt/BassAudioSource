@@ -45,17 +45,14 @@ std::wstring GetFilterDirectory()
 	return path;
 }
 
-bool IsMODFile(LPCWSTR fileName)
+bool IsMODFile(const std::wstring_view& path)
 {
 	static LPCWSTR mod_exts[] = { L".it", L".mo3", L".mod", L".mptm", L".mtm", L".s3m", L".umx", L".xm"};
 
-	LPWSTR ext;
-	WCHAR PathBuffer[MAX_PATH + 1];
-
-	ext = GetFileExt(fileName, PathBuffer);
+	auto ext = std::filesystem::path(path).extension();
 
 	for (const auto& mod_ext : mod_exts) {
-		if (lstrcmpiW(mod_ext, ext) == 0) {
+		if (lstrcmpiW(mod_ext, ext.c_str()) == 0) {
 			return true;
 		}
 	}
@@ -63,9 +60,9 @@ bool IsMODFile(LPCWSTR fileName)
 	return false;
 }
 
-bool IsURLPath(LPCWSTR fileName)
+bool IsURLPath(const std::wstring_view& path)
 {
-	return wcsstr(fileName, L"http://") || wcsstr(fileName, L"ftp://");
+	return path.compare(0, 7, L"http://") == 0 || path.compare(0, 6, L"ftp://") == 0;
 }
 
 /*** Callbacks ****************************************************************/
@@ -176,41 +173,36 @@ void BassDecoder::LoadPlugins()
 	}
 }
 
-bool BassDecoder::Load(LPCWSTR fileName)
+bool BassDecoder::Load(std::wstring path) // use copy of path here
 {
 	Close();
 
 	m_isShoutcast = false;
 
-	WCHAR TextBuffer[1024];
-
-	int strPos = wcsncmp(fileName, L"icyx", 4);
-	if (strPos == 0) {
+	if (path.compare(0, 4, L"icyx") == 0) {
 		// replace ICYX
-		TextBuffer[0] = 'h';
-		TextBuffer[1] = 't';
-		TextBuffer[2] = 't';
-		TextBuffer[3] = 'p';
-		wcscpy(TextBuffer + 4, fileName + 4);
-		fileName = TextBuffer;
+		path[0] = 'h';
+		path[1] = 't';
+		path[2] = 't';
+		path[3] = 'p';
 	}
 
-	m_isMOD = IsMODFile(fileName);
-	m_isURL = IsURLPath(fileName);
+	m_isMOD = IsMODFile(path);
+	m_isURL = IsURLPath(path);
 
 	if (m_isMOD) {
 		if (!m_isURL) {
-			m_stream = BASS_MusicLoad(false, (const void*)fileName, 0, 0, BASS_MUSIC_DECODE | BASS_MUSIC_RAMP | BASS_MUSIC_POSRESET | BASS_MUSIC_PRESCAN | BASS_UNICODE, 0);
+			m_stream = BASS_MusicLoad(false, (const void*)path.c_str(), 0, 0, BASS_MUSIC_DECODE | BASS_MUSIC_RAMP | BASS_MUSIC_POSRESET | BASS_MUSIC_PRESCAN | BASS_UNICODE, 0);
 		}
 	}
 	else {
 		if (m_isURL) {
-			m_stream = BASS_StreamCreateURL(LPCSTR(fileName), 0, BASS_STREAM_DECODE | BASS_UNICODE, OnShoutcastData, this);
+			m_stream = BASS_StreamCreateURL(LPCSTR(path.c_str()), 0, BASS_STREAM_DECODE | BASS_UNICODE, OnShoutcastData, this);
 			m_sync = BASS_ChannelSetSync(m_stream, BASS_SYNC_META, 0, OnMetaData, this);
 			m_isShoutcast = GetDuration() == 0;
 		}
 		else {
-			m_stream = BASS_StreamCreateFile(false, (const void*)fileName, 0, 0, BASS_STREAM_DECODE | BASS_UNICODE);
+			m_stream = BASS_StreamCreateFile(false, (const void*)path.c_str(), 0, 0, BASS_STREAM_DECODE | BASS_UNICODE);
 		}
 	}
 

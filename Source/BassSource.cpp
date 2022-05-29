@@ -20,7 +20,7 @@
  *  http://www.gnu.org/copyleft/gpl.html
  */
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "Common.h"
 #include "BassDecoder.h"
 #include "BassSource.h"
@@ -60,10 +60,6 @@ BassSource::~BassSource()
 	}
 
 	delete m_metaLock;
-
-	if (m_fileName) {
-		free((void*)m_fileName);
-	}
 
 	SaveSettings();
 }
@@ -213,24 +209,26 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 		"v2m", "vgm", "vgz", "vtx", "ym",
 	};
 
-	WCHAR PathBuffer[MAX_PATH + 1] = {};
-
 	if (IsLikelyFilePath(pszFileName)) {
-		GetFileExt(pszFileName, PathBuffer);
+		std::wstring wext = std::filesystem::path(pszFileName).extension();
 
-		if (PathBuffer[0] == L'.') {
-			std::string ext = ConvertWideToANSI(std::wstring(&PathBuffer[1]));
+		if (wext.size() <= 1) {
+			return VFW_E_CANNOT_LOAD_SOURCE_FILTER;
+		}
 
-			size_t i = 0;
-			for (; i < std::size(bass_exts); i++) {
-				if (ext.compare(bass_exts[i]) == 0) {
-					break;
-				}
+		ASSERT(wext[0] == L'.');
+		wext.erase(0, 1);
+		std::string ext = ConvertWideToANSI(wext);
+
+		size_t i = 0;
+		for (; i < std::size(bass_exts); i++) {
+			if (ext.compare(bass_exts[i]) == 0) {
+				break;
 			}
+		}
 
-			if (i == std::size(bass_exts)) {
-				return VFW_E_CANNOT_LOAD_SOURCE_FILTER;
-			}
+		if (i == std::size(bass_exts)) {
+			return VFW_E_CANNOT_LOAD_SOURCE_FILTER;
 		}
 	}
 
@@ -240,11 +238,10 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 		return hr;
 	}
 
-	m_fileName = _wcsdup(pszFileName);
+	m_fileName = pszFileName;
 
 	if (!m_pin->m_decoder->GetIsShoutcast()) {
-		WCHAR PathBuffer[MAX_PATH + 1];
-		m_currentTag = GetFileName(m_fileName, PathBuffer);
+		m_currentTag = std::filesystem::path(m_fileName).filename();
 	}
 
 	return S_OK;
@@ -254,7 +251,7 @@ STDMETHODIMP BassSource::GetCurFile(LPOLESTR* ppszFileName, AM_MEDIA_TYPE* pmt)
 {
 	CheckPointer(ppszFileName, E_POINTER);
 
-	return AMGetWideString(m_fileName, ppszFileName);
+	return AMGetWideString(m_fileName.c_str(), ppszFileName);
 }
 
 /*
