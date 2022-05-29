@@ -53,7 +53,7 @@ const AMOVIESETUP_PIN sudOpPin = {
 };
 
 const AMOVIESETUP_FILTER sudBassAudioSourceax = {
-	&CLSID_BassAudioSource, // Filter CLSID
+	&__uuidof(BassSource),  // Filter CLSID
 	LABEL_BassAudioSource,  // String name
 	MERIT_UNLIKELY,         // Filter merit
 	1,                      // Number pins
@@ -110,7 +110,7 @@ CUnknown * WINAPI CreateBassAudioSourceInstance(LPUNKNOWN lpunk, HRESULT *phr);
 
 CFactoryTemplate g_Templates[] = {
 	{ LABEL_BassAudioSource
-	, &CLSID_BassAudioSource
+	, &__uuidof(BassSource)
 	, CreateBassAudioSourceInstance
 	, nullptr
 	, &sudBassAudioSourceax }
@@ -137,9 +137,11 @@ function DllGetClassObject(const CLSID, IID: TGUID; var Obj): HResult;
 function DllCanUnloadNow: HResult;
 */
 
+#define DIRECTSHOW_SOURCE_FILTER_PATH L"Media Type\\Extensions"
+
 bool RegisterFormat(LPCWSTR format, bool exist)
 {
-	const std::wstring fileName = GetFilterDirectory().append(REGISTER_EXTENSION_FILE);
+	const std::wstring fileName = GetFilterDirectory().append(L"Registration.ini");
 
 	if (!FileExists(fileName.c_str())) {
 		return false;
@@ -236,7 +238,7 @@ STDAPI DllRegisterServer()
 	HKEY hKey;
 	LONG ec = ::RegCreateKeyExW(HKEY_CLASSES_ROOT, L"Media Type\\{e436eb83-524f-11ce-9f53-0020af0ba770}\\" STR_CLSID_BassAudioSource, 0, 0, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 0, &hKey, 0);
 	if (ec == ERROR_SUCCESS) {
-		const LPCWSTR value_data0 = STR_CLSID_BassAudioSource;
+		const LPCWSTR value_data0 = _CRT_WIDE(STR_CLSID_BassAudioSource);
 		const LPCWSTR value_data1 = L"0,1,00,00"; // connect to any data
 
 		ec = ::RegSetValueExW(hKey, L"Source Filter", 0, REG_SZ,
@@ -318,7 +320,7 @@ STDAPI DllUnregisterServer()
 	HKEY hKey;
 	LONG ec = ::RegOpenKeyExW(HKEY_CLASSES_ROOT, L"Media Type\\{e436eb83-524f-11ce-9f53-0020af0ba770}", 0, KEY_ALL_ACCESS, &hKey);
 	if (ec == ERROR_SUCCESS) {
-		ec = ::RegDeleteKeyW(hKey, STR_CLSID_BassAudioSource);
+		ec = ::RegDeleteKeyW(hKey, _CRT_WIDE(STR_CLSID_BassAudioSource));
 		::RegCloseKey(hKey);
 	}
 #endif
@@ -342,7 +344,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  dwReason, LPVOID lpReserved)
 
 CUnknown* WINAPI CreateBassAudioSourceInstance(LPUNKNOWN lpunk, HRESULT* phr)
 {
-	CUnknown* punk = new BassSource(LABEL_BassAudioSource, lpunk, CLSID_BassAudioSource, *phr);
+	CUnknown* punk = new BassSource(lpunk, __uuidof(BassSource), *phr);
 	if (!punk) {
 		if (phr) {
 			*phr = E_OUTOFMEMORY;

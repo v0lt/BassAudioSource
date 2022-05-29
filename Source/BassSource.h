@@ -32,7 +32,12 @@
 #define PREBUFFER_MIN_SIZE 100
 #define PREBUFFER_MAX_SIZE 5000
 
-class BassSource
+#define LABEL_BassAudioSource L"Bass Audio Source"
+
+#define STR_CLSID_BassAudioSource "{A351970E-4601-4BEC-93DE-CEE7AF64C636}"
+
+class __declspec(uuid(STR_CLSID_BassAudioSource))
+	BassSource
 	: public CSource
 	, protected ShoutcastEvents
 	, public IFileSourceFilter
@@ -54,7 +59,7 @@ protected:
 	void Init();
 
 public:
-	BassSource(LPCWSTR name, IUnknown* unk, REFCLSID clsid, HRESULT& hr);
+	BassSource(IUnknown* unk, REFCLSID clsid, HRESULT& hr);
 	BassSource(CFactoryTemplate* factory, LPUNKNOWN controller);
 	~BassSource();
 

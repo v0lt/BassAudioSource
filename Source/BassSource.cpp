@@ -38,14 +38,14 @@ volatile LONG InstanceCount = 0;
 // BassSource
 //
 
-BassSource::BassSource(LPCWSTR name, IUnknown* unk, REFCLSID clsid, HRESULT& hr)
-	: CSource(name, unk, clsid, &hr)
+BassSource::BassSource(IUnknown* unk, REFCLSID clsid, HRESULT& hr)
+	: CSource(LABEL_BassAudioSource, unk, clsid, &hr)
 {
 	Init();
 }
 
 BassSource::BassSource(CFactoryTemplate* factory, LPUNKNOWN controller)
-	: CSource(factory->m_Name, controller, CLSID_BassAudioSource, nullptr)
+	: CSource(factory->m_Name, controller, __uuidof(BassSource), nullptr)
 {
 	Init();
 }
