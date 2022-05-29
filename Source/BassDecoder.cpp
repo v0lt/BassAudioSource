@@ -310,7 +310,7 @@ void BassDecoder::GetNameTag(LPCSTR string)
 		return;
 	}
 
-	std::wstring strTags = ConvertUtf8ToWide(string);
+	std::wstring strTags = ConvertAnsiToWide(string);
 
 	LPCWSTR astring = strTags.c_str();
 	while (astring && *astring) {
