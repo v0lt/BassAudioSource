@@ -239,21 +239,28 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 
 	if (!m_isURL && !m_isMOD) {
 		LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_APE);
+		if (!p) {
+			p = BASS_ChannelGetTags(m_stream, BASS_TAG_OGG);
+		}
+		if (!p) {
+			p = BASS_ChannelGetTags(m_stream, BASS_TAG_MP4);
+		}
+
 		while (p && *p) {
 			std::string_view str(p);
-			if (str.compare(0, 6, "Title=") == 0) {
+			if (str.compare(0, 6, "Title=") == 0 || str.compare(0, 6, "TITLE=") == 0) {
 				m_tagTitle = ConvertUtf8ToWide(p + 6);
 			}
-			else if (str.compare(0, 7, "Artist=") == 0) {
+			else if (str.compare(0, 7, "Artist=") == 0 || str.compare(0, 7, "ARTIST=") == 0) {
 				m_tagArtist = ConvertUtf8ToWide(p + 7);
 			}
-			else if (str.compare(0, 8, "Comment=") == 0) {
+			else if (str.compare(0, 8, "Comment=") == 0 || str.compare(0, 8, "COMMENT=") == 0) {
 				m_tagComment = ConvertUtf8ToWide(p + 8);
 			}
 
 			p += str.size()+1;
 		}
-		
+
 	}
 
 	return true;
