@@ -22,7 +22,6 @@
 
 //BassDecoder.h
 
-#include <DShow.h>
 #include <../Include/bass.h>
 
 #pragma once

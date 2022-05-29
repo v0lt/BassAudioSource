@@ -21,10 +21,7 @@
  */
 
 #include "stdafx.h"
-#include <Dshow.h>
-#include <InitGuid.h>
 #include "BassSourceStream.h"
-//#include <Dllsetup.h>
 #include "BassAudioSource.h"
 #include "BassSource.h"
 #include "Common.h"
@@ -71,50 +68,6 @@ const AMOVIESETUP_FILTER sudFilter = {
 	&sudOpPin               // Pin details
 };
 
-BassExtension BassExtensions[] = {
-	{L".aac",  L"bass_aac.dll"},
-	{L".alac", L"bassalac.dll"},
-	{L".als",  L"bassalac.dll"},
-	{L".ape",  L"bassape.dll"},
-	{L".flac", L"bassflac.dll"},
-	{L".m4a",  L"bass_aac.dll"},
-	{L".mp4",  L"bass_aac.dll"},
-	{L".mac",  L"bassape.dll"},
-	{L".mp3",  L"bass.dll"},
-	{L".ogg",  L"bass.dll"},
-	{L".opus", L"bassopus.dll"},
-	{L".mpc",  L"bass_mpc.dll"},
-	{L".wv",   L"basswv.dll"},
-	{L".tta",  L"bass_tta.dll"},
-	{L".ofr",  L"bass_ofr.dll"},
-	{L".it",   L"bass.dll"},
-	{L".mo3",  L"bass.dll"},
-	{L".mod",  L"bass.dll"},
-	{L".mtm",  L"bass.dll"},
-	{L".s3m",  L"bass.dll"},
-	{L".umx",  L"bass.dll"},
-	{L".xm",   L"bass.dll"},
-	{L".pt2",  L"basszxtune.dll"},
-	{L".pt3",  L"basszxtune.dll"},
-};
-const int BassExtensionsCount = (int)std::size(BassExtensions);
-
-LPWSTR BassPlugins[] = {
-	L"bass_aac.dll",
-	L"bass_mpc.dll",
-	L"bass_ofr.dll",
-	L"bass_spx.dll",
-	L"bass_tta.dll",
-	L"bassalac.dll",
-	L"bassape.dll",
-	L"bassdsd.dll",
-	L"bassflac.dll",
-	L"bassopus.dll",
-	L"basswv.dll",
-	L"basszxtune.dll",
-};
-const int BassPluginsCount = (int)std::size(BassPlugins);
-
 // COM global table of objects in this dll
 
 CFactoryTemplate g_Templates[] = {
@@ -127,68 +80,6 @@ CFactoryTemplate g_Templates[] = {
 int g_cTemplates = (int)std::size(g_Templates);
 
 
-////////////////////////////////////////////////////////////////////////
-//
-// Exported entry points for registration and unregistration 
-//
-////////////////////////////////////////////////////////////////////////
-
-bool FileExists(LPCWSTR fileName)
-{
-	WIN32_FILE_ATTRIBUTE_DATA info;
-
-	return !!GetFileAttributesExW(fileName, GetFileExInfoStandard, &info);
-}
-
-/*
-(*** DLL Exports **************************************************************)
-function DllGetClassObject(const CLSID, IID: TGUID; var Obj): HResult;
-function DllCanUnloadNow: HResult;
-*/
-
-#define DIRECTSHOW_SOURCE_FILTER_PATH L"Media Type\\Extensions"
-
-bool RegisterFormat(LPCWSTR format, bool exist)
-{
-	const std::wstring fileName = GetFilterDirectory().append(L"Registration.ini");
-
-	if (!FileExists(fileName.c_str())) {
-		return false;
-	}
-
-	if (*format == '.') {
-		format++;
-	}
-
-	switch (GetPrivateProfileIntW(L"Register", format, 0, fileName.c_str())) {
-	case 1:
-		return true;
-	case 2:
-		return !exist;
-	default:
-		return false;
-	}
-}
-
-void RegWriteString(HKEY key, LPCWSTR name, LPCWSTR value)
-{
-	RegSetValueExW(key, name, 0, REG_SZ, (BYTE*)value, DWORD((wcslen(value) + 1) * sizeof(WCHAR)));
-}
-
-bool RegReadString(HKEY key, LPCWSTR name, LPWSTR value, unsigned len)
-{
-	DWORD type;
-	DWORD cbuf = len * sizeof(WCHAR);
-
-	LONG lRes = ::RegQueryValueExW(key, name, nullptr, &type, (LPBYTE)value, &cbuf);
-
-	if (lRes == ERROR_SUCCESS && (type == REG_SZ || type == REG_EXPAND_SZ)) {
-		return true;
-	}
-
-	return false;
-}
-
 //
 // DllRegisterServer
 //
@@ -196,54 +87,6 @@ bool RegReadString(HKEY key, LPCWSTR name, LPWSTR value, unsigned len)
 //
 STDAPI DllRegisterServer()
 {
-#if REGISTERING_FILE_EXTENSIONS
-	HKEY reg, reg2;
-	LPCWSTR ext;
-	const std::wstring filterPath = GetFilterDirectory();
-
-	if (RegCreateKeyExW(HKEY_CLASSES_ROOT, DIRECTSHOW_SOURCE_FILTER_PATH, 0, nullptr, 0, KEY_ALL_ACCESS, nullptr, &reg, nullptr) == ERROR_SUCCESS)
-	{
-		__try {
-			for (int i = 0; i < BassExtensionsCount; i++) {
-				ext = BassExtensions[i].Extension;
-
-				if (RegOpenKeyExW(reg, ext, 0, KEY_QUERY_VALUE, &reg2) != ERROR_SUCCESS) {
-					reg2 = NULL;
-				} else {
-					RegCloseKey(reg2);
-				}
-
-				if (RegisterFormat(ext, reg2 != NULL)) {
-					const std::wstring pluginPath = filterPath + BassPlugins[i];
-
-					if (FileExists(pluginPath.c_str())) {
-						//if reg.KeyExists(path)
-						RegDeleteKeyW(reg, ext);
-
-						if (RegCreateKeyExW(reg, ext, 0, nullptr, 0, KEY_ALL_ACCESS, nullptr, &reg2, nullptr) == ERROR_SUCCESS) {
-							__try {
-								RegWriteString(reg2, L"Source Filter", STR_CLSID_BassAudioSource);
-
-								// Special handling of MP3 Files
-								if (lstrcmpiW(ext, L".mp3") == 0) {
-									RegWriteString(reg2, L"Media Type", L"{E436EB83-524F-11CE-9F53-0020AF0BA770}"); // MEDIATYPE_Stream
-									RegWriteString(reg2, L"Subtype", L"{E436EB87-524F-11CE-9F53-0020AF0BA770}"); // MEDIASUBTYPE_MPEG1Audio
-								}
-
-							}
-							__finally {
-								RegCloseKey(reg2);
-							}
-						}
-					}
-				}
-			}
-		}
-		__finally {
-			RegCloseKey(reg);
-		}
-	}
-#else
 	HKEY hKey;
 	LONG ec = ::RegCreateKeyExW(HKEY_CLASSES_ROOT, L"Media Type\\{e436eb83-524f-11ce-9f53-0020af0ba770}\\" STR_CLSID_BassAudioSource, 0, 0, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 0, &hKey, 0);
 	if (ec == ERROR_SUCCESS) {
@@ -260,7 +103,6 @@ STDAPI DllRegisterServer()
 
 		::RegCloseKey(hKey);;
 	}
-#endif
 
 	return AMovieDllRegisterServer2(TRUE);
 }
@@ -270,69 +112,12 @@ STDAPI DllRegisterServer()
 //
 STDAPI DllUnregisterServer()
 {
-#if REGISTERING_FILE_EXTENSIONS
-	HKEY reg;
-	LPCWSTR ext;
-	HKEY reg2;
-	WCHAR TextBuffer[1024];
-
-	if (RegOpenKeyW(HKEY_CLASSES_ROOT, DIRECTSHOW_SOURCE_FILTER_PATH, &reg) == ERROR_SUCCESS)
-	{
-		__try {
-			for (int i = 0; i < BassExtensionsCount; i++)
-			{
-				ext = BassExtensions[i].Extension;
-
-				if (RegOpenKeyExW(reg, ext, 0, KEY_QUERY_VALUE, &reg2) != ERROR_SUCCESS) {
-					reg2 = NULL;
-				}
-				else {
-					__try {
-						if (!RegReadString(reg2, L"Source Filter", TextBuffer, (unsigned)std::size(TextBuffer)))
-							*TextBuffer = 0;
-					}
-					__finally {
-						RegCloseKey(reg2);
-					}
-
-					if (lstrcmpiW(TextBuffer, STR_CLSID_BassAudioSource) != 0) {
-						reg2 = NULL;
-					}
-				}
-
-				if (reg2 != NULL) {
-					//if reg.KeyExists(path)
-					RegDeleteKeyW(reg, ext);
-
-					// Special handling of MP3 Files
-					if (lstrcmpiW(ext, L".mp3") == 0) {
-						if (RegCreateKeyW(reg, ext, &reg2)) {
-							__try {
-								RegWriteString(reg2, L"Source Filter", L"{E436EBB5-524F-11CE-9F53-0020AF0BA770}"); // CLSID_AsyncReader
-								RegWriteString(reg2, L"Media Type", L"{E436EB83-524F-11CE-9F53-0020AF0BA770}"); // MEDIATYPE_Stream
-								RegWriteString(reg2, L"Subtype", L"{E436EB87-524F-11CE-9F53-0020AF0BA770}"); // MEDIASUBTYPE_MPEG1Audio
-							}
-							__finally {
-								RegCloseKey(reg2);
-							}
-						}
-					}
-				}
-			}
-
-		}
-		__finally {
-			RegCloseKey(reg);
-		}
-	}
-#else
 	HKEY hKey;
 	LONG ec = ::RegOpenKeyExW(HKEY_CLASSES_ROOT, L"Media Type\\{e436eb83-524f-11ce-9f53-0020af0ba770}", 0, KEY_ALL_ACCESS, &hKey);
 	if (ec == ERROR_SUCCESS) {
 		ec = ::RegDeleteKeyW(hKey, _CRT_WIDE(STR_CLSID_BassAudioSource));
 		::RegCloseKey(hKey);
 	}
-#endif
 
 	return AMovieDllRegisterServer2(FALSE);
 }

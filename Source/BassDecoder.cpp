@@ -165,10 +165,25 @@ void BassDecoder::UnloadBASS()
 
 void BassDecoder::LoadPlugins()
 {
+	static LPCWSTR BassPlugins[] = {
+		L"bass_aac.dll",
+		L"bass_mpc.dll",
+		L"bass_ofr.dll",
+		L"bass_spx.dll",
+		L"bass_tta.dll",
+		L"bassalac.dll",
+		L"bassape.dll",
+		L"bassdsd.dll",
+		L"bassflac.dll",
+		L"bassopus.dll",
+		L"basswv.dll",
+		L"basszxtune.dll",
+	};
+
 	const std::wstring filterDir = GetFilterDirectory();
 
-	for (int i = 0; i < BassPluginsCount; i++) {
-		const std::wstring pluginPath = filterDir + BassPlugins[i];
+	for (const auto pligin : BassPlugins) {
+		const std::wstring pluginPath = filterDir + pligin;
 		BASS_PluginLoad(LPCSTR(pluginPath.c_str()), BASS_UNICODE);
 	}
 }
