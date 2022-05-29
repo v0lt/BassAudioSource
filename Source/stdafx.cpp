@@ -11,10 +11,6 @@
 
 #ifdef _WIN64
 #pragma comment(lib, "../Lib/x64/bass.lib")
-#pragma comment(lib, "../Lib/x64/strmbasd.lib")
-#pragma comment(lib, "../Lib/x64/strmbase.lib")
 #else
 #pragma comment(lib, "../Lib/x86/bass.lib")
-#pragma comment(lib, "../Lib/x86/strmbasd.lib")
-#pragma comment(lib, "../Lib/x86/strmbase.lib")
 #endif
