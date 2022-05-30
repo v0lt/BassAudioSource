@@ -20,11 +20,9 @@
  *  http://www.gnu.org/copyleft/gpl.html
  */
 
-//BassSourceStream.h
+#pragma once
 
 #include "BassDecoder.h"
-
-#pragma once
 
 #define BASS_BLOCK_SIZE               2048
 #define MSEC_REFTIME_FACTOR           10000

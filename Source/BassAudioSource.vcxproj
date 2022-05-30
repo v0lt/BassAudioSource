@@ -58,6 +58,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BassDecoder.cpp" />
+    <ClCompile Include="BassHelper.cpp" />
     <ClCompile Include="BassSource.cpp" />
     <ClCompile Include="BassSourceStream.cpp" />
     <ClCompile Include="dllmain.cpp" />
@@ -68,6 +69,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BassDecoder.h" />
+    <ClInclude Include="BassHelper.h" />
     <ClInclude Include="BassSource.h" />
     <ClInclude Include="BassSourceStream.h" />
     <ClInclude Include="dllmain.h" />

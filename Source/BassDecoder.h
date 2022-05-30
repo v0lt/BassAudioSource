@@ -20,11 +20,9 @@
  *  http://www.gnu.org/copyleft/gpl.html
  */
 
-//BassDecoder.h
+#pragma once
 
 #include <../Include/bass.h>
-
-#pragma once
 
 class ShoutcastEvents
 {
@@ -71,7 +69,6 @@ public:
 	LONGLONG GetDuration();
 	LONGLONG GetPosition();
 	void SetPosition(LONGLONG positionMS);
-	LPCWSTR GetExtension();
 
 public:
 	BassDecoder(ShoutcastEvents* shoutcastEvents, int buffersizeMS, int prebufferMS);

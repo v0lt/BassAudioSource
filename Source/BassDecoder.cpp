@@ -24,9 +24,9 @@
 #include "BassDecoder.h"
 #include "BassSource.h"
 #include <../Include/bass.h>
-#include <../Include/bass_aac.h>
 #include "Utils/StringUtil.h"
 #include "dllmain.h"
+#include "BassHelper.h"
 
 /*** Utilities ****************************************************************/
 
@@ -329,6 +329,10 @@ bool BassDecoder::GetStreamInfos()
 		return false;
 	}
 
+#ifdef _DEBUG
+	LPCWSTR type_info = GetTypeInfo(info.ctype);
+#endif
+
 	GetHTTPInfos();
 
 	return true;
@@ -453,15 +457,4 @@ void BassDecoder::SetPosition(LONGLONG positionMS)
 	pos = LONGLONG(positionMS * m_mSecConv) / 1000L;
 
 	BASS_ChannelSetPosition(m_stream, pos, BASS_POS_BYTE);
-}
-
-LPCWSTR BassDecoder::GetExtension()
-{
-	switch (m_type) {
-	case BASS_CTYPE_STREAM_AAC:  return L"aac";
-	case BASS_CTYPE_STREAM_MP4:  return L"mp4";
-	case BASS_CTYPE_STREAM_MP3:  return L"mp3";
-	case BASS_CTYPE_STREAM_OGG:  return L"ogg";
-	default:                     return L"mp3";
-	}
 }

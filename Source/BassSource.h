@@ -20,12 +20,10 @@
  *  http://www.gnu.org/copyleft/gpl.html
  */
 
-//BassSource.h
+#pragma once
 
 #include <qnetwork.h>
 #include "BassSourceStream.h"
-
-#pragma once
 
 #define PREBUFFER_MIN_SIZE 100
 #define PREBUFFER_MAX_SIZE 5000
