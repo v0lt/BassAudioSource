@@ -287,7 +287,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 				m_tagArtist = ConvertAnsiToWide(str);
 				p += 30 + 30 + 4;
 
-				str.assign(p, 30);
+				str.assign(p, p[28] == 0 ? 28 : 30);
 				id3v1_truncate(str);
 				m_tagComment = ConvertAnsiToWide(str);
 			}
