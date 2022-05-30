@@ -233,11 +233,13 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		return false;
 	}
 
-	//m_tagTitle;
-	//m_tag¿uthor;
-	//m_tagDecsription;
-
-	if (!m_isURL && !m_isMOD) {
+	if (m_isMOD) {
+		LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_MUSIC_NAME);
+		if (p) {
+			m_tagTitle = ConvertAnsiToWide(p);
+		}
+	}
+	else if (!m_isURL) {
 		LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_APE);
 		if (!p) {
 			p = BASS_ChannelGetTags(m_stream, BASS_TAG_OGG);
