@@ -231,6 +231,7 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 
 	if (IsLikelyFilePath(pszFileName)) {
 		std::wstring wext = std::filesystem::path(pszFileName).extension();
+		str_tolower(wext);
 
 		if (wext.size() <= 1) {
 			return VFW_E_CANNOT_LOAD_SOURCE_FILTER;
