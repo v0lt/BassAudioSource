@@ -246,21 +246,52 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 			p = BASS_ChannelGetTags(m_stream, BASS_TAG_MP4);
 		}
 
-		while (p && *p) {
-			std::string_view str(p);
-			if (str.compare(0, 6, "Title=") == 0 || str.compare(0, 6, "TITLE=") == 0) {
-				m_tagTitle = ConvertUtf8ToWide(p + 6);
-			}
-			else if (str.compare(0, 7, "Artist=") == 0 || str.compare(0, 7, "ARTIST=") == 0) {
-				m_tagArtist = ConvertUtf8ToWide(p + 7);
-			}
-			else if (str.compare(0, 8, "Comment=") == 0 || str.compare(0, 8, "COMMENT=") == 0) {
-				m_tagComment = ConvertUtf8ToWide(p + 8);
-			}
+		if (p) {
+			while (p && *p) {
+				std::string_view str(p);
+				if (str.compare(0, 6, "Title=") == 0 || str.compare(0, 6, "TITLE=") == 0) {
+					m_tagTitle = ConvertUtf8ToWide(p + 6);
+				}
+				else if (str.compare(0, 7, "Artist=") == 0 || str.compare(0, 7, "ARTIST=") == 0) {
+					m_tagArtist = ConvertUtf8ToWide(p + 7);
+				}
+				else if (str.compare(0, 8, "Comment=") == 0 || str.compare(0, 8, "COMMENT=") == 0) {
+					m_tagComment = ConvertUtf8ToWide(p + 8);
+				}
 
-			p += str.size()+1;
+				p += str.size() + 1;
+			}
 		}
+		else {
+			p = BASS_ChannelGetTags(m_stream, BASS_TAG_ID3);
+			if (p && std::string_view(p).compare(0, 3, "TAG") == 0) {
+				p += 3;
+				std::string str;
 
+				auto id3v1_truncate = [](std::string& s) {
+					for (auto it = s.crbegin(); it != s.crend(); ++it) {
+						if (*it != 0 && *it != 0x20) {
+							s.resize(std::distance(it, s.crend()));
+							break;
+						}
+					}
+				};
+
+				str.assign(p, 30);
+				id3v1_truncate(str);
+				m_tagTitle = ConvertAnsiToWide(str);
+				p += 30;
+
+				str.assign(p, 30);
+				id3v1_truncate(str);
+				m_tagArtist = ConvertAnsiToWide(str);
+				p += 30 + 30 + 4;
+
+				str.assign(p, 30);
+				id3v1_truncate(str);
+				m_tagComment = ConvertAnsiToWide(str);
+			}
+		}
 	}
 
 	return true;
