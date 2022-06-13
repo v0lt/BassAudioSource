@@ -39,6 +39,9 @@
     <ClCompile Include="BassHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ID3v2Tag.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -67,6 +70,9 @@
     </ClInclude>
     <ClInclude Include="Utils\ByteReader.h">
       <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="ID3v2Tag.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

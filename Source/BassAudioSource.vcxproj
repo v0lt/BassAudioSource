@@ -62,6 +62,7 @@
     <ClCompile Include="BassSource.cpp" />
     <ClCompile Include="BassSourceStream.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="ID3v2Tag.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
@@ -73,6 +74,7 @@
     <ClInclude Include="BassSource.h" />
     <ClInclude Include="BassSourceStream.h" />
     <ClInclude Include="dllmain.h" />
+    <ClInclude Include="ID3v2Tag.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Utils\ByteReader.h" />

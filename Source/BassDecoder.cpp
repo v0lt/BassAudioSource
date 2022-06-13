@@ -28,6 +28,8 @@
 #include "dllmain.h"
 #include "BassHelper.h"
 
+#include "ID3v2Tag.h"
+
 /*** Utilities ****************************************************************/
 
 std::wstring GetFilterDirectory()
@@ -265,6 +267,29 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 			}
 		}
 		else {
+			p = BASS_ChannelGetTags(m_stream, BASS_TAG_ID3V2);
+			if (p) {
+				CID3v2Tag id2v2;
+				id2v2.ReadTagsV2((const BYTE*)p, id3v2_match_len((const BYTE*)p));
+
+				for (const auto& [id, str] : id2v2.Tags) {
+					switch (id) {
+					case 'TIT2':
+					case '\0TT2':
+						m_tagTitle = str;
+						break;
+					case 'TPE1':
+					case '\0TP1':
+						m_tagArtist = str;
+						break;
+					case 'COMM':
+						m_tagComment = str;
+						break;
+					}
+				}
+				return true;
+			}
+
 			p = BASS_ChannelGetTags(m_stream, BASS_TAG_ID3);
 			if (p && std::string_view(p).compare(0, 3, "TAG") == 0) {
 				p += 3;
