@@ -65,6 +65,9 @@
     <ClInclude Include="BassHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Utils\ByteReader.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BassAudioSource.rc">

@@ -75,6 +75,7 @@
     <ClInclude Include="dllmain.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Utils\ByteReader.h" />
     <ClInclude Include="Utils\StringUtil.h" />
   </ItemGroup>
   <ItemGroup>
