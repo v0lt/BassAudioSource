@@ -287,6 +287,28 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 						break;
 					}
 				}
+
+#if 0 // experiments
+				std::list<ID3v2Frame> id3v2Frames;
+				if (ParseID3v2Tag((const BYTE*)p, id3v2Frames)) {
+					for (const auto& frame : id3v2Frames) {
+						switch (frame.id) {
+						case 'TIT2':
+						case '\0TT2':
+							m_tagTitle = GetID3v2FrameText(frame);
+							break;
+						case 'TPE1':
+						case '\0TP1':
+							m_tagArtist = GetID3v2FrameText(frame);
+							break;
+						case 'COMM':
+							m_tagComment = GetID3v2FrameText(frame);
+							break;
+						}
+					}
+				}
+#endif
+
 				return true;
 			}
 

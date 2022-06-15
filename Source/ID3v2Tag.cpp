@@ -459,3 +459,253 @@ BOOL CID3v2Tag::ReadTagsV2(const BYTE *buf, size_t len)
 
 	return !TagItems.empty() ? TRUE : FALSE;
 }
+
+
+///////////////////////////////////////////////////////////////////
+// experiments
+// https://id3.org/id3v2-00
+// https://id3.org/id3v2.3.0
+// https://id3.org/id3v2.4.0-structure
+
+#define ID3v2_FLAG_UNSYNC 0x80
+#define ID3v2_FLAG_EXTHDR 0x40
+#define ID3v2_FLAG_EXPERI 0x20
+#define ID3v2_FLAG_FOOTER 0x10 // only for ID3v2.4
+
+uint32_t get_id3v2_size(const BYTE* buf)
+{
+	return
+		((buf[0] & 0x7f) << 21) +
+		((buf[1] & 0x7f) << 14) +
+		((buf[2] & 0x7f) << 7) +
+		(buf[3] & 0x7f);
+}
+
+uint32_t readframesize(const uint8_t*& p)
+{
+	uint32_t v = get_id3v2_size(p);
+	p += 4;
+	return v;
+};
+
+uint16_t read2bytes(const uint8_t*& p)
+{
+	uint16_t v = (p[0] << 8) + (p[1]);
+	p += 2;
+	return v;
+};
+
+uint32_t read3bytes(const uint8_t*& p)
+{
+	uint32_t v = (p[0] << 16) + (p[1] << 8) + (p[2]);
+	p += 3;
+	return v;
+};
+
+uint32_t read4bytes(const uint8_t*& p)
+{
+	uint32_t v = (p[0] << 24) + (p[1] << 16) + (p[2] << 8) + (p[3]);
+	p += 4;
+	return v;
+};
+
+
+
+bool ParseID3v2Tag(const BYTE* buf, std::list<ID3v2Frame>& id3v2Frames)
+{
+	id3v2Frames.clear();
+
+	if (buf[0] != 'I' || buf[1] != 'D' || buf[2] != '3') {
+		return false;
+	}
+
+	const int tag_ver = buf[3];
+	if (tag_ver < 3 || tag_ver > 4) {
+		return false;
+	}
+
+	const int tag_subver = buf[4];
+	if (tag_subver == 0xff) {
+		return false;
+	}
+
+	const int tag_flags = buf[5];
+	if (tag_flags & ~(ID3v2_FLAG_UNSYNC | ID3v2_FLAG_EXTHDR | ID3v2_FLAG_EXPERI)) {
+		return false;
+	}
+
+	uint32_t u32 = *(uint32_t*)&buf[6];
+	if (u32 & 0x80808080) {
+		return false;
+	}
+
+	const uint32_t tag_size = get_id3v2_size(&buf[6]);
+
+	const BYTE* p = &buf[10];
+	const BYTE* end = p + tag_size;
+
+	if (tag_flags & ID3v2_FLAG_EXTHDR) {
+		// Extended header present, skip it
+		uint32_t extlen = get_id3v2_size(p);
+
+		if (tag_ver == 4) {
+			p += extlen;
+		}
+		else {
+			p += 4 + extlen;
+		}
+	}
+
+	while (p + 10 < end) {
+		uint32_t frame_id = read4bytes(p);
+		if (frame_id == 0) {
+			break;
+		}
+		uint32_t frame_size = (tag_ver == 4) ? readframesize(p) : read4bytes(p);
+		int frame_flags = read2bytes(p);
+
+		ID3v2Frame frame = { frame_id, frame_flags, p, frame_size };
+		id3v2Frames.emplace_back(frame);
+
+		p += frame_size;
+
+		/*
+		if (pos < gb.GetSize()) {
+			const size_t save_pos = gb.GetPos();
+
+			gb.Seek(pos);
+			while (gb.GetRemainder() && gb.LookByte() == 0) {
+				gb.Skip(1);
+				pos++;
+				size++;
+			}
+
+			gb.Seek(save_pos);
+		}
+
+		if (!size) {
+			gb.Seek(pos);
+			continue;
+		}
+
+		if (flags & ID3v2_FLAG_DATALEN) {
+			if (size < 4) {
+				break;
+			}
+			gb.Skip(4);
+			size -= 4;
+		}
+
+		std::vector<BYTE> Data;
+		BOOL bUnSync = m_flags & 0x80 || flags & ID3v2_FLAG_UNSYNCH;
+		if (bUnSync) {
+			UINT dwSize = size;
+			while (dwSize) {
+				BYTE b = gb.ReadByte();
+				Data.push_back(b);
+				dwSize--;
+				if (b == 0xFF && dwSize > 1) {
+					b = gb.ReadByte();
+					dwSize--;
+					if (!b) {
+						b = gb.ReadByte();
+						dwSize--;
+					}
+					Data.push_back(b);
+				}
+			}
+		}
+		else {
+			Data.resize(size);
+			gb.ReadBytes(Data.data(), size);
+		}
+		ByteReader gbData(Data.data());
+		gbData.SetSize(Data.size());
+		size = (UINT)Data.size();
+
+		if (tag == 'TIT2'
+			|| tag == 'TPE1'
+			|| tag == 'TALB' || tag == '\0TAL'
+			|| tag == 'TYER'
+			|| tag == 'COMM'
+			|| tag == 'TRCK'
+			|| tag == 'TCOP'
+			|| tag == 'TXXX'
+			|| tag == '\0TP1'
+			|| tag == '\0TT2'
+			|| tag == '\0PIC' || tag == 'APIC'
+			|| tag == '\0ULT' || tag == 'USLT') {
+			CID3TagItem* item = nullptr;
+			ReadTag(tag, gbData, size, &item);
+
+			if (item) {
+				TagItems.emplace_back(item);
+			}
+		}
+		else if (tag == 'CHAP') {
+			ReadChapter(gbData, size);
+		}
+
+		gb.Seek(pos);
+		*/
+	}
+
+	return (id3v2Frames.size() > 0);
+}
+
+std::wstring GetID3v2FrameText(const ID3v2Frame& id3v2Frame)
+{
+	std::wstring wstr;
+
+	if (id3v2Frame.data && id3v2Frame.size > 2) {
+
+		const uint8_t* p = id3v2Frame.data;
+		const uint8_t* end = p + id3v2Frame.size;
+
+		const int encoding = *p++;
+
+		uint16_t bom = 0;
+
+		switch (encoding) {
+		case ID3v2Encoding::ISO8859:
+		case ID3v2Encoding::UTF8:
+			if (p + 1 < end) {
+				std::string str(end - p, '\0');
+				memcpy(str.data(), p, str.size());
+				wstr = (encoding == ID3v2Encoding::ISO8859)
+					? ConvertAnsiToWide(str)
+					: ConvertUtf8ToWide(str);
+			}
+			break;
+		case UTF16BOM:
+			if (p + 4 < end) {
+				bom = read2bytes(p);
+			}
+			break;
+		case UTF16BE:
+			if (p + 2 < end) {
+				bom = 0xfeff;
+			}
+			break;
+		}
+
+		if (bom == 0xfffe || bom == 0xfeff) {
+			wstr.assign((end - p) / 2, '\0');
+			if (bom == 0xfffe) {
+				memcpy(wstr.data(), p, wstr.size() * 2);
+			}
+			else { //if (bom == 0xfeff)
+				auto src = (const uint16_t*)p;
+				auto dst = wstr.data();
+				for (size_t i = 0; i < wstr.size(); i++) {
+					*dst++ = *src++;
+				}
+			}
+		}
+
+		wstr.erase(std::find(wstr.begin(), wstr.end(), '\0'), wstr.end());
+		str_trim(wstr);
+	}
+
+	return wstr;
+}
