@@ -78,34 +78,21 @@ void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user)
 		if (metaTagsUtf8) {
 			std::wstring metaTags = ConvertUtf8ToWide(metaTagsUtf8);
 
-			LPWSTR metaStr = (LPWSTR)metaTags.c_str();
-			LPWSTR resStr = L"";
-
-			LPWSTR idx = wcsstr(metaStr, L"StreamTitle='");
-			if (idx) {
-				// Shoutcast Metadata
-				resStr = idx + 13;
-				if (*resStr) {
-					resStr[wcslen(resStr) - 1] = 0;
+			size_t k1 = metaTags.find(L"StreamTitle='");
+			if (k1 != metaTags.npos) {
+				k1 += 13;
+				size_t k2 = metaTags.find(L'\'', k1);
+				if (k2 != metaTags.npos) {
+					const std::wstring title = metaTags.substr(k1, k2 - k1);
+					decoder->m_shoutcastEvents->OnShoutcastMetaDataCallback(title.c_str());
 				}
-				//LPWSTR idx2 = wcsstr(resStr, L"';");
-				//if (idx2) {
-				//	*idx2 = 0;
-				//} else
-				//{
-				idx = wcsstr(resStr, L"'");
-				if (idx) {
-					*idx = 0;
-				}
-				//}
 			}
-			else if ((idx = wcsstr(metaStr, L"TITLE=")) ||
-				(idx = wcsstr(metaStr, L"Title=")) ||
-				(idx = wcsstr(metaStr, L"title="))) {
-				resStr = idx + 6;
+			else if ((k1 = metaTags.find(L"TITLE=") != metaTags.npos) ||
+				(k1 = metaTags.find(L"Title=") != metaTags.npos) ||
+				(k1 = metaTags.find(L"title=") != metaTags.npos)) {
+				k1 += 6;
+				decoder->m_shoutcastEvents->OnShoutcastMetaDataCallback(metaTags.c_str() + k1);
 			}
-
-			decoder->m_shoutcastEvents->OnShoutcastMetaDataCallback(resStr);
 		}
 	}
 }
@@ -465,34 +452,21 @@ void BassDecoder::GetHTTPInfos()
 	if (metaTagsUtf8) {
 		std::wstring metaTags = ConvertUtf8ToWide(metaTagsUtf8);
 
-		LPWSTR metaStr = metaTags.data();
-		LPWSTR resStr = L"";
-
-		LPWSTR idx = wcsstr(metaStr, L"StreamTitle='");
-		if (idx) {
-			// Shoutcast Metadata
-			resStr = idx + 13;
-			if (*resStr) {
-				resStr[wcslen(resStr) - 1] = 0;
+		size_t k1 = metaTags.find(L"StreamTitle='");
+		if (k1 != metaTags.npos) {
+			k1 += 13;
+			size_t k2 = metaTags.find(L'\'', k1);
+			if (k2 != metaTags.npos) {
+				const std::wstring title = metaTags.substr(k1, k2 - k1);
+				m_shoutcastEvents->OnShoutcastMetaDataCallback(title.c_str());
 			}
-			//LPWSTR idx2 = wcsstr(resStr, L"';");
-			//if (idx2) {
-			//	*idx2 = 0;
-			//} else
-			//{
-			idx = wcsstr(resStr, L"'");
-			if (idx) {
-				*idx = 0;
-			}
-			//}
 		}
-		else if ((idx = wcsstr(metaStr, L"TITLE=")) ||
-			(idx = wcsstr(metaStr, L"Title=")) ||
-			(idx = wcsstr(metaStr, L"title="))) {
-			resStr = idx + 6;
+		else if ((k1 = metaTags.find(L"TITLE=") != metaTags.npos) ||
+			(k1 = metaTags.find(L"Title=") != metaTags.npos) ||
+			(k1 = metaTags.find(L"title=") != metaTags.npos)) {
+			k1 += 6;
+			m_shoutcastEvents->OnShoutcastMetaDataCallback(metaTags.c_str() + k1);
 		}
-
-		m_shoutcastEvents->OnShoutcastMetaDataCallback(resStr);
 	}
 }
 
