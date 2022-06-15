@@ -46,7 +46,7 @@ const AMOVIESETUP_MEDIATYPE sudOpPinType = {
 };
 
 const AMOVIESETUP_PIN sudOpPin = {
-	L"Output",              // Pin string name
+	(LPWSTR)L"Output",      // Pin string name
 	FALSE,                  // Is it rendered
 	TRUE,                   // Is it an output
 	FALSE,                  // Can we have none
