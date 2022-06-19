@@ -1,6 +1,7 @@
 
 #include "stdafx.h"
 #include "ID3v2Tag.h"
+#include "Utils/Util.h"
 #include "Utils/StringUtil.h"
 
 // based on https://github.com/Aleksoid1978/MPC-BE/blob/master/src/DSUtil/ID3Tag.cpp
@@ -520,12 +521,15 @@ bool ParseID3v2Tag(const BYTE* buf, std::list<ID3v2Frame>& id3v2Frames)
 	}
 
 	const int tag_ver = buf[3];
+	DLog(L"Parsing ID3v2.%d", tag_ver);
 	if (tag_ver < 3 || tag_ver > 4) {
+		DLog(L"ID3v2: unsupported version!");
 		return false;
 	}
 
-	const int tag_subver = buf[4];
-	if (tag_subver == 0xff) {
+	const int tag_rev = buf[4];
+	if (tag_rev == 0xff) {
+		DLog(L"ID3v2: invalid revision!");
 		return false;
 	}
 
@@ -533,9 +537,11 @@ bool ParseID3v2Tag(const BYTE* buf, std::list<ID3v2Frame>& id3v2Frames)
 	if (tag_flags & ~(ID3v2_FLAG_UNSYNC | ID3v2_FLAG_EXTHDR | ID3v2_FLAG_EXPERI)) {
 		return false;
 	}
+	DLogIf(tag_flags & ID3v2_FLAG_UNSYNC, L"ID3v2 uses unsynchronisation scheme");
 
 	uint32_t u32 = *(uint32_t*)&buf[6];
 	if (u32 & 0x80808080) {
+		DLog(L"ID3v2: invalid tag size!");
 		return false;
 	}
 
@@ -554,6 +560,7 @@ bool ParseID3v2Tag(const BYTE* buf, std::list<ID3v2Frame>& id3v2Frames)
 		else {
 			p += 4 + extlen;
 		}
+		DLog(L"ID3v2 skip extended header");
 	}
 
 	while (p + 10 < end) {
@@ -568,87 +575,9 @@ bool ParseID3v2Tag(const BYTE* buf, std::list<ID3v2Frame>& id3v2Frames)
 		id3v2Frames.emplace_back(frame);
 
 		p += frame_size;
-
-		/*
-		if (pos < gb.GetSize()) {
-			const size_t save_pos = gb.GetPos();
-
-			gb.Seek(pos);
-			while (gb.GetRemainder() && gb.LookByte() == 0) {
-				gb.Skip(1);
-				pos++;
-				size++;
-			}
-
-			gb.Seek(save_pos);
-		}
-
-		if (!size) {
-			gb.Seek(pos);
-			continue;
-		}
-
-		if (flags & ID3v2_FLAG_DATALEN) {
-			if (size < 4) {
-				break;
-			}
-			gb.Skip(4);
-			size -= 4;
-		}
-
-		std::vector<BYTE> Data;
-		BOOL bUnSync = m_flags & 0x80 || flags & ID3v2_FLAG_UNSYNCH;
-		if (bUnSync) {
-			UINT dwSize = size;
-			while (dwSize) {
-				BYTE b = gb.ReadByte();
-				Data.push_back(b);
-				dwSize--;
-				if (b == 0xFF && dwSize > 1) {
-					b = gb.ReadByte();
-					dwSize--;
-					if (!b) {
-						b = gb.ReadByte();
-						dwSize--;
-					}
-					Data.push_back(b);
-				}
-			}
-		}
-		else {
-			Data.resize(size);
-			gb.ReadBytes(Data.data(), size);
-		}
-		ByteReader gbData(Data.data());
-		gbData.SetSize(Data.size());
-		size = (UINT)Data.size();
-
-		if (tag == 'TIT2'
-			|| tag == 'TPE1'
-			|| tag == 'TALB' || tag == '\0TAL'
-			|| tag == 'TYER'
-			|| tag == 'COMM'
-			|| tag == 'TRCK'
-			|| tag == 'TCOP'
-			|| tag == 'TXXX'
-			|| tag == '\0TP1'
-			|| tag == '\0TT2'
-			|| tag == '\0PIC' || tag == 'APIC'
-			|| tag == '\0ULT' || tag == 'USLT') {
-			CID3TagItem* item = nullptr;
-			ReadTag(tag, gbData, size, &item);
-
-			if (item) {
-				TagItems.emplace_back(item);
-			}
-		}
-		else if (tag == 'CHAP') {
-			ReadChapter(gbData, size);
-		}
-
-		gb.Seek(pos);
-		*/
 	}
+
+	DLog(L"ID3v2 found %u frames", (unsigned)id3v2Frames.size());
 
 	return (id3v2Frames.size() > 0);
 }

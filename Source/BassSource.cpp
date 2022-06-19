@@ -64,6 +64,11 @@ BassSource::~BassSource()
 
 void BassSource::Init()
 {
+#ifdef _DEBUG
+	DbgSetModuleLevel(LOG_TRACE, DWORD_MAX);
+	DbgSetModuleLevel(LOG_ERROR, DWORD_MAX);
+#endif
+
 	m_metaLock = new CCritSec();
 
 	m_buffersizeMS = PREBUFFER_MAX_SIZE;

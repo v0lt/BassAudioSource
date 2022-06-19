@@ -42,6 +42,9 @@
     <ClCompile Include="ID3v2Tag.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Utils\Util.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -73,6 +76,9 @@
     </ClInclude>
     <ClInclude Include="ID3v2Tag.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Util.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

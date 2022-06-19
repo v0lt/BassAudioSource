@@ -265,7 +265,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		else {
 			p = BASS_ChannelGetTags(m_stream, BASS_TAG_ID3V2);
 			if (p) {
-#if 1
+#if 0
 				CID3v2Tag id2v2;
 				id2v2.ReadTagsV2((const BYTE*)p, id3v2_match_len((const BYTE*)p));
 
