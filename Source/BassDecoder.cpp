@@ -240,14 +240,23 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		if (p) {
 			while (p && *p) {
 				std::string_view str(p);
-				if (str.compare(0, 6, "Title=") == 0 || str.compare(0, 6, "TITLE=") == 0) {
-					m_tagTitle = ConvertUtf8ToWide(p + 6);
-				}
-				else if (str.compare(0, 7, "Artist=") == 0 || str.compare(0, 7, "ARTIST=") == 0) {
-					m_tagArtist = ConvertUtf8ToWide(p + 7);
-				}
-				else if (str.compare(0, 8, "Comment=") == 0 || str.compare(0, 8, "COMMENT=") == 0) {
-					m_tagComment = ConvertUtf8ToWide(p + 8);
+				const size_t k = str.find('=');
+				if (k > 0 && k < str.size()) {
+					// convert the field name to lowercase to make it easier to recognize
+					// examples:"Title", "TITLE", "title"
+					std::string field_name(k, '\0');
+					std::transform(str.begin(), str.begin()+ field_name.size(),
+						field_name.begin(), [](unsigned char c) { return std::tolower(c); });
+
+					if (field_name.compare("title") == 0) {
+						m_tagTitle = ConvertUtf8ToWide(p + k + 1);
+					}
+					else if (field_name.compare("artist") == 0) {
+						m_tagArtist = ConvertUtf8ToWide(p + k + 1);
+					}
+					else if (field_name.compare("comment=") == 0) {
+						m_tagComment = ConvertUtf8ToWide(p + k + 1);
+					}
 				}
 
 				p += str.size() + 1;
@@ -256,6 +265,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		else {
 			p = BASS_ChannelGetTags(m_stream, BASS_TAG_ID3V2);
 			if (p) {
+#if 1
 				CID3v2Tag id2v2;
 				id2v2.ReadTagsV2((const BYTE*)p, id3v2_match_len((const BYTE*)p));
 
@@ -274,8 +284,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 						break;
 					}
 				}
-
-#if 0 // experiments
+#else // experiments
 				std::list<ID3v2Frame> id3v2Frames;
 				if (ParseID3v2Tag((const BYTE*)p, id3v2Frames)) {
 					for (const auto& frame : id3v2Frames) {
