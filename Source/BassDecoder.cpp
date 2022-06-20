@@ -272,26 +272,6 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 			p = BASS_ChannelGetTags(m_stream, BASS_TAG_ID3V2);
 			DLogIf(p, L"Found ID3v2 Tag");
 			if (p) {
-#if 0
-				CID3v2Tag id2v2;
-				id2v2.ReadTagsV2((const BYTE*)p, id3v2_match_len((const BYTE*)p));
-
-				for (const auto& [id, str] : id2v2.Tags) {
-					switch (id) {
-					case 'TIT2':
-					case '\0TT2':
-						m_tagTitle = str;
-						break;
-					case 'TPE1':
-					case '\0TP1':
-						m_tagArtist = str;
-						break;
-					case 'COMM':
-						m_tagComment = str;
-						break;
-					}
-				}
-#else // experiments
 				std::list<ID3v2Frame> id3v2Frames;
 				if (ParseID3v2Tag((const BYTE*)p, id3v2Frames)) {
 					for (const auto& frame : id3v2Frames) {
@@ -311,7 +291,6 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 						}
 					}
 				}
-#endif
 			}
 			else {
 				p = BASS_ChannelGetTags(m_stream, BASS_TAG_ID3);
