@@ -226,6 +226,8 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 		"flac",
 		// bassopus.dll
 		"opus",
+		// basswma.dll
+		"wma",
 		// basswv.dll
 		"wv",
 		// basszxtune.dll

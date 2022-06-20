@@ -22,4 +22,4 @@
 
 #pragma once
 
-LPCWSTR GetTypeInfo(const DWORD ctype);
+LPCWSTR GetBassTypeStr(const DWORD ctype);

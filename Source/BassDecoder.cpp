@@ -170,6 +170,7 @@ void BassDecoder::LoadPlugins()
 		L"bassdsd.dll",
 		L"bassflac.dll",
 		L"bassopus.dll",
+		L"basswma.dll",
 		L"basswv.dll",
 		L"basszxtune.dll",
 	};
@@ -392,9 +393,7 @@ bool BassDecoder::GetStreamInfos()
 		return false;
 	}
 
-#ifdef _DEBUG
-	LPCWSTR type_info = GetTypeInfo(info.ctype);
-#endif
+	DLog(L"Opened '%s' file", GetBassTypeStr(info.ctype));
 
 	GetHTTPInfos();
 

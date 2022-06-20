@@ -37,10 +37,11 @@
 #pragma warning(pop)
 #include <../Include/bassflac.h>
 #include <../Include/bassopus.h>
+#include <../Include/basswma.h>
 #include <../Include/basswv.h>
 #include <../Include/basszxtune.h>
 
-LPCWSTR GetTypeInfo(const DWORD ctype)
+LPCWSTR GetBassTypeStr(const DWORD ctype)
 {
 	if (ctype & BASS_CTYPE_STREAM) {
 		switch (ctype) {
@@ -49,6 +50,7 @@ LPCWSTR GetTypeInfo(const DWORD ctype)
 		case BASS_CTYPE_STREAM_MP2:      return L"MP2";
 		case BASS_CTYPE_STREAM_MP3:      return L"MP3";
 		case BASS_CTYPE_STREAM_AIFF:     return L"AIFF";
+		case BASS_CTYPE_STREAM_MF:       return L"Media Foundation codec stream";
 		case BASS_CTYPE_STREAM_AAC:      return L"AAC";
 		case BASS_CTYPE_STREAM_MP4:      return L"MP4-AAC";
 		case BASS_CTYPE_STREAM_MPC:      return L"Musepack";
