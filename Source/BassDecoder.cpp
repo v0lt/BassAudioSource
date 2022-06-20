@@ -243,6 +243,10 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 			p = BASS_ChannelGetTags(m_stream, BASS_TAG_MP4);
 			DLogIf(p, L"Found MP4 Tag");
 		}
+		if (!p) {
+			p = BASS_ChannelGetTags(m_stream, BASS_TAG_WMA);
+			DLogIf(p, L"Found WMA Tag");
+		}
 
 		if (p) {
 			while (p && *p) {
@@ -258,11 +262,12 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 					if (field_name.compare("title") == 0) {
 						m_tagTitle = ConvertUtf8ToWide(p + k + 1);
 					}
-					else if (field_name.compare("artist") == 0) {
+					else if (field_name.compare("artist") == 0 || field_name.compare("author") == 0) {
 						m_tagArtist = ConvertUtf8ToWide(p + k + 1);
 					}
-					else if (field_name.compare("comment=") == 0) {
+					else if (field_name.compare("comment") == 0 || field_name.compare("description") == 0) {
 						m_tagComment = ConvertUtf8ToWide(p + k + 1);
+						str_trim_end(m_tagComment, L' ');
 					}
 				}
 
