@@ -305,44 +305,44 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 							m_tagArtist = GetID3v2FrameText(frame);
 							break;
 						case 'COMM':
+						case '\0COM':
 							m_tagComment = GetID3v2FrameText(frame);
 							break;
 						}
 					}
 				}
 #endif
-
-				return true;
 			}
+			else {
+				p = BASS_ChannelGetTags(m_stream, BASS_TAG_ID3);
+				if (p && std::string_view(p).compare(0, 3, "TAG") == 0) {
+					DLog(L"Found ID3v1 Tag");
+					p += 3;
+					std::string str;
 
-			p = BASS_ChannelGetTags(m_stream, BASS_TAG_ID3);
-			if (p && std::string_view(p).compare(0, 3, "TAG") == 0) {
-				DLog(L"Found ID3v1 Tag");
-				p += 3;
-				std::string str;
-
-				auto id3v1_truncate = [](std::string& s) {
-					for (auto it = s.crbegin(); it != s.crend(); ++it) {
-						if (*it != 0 && *it != 0x20) {
-							s.resize(std::distance(it, s.crend()));
-							break;
+					auto id3v1_truncate = [](std::string& s) {
+						for (auto it = s.crbegin(); it != s.crend(); ++it) {
+							if (*it != 0 && *it != 0x20) {
+								s.resize(std::distance(it, s.crend()));
+								break;
+							}
 						}
-					}
-				};
+					};
 
-				str.assign(p, 30);
-				id3v1_truncate(str);
-				m_tagTitle = ConvertAnsiToWide(str);
-				p += 30;
+					str.assign(p, 30);
+					id3v1_truncate(str);
+					m_tagTitle = ConvertAnsiToWide(str);
+					p += 30;
 
-				str.assign(p, 30);
-				id3v1_truncate(str);
-				m_tagArtist = ConvertAnsiToWide(str);
-				p += 30 + 30 + 4;
+					str.assign(p, 30);
+					id3v1_truncate(str);
+					m_tagArtist = ConvertAnsiToWide(str);
+					p += 30 + 30 + 4;
 
-				str.assign(p, p[28] == 0 ? 28 : 30);
-				id3v1_truncate(str);
-				m_tagComment = ConvertAnsiToWide(str);
+					str.assign(p, p[28] == 0 ? 28 : 30);
+					id3v1_truncate(str);
+					m_tagComment = ConvertAnsiToWide(str);
+				}
 			}
 		}
 	}

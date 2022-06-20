@@ -522,7 +522,7 @@ bool ParseID3v2Tag(const BYTE* buf, std::list<ID3v2Frame>& id3v2Frames)
 
 	const int tag_ver = buf[3];
 	DLog(L"Parsing ID3v2.%d", tag_ver);
-	if (tag_ver < 3 || tag_ver > 4) {
+	if (tag_ver < 2 || tag_ver > 4) {
 		DLog(L"ID3v2: unsupported version!");
 		return false;
 	}
@@ -563,18 +563,34 @@ bool ParseID3v2Tag(const BYTE* buf, std::list<ID3v2Frame>& id3v2Frames)
 		DLog(L"ID3v2 skip extended header");
 	}
 
-	while (p + 10 < end) {
-		uint32_t frame_id = read4bytes(p);
-		if (frame_id == 0) {
-			break;
+	if (tag_ver == 2) {
+		while (p + 6 < end) {
+			uint32_t frame_id = read3bytes(p);
+			if (frame_id == 0) {
+				break;
+			}
+			uint32_t frame_size = read3bytes(p);
+
+			ID3v2Frame frame = { frame_id, 0, p, frame_size };
+			id3v2Frames.emplace_back(frame);
+
+			p += frame_size;
 		}
-		uint32_t frame_size = (tag_ver == 4) ? readframesize(p) : read4bytes(p);
-		int frame_flags = read2bytes(p);
+	}
+	else {
+		while (p + 10 < end) {
+			uint32_t frame_id = read4bytes(p);
+			if (frame_id == 0) {
+				break;
+			}
+			uint32_t frame_size = (tag_ver == 4) ? readframesize(p) : read4bytes(p);
+			int frame_flags = read2bytes(p);
 
-		ID3v2Frame frame = { frame_id, frame_flags, p, frame_size };
-		id3v2Frames.emplace_back(frame);
+			ID3v2Frame frame = { frame_id, frame_flags, p, frame_size };
+			id3v2Frames.emplace_back(frame);
 
-		p += frame_size;
+			p += frame_size;
+		}
 	}
 
 	DLog(L"ID3v2 found %u frames", (unsigned)id3v2Frames.size());
