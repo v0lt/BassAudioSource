@@ -74,7 +74,8 @@ std::wstring HR2Str(const HRESULT hr)
 		UNPACK_VALUE(D3DERR_NOTAVAILABLE);
 #endif
 	default:
-		str = std::format(L"{:#010x}", (uint32_t)hr);
+		//str = std::format(L"{:#010x}", (uint32_t)hr);
+		str = L"Unknown";
 	};
 #undef UNPACK_VALUE
 #undef UNPACK_HR_WIN32

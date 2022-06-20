@@ -24,6 +24,7 @@
 #include "BassDecoder.h"
 #include "BassSource.h"
 #include <../Include/bass.h>
+#include "Utils/Util.h"
 #include "Utils/StringUtil.h"
 #include "dllmain.h"
 #include "BassHelper.h"
@@ -77,6 +78,7 @@ void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user)
 		LPCSTR metaTagsUtf8 = BASS_ChannelGetTags(channel, BASS_TAG_META);
 		if (metaTagsUtf8) {
 			std::wstring metaTags = ConvertUtf8ToWide(metaTagsUtf8);
+			DLog(L"Received Meta Tag: %s", metaTags.c_str());
 
 			size_t k1 = metaTags.find(L"StreamTitle='");
 			if (k1 != metaTags.npos) {
@@ -225,16 +227,20 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 	if (m_isMOD) {
 		LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_MUSIC_NAME);
 		if (p) {
+			DLog(L"Found Music Name");
 			m_tagTitle = ConvertAnsiToWide(p);
 		}
 	}
 	else if (!m_isURL) {
 		LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_APE);
+		DLogIf(p, L"Found APE Tag");
 		if (!p) {
 			p = BASS_ChannelGetTags(m_stream, BASS_TAG_OGG);
+			DLogIf(p, L"Found OGG Tag");
 		}
 		if (!p) {
 			p = BASS_ChannelGetTags(m_stream, BASS_TAG_MP4);
+			DLogIf(p, L"Found MP4 Tag");
 		}
 
 		if (p) {
@@ -264,6 +270,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		}
 		else {
 			p = BASS_ChannelGetTags(m_stream, BASS_TAG_ID3V2);
+			DLogIf(p, L"Found ID3v2 Tag");
 			if (p) {
 #if 0
 				CID3v2Tag id2v2;
@@ -310,6 +317,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 
 			p = BASS_ChannelGetTags(m_stream, BASS_TAG_ID3);
 			if (p && std::string_view(p).compare(0, 3, "TAG") == 0) {
+				DLog(L"Found ID3v1 Tag");
 				p += 3;
 				std::string str;
 
@@ -460,6 +468,7 @@ void BassDecoder::GetHTTPInfos()
 	LPCSTR metaTagsUtf8 = BASS_ChannelGetTags(m_stream, BASS_TAG_META);
 	if (metaTagsUtf8) {
 		std::wstring metaTags = ConvertUtf8ToWide(metaTagsUtf8);
+		DLog(L"Received Meta Tag: %s", metaTags.c_str());
 
 		size_t k1 = metaTags.find(L"StreamTitle='");
 		if (k1 != metaTags.npos) {
