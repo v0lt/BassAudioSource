@@ -51,6 +51,7 @@ LPCWSTR GetBassTypeStr(const DWORD ctype)
 		case BASS_CTYPE_STREAM_MP3:      return L"MP3";
 		case BASS_CTYPE_STREAM_AIFF:     return L"AIFF";
 		case BASS_CTYPE_STREAM_MF:       return L"Media Foundation codec stream";
+		case BASS_CTYPE_STREAM_WMA:      return L"WMA";
 		case BASS_CTYPE_STREAM_AAC:      return L"AAC";
 		case BASS_CTYPE_STREAM_MP4:      return L"MP4-AAC";
 		case BASS_CTYPE_STREAM_MPC:      return L"Musepack";
