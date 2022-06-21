@@ -105,6 +105,8 @@ CALL :SubDetectSevenzipPath
 
 IF DEFINED SEVENZIP (
     IF EXIST "_bin\%PCKG_NAME_X86%.zip" DEL "_bin\%PCKG_NAME_X86%.zip"
+	
+	START "7z" /B /WAIT "%SEVENZIP%" e .\distrib\x86\basszxtune_x86.7z -o.\_bin\Filter_x86%SUFFIX%\ -aoa
 
     TITLE Creating archive %PCKG_NAME_X86%.zip...
     START "7z" /B /WAIT "%SEVENZIP%" a -tzip -mx9 "_bin\%PCKG_NAME_X86%.zip" ^
@@ -112,6 +114,7 @@ IF DEFINED SEVENZIP (
 .\distrib\Install_BassAudioSource_32.cmd ^
 .\distrib\Uninstall_BassAudioSource_32.cmd ^
 .\distrib\x86\*.dll ^
+.\_bin\Filter_x64%SUFFIX%\basszxtune.dll ^
 .\Readme.md
     IF %ERRORLEVEL% NEQ 0 CALL :SubMsg "ERROR" "Unable to create %PCKG_NAME_X86%.zip!"
     CALL :SubMsg "INFO" "%PCKG_NAME_X86%.zip successfully created"
@@ -119,6 +122,8 @@ IF DEFINED SEVENZIP (
 
 IF DEFINED SEVENZIP (
     IF EXIST "_bin\%PCKG_NAME_X64%.zip" DEL "_bin\%PCKG_NAME_X64%.zip"
+	
+	START "7z" /B /WAIT "%SEVENZIP%" e .\distrib\x64\basszxtune_x64.7z -o.\_bin\Filter_x64%SUFFIX%\ -aoa
 
     TITLE Creating archive %PCKG_NAME_X64%.zip...
     START "7z" /B /WAIT "%SEVENZIP%" a -tzip -mx9 "_bin\%PCKG_NAME_X64%.zip" ^
@@ -126,6 +131,7 @@ IF DEFINED SEVENZIP (
 .\distrib\Install_BassAudioSource_64.cmd ^
 .\distrib\Uninstall_BassAudioSource_64.cmd ^
 .\distrib\x64\*.dll ^
+.\_bin\Filter_x64%SUFFIX%\basszxtune.dll ^
 .\Readme.md
     IF %ERRORLEVEL% NEQ 0 CALL :SubMsg "ERROR" "Unable to create %PCKG_NAME_X64%.zip!"
     CALL :SubMsg "INFO" "%PCKG_NAME_X64%.zip successfully created"
