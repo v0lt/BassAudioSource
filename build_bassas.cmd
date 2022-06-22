@@ -114,7 +114,7 @@ IF DEFINED SEVENZIP (
 .\distrib\Install_BassAudioSource_32.cmd ^
 .\distrib\Uninstall_BassAudioSource_32.cmd ^
 .\distrib\x86\*.dll ^
-.\_bin\Filter_x64%SUFFIX%\basszxtune.dll ^
+.\_bin\Filter_x86%SUFFIX%\basszxtune.dll ^
 .\Readme.md
     IF %ERRORLEVEL% NEQ 0 CALL :SubMsg "ERROR" "Unable to create %PCKG_NAME_X86%.zip!"
     CALL :SubMsg "INFO" "%PCKG_NAME_X86%.zip successfully created"
