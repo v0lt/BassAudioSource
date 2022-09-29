@@ -65,7 +65,9 @@ bool IsMODFile(const std::wstring_view& path)
 
 bool IsURLPath(const std::wstring_view& path)
 {
-	return path.compare(0, 7, L"http://") == 0 || path.compare(0, 6, L"ftp://") == 0;
+	return path.compare(0, 7, L"http://") == 0
+		|| path.compare(0, 8, L"https://") == 0
+		|| path.compare(0, 6, L"ftp://") == 0;
 }
 
 /*** Callbacks ****************************************************************/
@@ -169,6 +171,7 @@ void BassDecoder::LoadPlugins()
 		L"bassape.dll",
 		L"bassdsd.dll",
 		L"bassflac.dll",
+		L"basshls.dll",
 		L"bassopus.dll",
 		L"basswma.dll",
 		L"basswv.dll",
