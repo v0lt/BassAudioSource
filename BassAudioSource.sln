@@ -17,6 +17,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include", "Include", "{C7CA
 		Include\bassape.h = Include\bassape.h
 		Include\bassdsd.h = Include\bassdsd.h
 		Include\bassflac.h = Include\bassflac.h
+		Include\basshls.h = Include\basshls.h
 		Include\bassopus.h = Include\bassopus.h
 		Include\basswma.h = Include\basswma.h
 		Include\basswv.h = Include\basswv.h
