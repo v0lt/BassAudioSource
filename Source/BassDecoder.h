@@ -74,6 +74,10 @@ public:
 	BassDecoder(ShoutcastEvents* shoutcastEvents, int buffersizeMS, int prebufferMS);
 	~BassDecoder();
 
+	void ReadTags—ommon(LPCSTR p);
+	void ReadTagsID3v2(LPCSTR p);
+	void ReadTagsID3v1(LPCSTR p);
+
 	bool Load(std::wstring path);
 	void Close();
 

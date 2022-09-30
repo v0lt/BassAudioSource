@@ -186,6 +186,90 @@ void BassDecoder::LoadPlugins()
 	}
 }
 
+void BassDecoder::ReadTagsÑommon(LPCSTR p)
+{
+	while (p && *p) {
+		std::string_view str(p);
+		const size_t k = str.find('=');
+		if (k > 0 && k < str.size()) {
+			// convert the field name to lowercase to make it easier to recognize
+			// examples:"Title", "TITLE", "title"
+			std::string field_name(k, '\0');
+			std::transform(str.begin(), str.begin()+ field_name.size(),
+				field_name.begin(), [](unsigned char c) { return std::tolower(c); });
+
+			if (field_name.compare("title") == 0) {
+				m_tagTitle = ConvertUtf8ToWide(p + k + 1);
+			}
+			else if (field_name.compare("artist") == 0 || field_name.compare("author") == 0) {
+				m_tagArtist = ConvertUtf8ToWide(p + k + 1);
+			}
+			else if (field_name.compare("comment") == 0 || field_name.compare("description") == 0) {
+				m_tagComment = ConvertUtf8ToWide(p + k + 1);
+				str_trim_end(m_tagComment, L' ');
+			}
+		}
+
+		p += str.size() + 1;
+	}
+}
+
+void BassDecoder::ReadTagsID3v2(LPCSTR p)
+{
+	if (p) {
+		std::list<ID3v2Frame> id3v2Frames;
+		if (ParseID3v2Tag((const BYTE*)p, id3v2Frames)) {
+			for (const auto& frame : id3v2Frames) {
+				switch (frame.id) {
+				case 'TIT2':
+				case '\0TT2':
+					m_tagTitle = GetID3v2FrameText(frame);
+					break;
+				case 'TPE1':
+				case '\0TP1':
+					m_tagArtist = GetID3v2FrameText(frame);
+					break;
+				case 'COMM':
+				case '\0COM':
+					m_tagComment = GetID3v2FrameText(frame);
+					break;
+				}
+			}
+		}
+	}
+}
+
+void BassDecoder::ReadTagsID3v1(LPCSTR p)
+{
+	if (p && std::string_view(p).compare(0, 3, "TAG") == 0) {
+		p += 3;
+		std::string str;
+
+		auto id3v1_truncate = [](std::string& s) {
+			for (auto it = s.crbegin(); it != s.crend(); ++it) {
+				if (*it != 0 && *it != 0x20) {
+					s.resize(std::distance(it, s.crend()));
+					break;
+				}
+			}
+		};
+
+		str.assign(p, 30);
+		id3v1_truncate(str);
+		m_tagTitle = ConvertAnsiToWide(str);
+		p += 30;
+
+		str.assign(p, 30);
+		id3v1_truncate(str);
+		m_tagArtist = ConvertAnsiToWide(str);
+		p += 30 + 30 + 4;
+
+		str.assign(p, p[28] == 0 ? 28 : 30);
+		id3v1_truncate(str);
+		m_tagComment = ConvertAnsiToWide(str);
+	}
+}
+
 bool BassDecoder::Load(std::wstring path) // use copy of path here
 {
 	Close();
@@ -252,84 +336,19 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		}
 
 		if (p) {
-			while (p && *p) {
-				std::string_view str(p);
-				const size_t k = str.find('=');
-				if (k > 0 && k < str.size()) {
-					// convert the field name to lowercase to make it easier to recognize
-					// examples:"Title", "TITLE", "title"
-					std::string field_name(k, '\0');
-					std::transform(str.begin(), str.begin()+ field_name.size(),
-						field_name.begin(), [](unsigned char c) { return std::tolower(c); });
-
-					if (field_name.compare("title") == 0) {
-						m_tagTitle = ConvertUtf8ToWide(p + k + 1);
-					}
-					else if (field_name.compare("artist") == 0 || field_name.compare("author") == 0) {
-						m_tagArtist = ConvertUtf8ToWide(p + k + 1);
-					}
-					else if (field_name.compare("comment") == 0 || field_name.compare("description") == 0) {
-						m_tagComment = ConvertUtf8ToWide(p + k + 1);
-						str_trim_end(m_tagComment, L' ');
-					}
-				}
-
-				p += str.size() + 1;
-			}
+			ReadTagsÑommon(p);
 		}
 		else {
 			p = BASS_ChannelGetTags(m_stream, BASS_TAG_ID3V2);
-			DLogIf(p, L"Found ID3v2 Tag");
 			if (p) {
-				std::list<ID3v2Frame> id3v2Frames;
-				if (ParseID3v2Tag((const BYTE*)p, id3v2Frames)) {
-					for (const auto& frame : id3v2Frames) {
-						switch (frame.id) {
-						case 'TIT2':
-						case '\0TT2':
-							m_tagTitle = GetID3v2FrameText(frame);
-							break;
-						case 'TPE1':
-						case '\0TP1':
-							m_tagArtist = GetID3v2FrameText(frame);
-							break;
-						case 'COMM':
-						case '\0COM':
-							m_tagComment = GetID3v2FrameText(frame);
-							break;
-						}
-					}
-				}
+				DLog(L"Found ID3v2 Tag");
+				ReadTagsID3v2(p);
 			}
 			else {
 				p = BASS_ChannelGetTags(m_stream, BASS_TAG_ID3);
-				if (p && std::string_view(p).compare(0, 3, "TAG") == 0) {
+				if (p) {
 					DLog(L"Found ID3v1 Tag");
-					p += 3;
-					std::string str;
-
-					auto id3v1_truncate = [](std::string& s) {
-						for (auto it = s.crbegin(); it != s.crend(); ++it) {
-							if (*it != 0 && *it != 0x20) {
-								s.resize(std::distance(it, s.crend()));
-								break;
-							}
-						}
-					};
-
-					str.assign(p, 30);
-					id3v1_truncate(str);
-					m_tagTitle = ConvertAnsiToWide(str);
-					p += 30;
-
-					str.assign(p, 30);
-					id3v1_truncate(str);
-					m_tagArtist = ConvertAnsiToWide(str);
-					p += 30 + 30 + 4;
-
-					str.assign(p, p[28] == 0 ? 28 : 30);
-					id3v1_truncate(str);
-					m_tagComment = ConvertAnsiToWide(str);
+					ReadTagsID3v1(p);
 				}
 			}
 		}
