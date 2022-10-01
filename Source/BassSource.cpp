@@ -268,7 +268,7 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 
 	m_fileName = pszFileName;
 
-	if (!m_pin->m_decoder->GetIsShoutcast()) {
+	if (!m_pin->m_decoder->GetIsLiveStream()) {
 		m_currentTag = std::filesystem::path(m_fileName).filename();
 	}
 
@@ -312,7 +312,7 @@ STDMETHODIMP BassSource::get_Title(THIS_ BSTR FAR* pbstrTitle)
 {
 	CheckPointer(pbstrTitle, E_POINTER);
 
-	if (m_pin->m_decoder->GetIsShoutcast()) {
+	if (m_pin->m_decoder->GetIsLiveStream() && !m_pin->m_decoder->GetIsOgg()) {
 		m_metaLock->Lock();
 
 		*pbstrTitle = SysAllocString(m_currentTag.c_str());

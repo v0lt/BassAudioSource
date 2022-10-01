@@ -23,6 +23,7 @@
 #pragma once
 
 #include <../Include/bass.h>
+#include "BassHelper.h"
 
 class ShoutcastEvents
 {
@@ -41,10 +42,11 @@ protected:
 
 	HMODULE m_optimFROGDLL = nullptr;
 	HSTREAM m_stream = 0;
-	HSYNC m_sync = 0;
+	HSYNC m_syncMeta = 0;
+	HSYNC m_syncOggChange = 0;
 	bool m_isMOD = false;
 	bool m_isURL = false;
-	bool m_isShoutcast = false;
+	bool m_isLiveStream = false;
 
 	int m_channels = 0;
 	int m_sampleRate = 0;
@@ -52,7 +54,7 @@ protected:
 	bool m_float = false;
 	LONGLONG m_mSecConv = 0;
 
-	DWORD m_type = 0;
+	DWORD m_ctype = 0;
 
 	std::wstring m_tagTitle;
 	std::wstring m_tagArtist;
@@ -88,11 +90,11 @@ public:
 	inline int GetBytesPerSample() { return m_bytesPerSample; }
 	inline bool GetFloat()         { return m_float; }
 	inline LONGLONG GetMSecConv()  { return m_mSecConv; }
-	inline bool GetIsShoutcast()   { return m_isShoutcast; }
+	inline bool GetIsLiveStream()  { return m_isLiveStream; }
+	inline bool GetIsOgg()         { return IsOgg(m_ctype); }
 	std::wstring GetTagTitle()     { return m_tagTitle; }
 	std::wstring GetTagArtist()    { return m_tagArtist; }
 	std::wstring GetTagComment()   { return m_tagComment; }
-
 
 	friend void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user);
 	friend void CALLBACK OnShoutcastData(const void* buffer, DWORD length, void* user);

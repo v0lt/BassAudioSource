@@ -71,7 +71,7 @@ BassSourceStream::~BassSourceStream()
 STDMETHODIMP BassSourceStream::NonDelegatingQueryInterface(REFIID iid, void** ppv)
 {
 	if (IsEqualIID(iid, IID_IMediaSeeking)) {
-		if (!m_decoder->GetIsShoutcast() && SUCCEEDED(GetInterface((LPUNKNOWN)(IMediaSeeking*)this, ppv))) {
+		if (!m_decoder->GetIsLiveStream() && SUCCEEDED(GetInterface((LPUNKNOWN)(IMediaSeeking*)this, ppv))) {
 			return S_OK;
 		}
 		else {
@@ -126,7 +126,7 @@ HRESULT BassSourceStream::FillBuffer(IMediaSample* pSamp)
 	m_lock->Lock();
 
 	__try {
-		if (m_mediaTime >= m_stop && !m_decoder->GetIsShoutcast()) {
+		if (m_mediaTime >= m_stop && !m_decoder->GetIsLiveStream()) {
 			result = S_FALSE;
 		}
 		else {
@@ -134,7 +134,7 @@ HRESULT BassSourceStream::FillBuffer(IMediaSample* pSamp)
 			received = m_decoder->GetData(buffer, BASS_BLOCK_SIZE);
 
 			if (received <= 0) {
-				if (m_decoder->GetIsShoutcast()) {
+				if (m_decoder->GetIsLiveStream()) {
 					received = BASS_BLOCK_SIZE;
 					memset(buffer, BASS_BLOCK_SIZE, 0);
 				}

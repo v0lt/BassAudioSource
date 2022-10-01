@@ -27,7 +27,6 @@
 #include "Utils/Util.h"
 #include "Utils/StringUtil.h"
 #include "dllmain.h"
-#include "BassHelper.h"
 
 #include "ID3v2Tag.h"
 
@@ -76,7 +75,11 @@ void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user)
 {
 	BassDecoder* decoder = (BassDecoder*)user;
 
-	if (decoder->m_shoutcastEvents) {
+	if (!decoder->m_shoutcastEvents) {
+		return;
+	}
+
+	if (handle == decoder->m_syncMeta) {
 		LPCSTR metaTagsUtf8 = BASS_ChannelGetTags(channel, BASS_TAG_META);
 		if (metaTagsUtf8) {
 			std::wstring metaTags = ConvertUtf8ToWide(metaTagsUtf8);
@@ -98,6 +101,16 @@ void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user)
 				decoder->m_shoutcastEvents->OnShoutcastMetaDataCallback(metaTags.c_str() + k1);
 			}
 		}
+		return;
+	}
+
+	if (handle == decoder->m_syncOggChange) {
+		LPCSTR p = BASS_ChannelGetTags(channel, BASS_TAG_OGG);
+		if (p) {
+			decoder->ReadTagsÑommon(p);
+			//decoder->m_shoutcastEvents->OnShoutcastMetaDataCallback(title.c_str());
+		}
+		return;
 	}
 }
 
@@ -274,8 +287,6 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 {
 	Close();
 
-	m_isShoutcast = false;
-
 	if (path.compare(0, 4, L"icyx") == 0) {
 		// replace ICYX
 		path[0] = 'h';
@@ -294,9 +305,11 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 	}
 	else {
 		if (m_isURL) {
-			m_stream = BASS_StreamCreateURL(LPCSTR(path.c_str()), 0, BASS_STREAM_DECODE | BASS_UNICODE, OnShoutcastData, this);
-			m_sync = BASS_ChannelSetSync(m_stream, BASS_SYNC_META, 0, OnMetaData, this);
-			m_isShoutcast = GetDuration() == 0;
+			m_stream = BASS_StreamCreateURL(LPCSTR(path.c_str()), 0, BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS, OnShoutcastData, this);
+			m_syncMeta = BASS_ChannelSetSync(m_stream, BASS_SYNC_META, 0, OnMetaData, this);
+			m_syncOggChange = BASS_ChannelSetSync(m_stream, BASS_SYNC_OGG_CHANGE, 0, OnMetaData, this);
+
+			m_isLiveStream = GetDuration() == 0;
 		}
 		else {
 			m_stream = BASS_StreamCreateFile(false, (const void*)path.c_str(), 0, 0, BASS_STREAM_DECODE | BASS_UNICODE);
@@ -359,27 +372,41 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 
 void BassDecoder::Close()
 {
-	if (!m_stream) {
-		return;
+	if (m_stream) {
+		if (m_syncMeta) {
+			BASS_ChannelRemoveSync(m_stream, m_syncMeta);
+		}
+		if (m_syncOggChange) {
+			BASS_ChannelRemoveSync(m_stream, m_syncOggChange);
+		}
+
+		if (m_isMOD) {
+			BASS_MusicFree(m_stream);
+		}
+		else {
+			BASS_StreamFree(m_stream);
+		}
+
+		m_stream = 0;
 	}
 
-	if (m_sync) {
-		BASS_ChannelRemoveSync(m_stream, m_sync);
-	}
-
-	if (m_isMOD) {
-		BASS_MusicFree(m_stream);
-	} else {
-		BASS_StreamFree(m_stream);
-	}
+	m_syncMeta = 0;
+	m_syncOggChange = 0;
 
 	m_channels = 0;
 	m_sampleRate = 0;
 	m_bytesPerSample = 0;
 	m_float = false;
 	m_mSecConv = 0;
+	m_ctype = 0;
 
-	m_stream = 0;
+	m_isMOD = false;
+	m_isURL = false;
+	m_isLiveStream = false;
+
+	m_tagTitle.clear();
+	m_tagArtist.clear();
+	m_tagComment.clear();
 }
 
 int BassDecoder::GetData(void* buffer, int size)
@@ -402,7 +429,7 @@ bool BassDecoder::GetStreamInfos()
 	m_float = (info.flags & BASS_SAMPLE_FLOAT) != 0;
 	m_sampleRate = info.freq;
 	m_channels   = info.chans;
-	m_type       = info.ctype;
+	m_ctype      = info.ctype;
 
 	if (m_float) {
 		m_bytesPerSample = 4;
@@ -456,7 +483,7 @@ void BassDecoder::GetHTTPInfos()
 	LPCSTR icyTags;
 	LPCSTR httpHeaders;
 
-	if (!m_isShoutcast) {
+	if (!m_isLiveStream) {
 		return;
 	}
 
