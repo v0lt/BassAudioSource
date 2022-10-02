@@ -28,8 +28,6 @@
 #include "Utils/StringUtil.h"
 #include "dllmain.h"
 
-#include "ID3v2Tag.h"
-
 /*** Utilities ****************************************************************/
 
 std::wstring GetFilterDirectory()
@@ -79,7 +77,10 @@ void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user)
 		return;
 	}
 
+	ContentTags tags;
+
 	if (handle == decoder->m_syncMeta) {
+		DLog(L"OnMetaData() - BASS_SYNC_META");
 		LPCSTR metaTagsUtf8 = BASS_ChannelGetTags(channel, BASS_TAG_META);
 		if (metaTagsUtf8) {
 			std::wstring metaTags = ConvertUtf8ToWide(metaTagsUtf8);
@@ -90,25 +91,27 @@ void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user)
 				k1 += 13;
 				size_t k2 = metaTags.find(L'\'', k1);
 				if (k2 != metaTags.npos) {
-					const std::wstring title = metaTags.substr(k1, k2 - k1);
-					decoder->m_shoutcastEvents->OnShoutcastMetaDataCallback(title.c_str());
+					tags.Title = metaTags.substr(k1, k2 - k1);
+					decoder->m_shoutcastEvents->OnMetaDataCallback(&tags);
 				}
 			}
 			else if ((k1 = metaTags.find(L"TITLE=") != metaTags.npos) ||
 				(k1 = metaTags.find(L"Title=") != metaTags.npos) ||
 				(k1 = metaTags.find(L"title=") != metaTags.npos)) {
 				k1 += 6;
-				decoder->m_shoutcastEvents->OnShoutcastMetaDataCallback(metaTags.c_str() + k1);
+				tags.Title = metaTags.substr(k1);
+				decoder->m_shoutcastEvents->OnMetaDataCallback(&tags);
 			}
 		}
 		return;
 	}
 
 	if (handle == decoder->m_syncOggChange) {
+		DLog(L"OnMetaData() - BASS_SYNC_OGG_CHANGE");
 		LPCSTR p = BASS_ChannelGetTags(channel, BASS_TAG_OGG);
 		if (p) {
-			decoder->ReadTagsÑommon(p);
-			//decoder->m_shoutcastEvents->OnShoutcastMetaDataCallback(title.c_str());
+			ReadTagsÑommon(p, tags);
+			decoder->m_shoutcastEvents->OnMetaDataCallback(&tags);
 		}
 		return;
 	}
@@ -199,88 +202,27 @@ void BassDecoder::LoadPlugins()
 	}
 }
 
-void BassDecoder::ReadTagsÑommon(LPCSTR p)
+std::wstring GetNameTag(LPCSTR string)
 {
-	while (p && *p) {
-		std::string_view str(p);
-		const size_t k = str.find('=');
-		if (k > 0 && k < str.size()) {
-			// convert the field name to lowercase to make it easier to recognize
-			// examples:"Title", "TITLE", "title"
-			std::string field_name(k, '\0');
-			std::transform(str.begin(), str.begin()+ field_name.size(),
-				field_name.begin(), [](unsigned char c) { return std::tolower(c); });
+	std::wstring name_tag;
 
-			if (field_name.compare("title") == 0) {
-				m_tagTitle = ConvertUtf8ToWide(p + k + 1);
+	std::wstring strTags = ConvertAnsiToWide(string);
+
+	LPCWSTR astring = strTags.c_str();
+	while (astring && *astring) {
+		LPCWSTR tag = astring;
+		if (wcsncmp(L"icy-name:", tag, 9) == 0) {
+			tag += 9;
+			while (*tag && iswspace(*tag)) {
+				tag++;
 			}
-			else if (field_name.compare("artist") == 0 || field_name.compare("author") == 0) {
-				m_tagArtist = ConvertUtf8ToWide(p + k + 1);
-			}
-			else if (field_name.compare("comment") == 0 || field_name.compare("description") == 0) {
-				m_tagComment = ConvertUtf8ToWide(p + k + 1);
-				str_trim_end(m_tagComment, L' ');
-			}
+			name_tag = tag;
+			break;
 		}
-
-		p += str.size() + 1;
+		astring += wcslen(astring) + 1;
 	}
-}
 
-void BassDecoder::ReadTagsID3v2(LPCSTR p)
-{
-	if (p) {
-		std::list<ID3v2Frame> id3v2Frames;
-		if (ParseID3v2Tag((const BYTE*)p, id3v2Frames)) {
-			for (const auto& frame : id3v2Frames) {
-				switch (frame.id) {
-				case 'TIT2':
-				case '\0TT2':
-					m_tagTitle = GetID3v2FrameText(frame);
-					break;
-				case 'TPE1':
-				case '\0TP1':
-					m_tagArtist = GetID3v2FrameText(frame);
-					break;
-				case 'COMM':
-				case '\0COM':
-					m_tagComment = GetID3v2FrameText(frame);
-					break;
-				}
-			}
-		}
-	}
-}
-
-void BassDecoder::ReadTagsID3v1(LPCSTR p)
-{
-	if (p && std::string_view(p).compare(0, 3, "TAG") == 0) {
-		p += 3;
-		std::string str;
-
-		auto id3v1_truncate = [](std::string& s) {
-			for (auto it = s.crbegin(); it != s.crend(); ++it) {
-				if (*it != 0 && *it != 0x20) {
-					s.resize(std::distance(it, s.crend()));
-					break;
-				}
-			}
-		};
-
-		str.assign(p, 30);
-		id3v1_truncate(str);
-		m_tagTitle = ConvertAnsiToWide(str);
-		p += 30;
-
-		str.assign(p, 30);
-		id3v1_truncate(str);
-		m_tagArtist = ConvertAnsiToWide(str);
-		p += 30 + 30 + 4;
-
-		str.assign(p, p[28] == 0 ? 28 : 30);
-		id3v1_truncate(str);
-		m_tagComment = ConvertAnsiToWide(str);
-	}
+	return name_tag;
 }
 
 bool BassDecoder::Load(std::wstring path) // use copy of path here
@@ -325,6 +267,11 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		return false;
 	}
 
+	DLog(L"BassDecoder::Load() - '%s', %d Hz, %d ch, %s%d",
+		GetBassTypeStr(m_ctype), m_sampleRate, m_channels, m_float ? L"Float" : L"Int", m_bytesPerSample*8);
+
+	ContentTags tags;
+
 	if (m_isMOD) {
 		LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_MUSIC_NAME);
 		if (p) {
@@ -349,22 +296,62 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		}
 
 		if (p) {
-			ReadTagsÑommon(p);
+			ReadTagsÑommon(p, tags);
 		}
 		else {
 			p = BASS_ChannelGetTags(m_stream, BASS_TAG_ID3V2);
 			if (p) {
 				DLog(L"Found ID3v2 Tag");
-				ReadTagsID3v2(p);
+				ReadTagsID3v2(p, tags);
 			}
 			else {
 				p = BASS_ChannelGetTags(m_stream, BASS_TAG_ID3);
 				if (p) {
 					DLog(L"Found ID3v1 Tag");
-					ReadTagsID3v1(p);
+					ReadTagsID3v1(p, tags);
 				}
 			}
 		}
+	}
+
+	if (m_isLiveStream && tags.Empty()) {
+		LPCSTR icyTags;
+		LPCSTR httpHeaders;
+
+		icyTags = BASS_ChannelGetTags(m_stream, BASS_TAG_ICY);
+		if (icyTags) {
+			tags.Title = GetNameTag(icyTags);
+		}
+
+		httpHeaders = BASS_ChannelGetTags(m_stream, BASS_TAG_HTTP);
+		if (httpHeaders) {
+			tags.Title = GetNameTag(httpHeaders);
+		}
+
+		LPCSTR metaTagsUtf8 = BASS_ChannelGetTags(m_stream, BASS_TAG_META);
+		if (metaTagsUtf8) {
+			std::wstring metaTags = ConvertUtf8ToWide(metaTagsUtf8);
+			DLog(L"Received Meta Tag: %s", metaTags.c_str());
+
+			size_t k1 = metaTags.find(L"StreamTitle='");
+			if (k1 != metaTags.npos) {
+				k1 += 13;
+				size_t k2 = metaTags.find(L'\'', k1);
+				if (k2 != metaTags.npos) {
+					tags.Title = metaTags.substr(k1, k2 - k1);
+				}
+			}
+			else if ((k1 = metaTags.find(L"TITLE=") != metaTags.npos) ||
+				(k1 = metaTags.find(L"Title=") != metaTags.npos) ||
+				(k1 = metaTags.find(L"title=") != metaTags.npos)) {
+				k1 += 6;
+				tags.Title = metaTags.substr(k1);
+			}
+		}
+	}
+
+	if (!tags.Empty() && m_shoutcastEvents) {
+		m_shoutcastEvents->OnMetaDataCallback(&tags);
 	}
 
 	return true;
@@ -447,77 +434,7 @@ bool BassDecoder::GetStreamInfos()
 		return false;
 	}
 
-	DLog(L"Opened '%s' file", GetBassTypeStr(info.ctype));
-
-	GetHTTPInfos();
-
 	return true;
-}
-
-void BassDecoder::GetNameTag(LPCSTR string)
-{
-	if (!m_shoutcastEvents) {
-		return;
-	}
-
-	std::wstring strTags = ConvertAnsiToWide(string);
-
-	LPCWSTR astring = strTags.c_str();
-	while (astring && *astring) {
-		LPCWSTR tag = astring;
-		if (wcsncmp(L"icy-name:", tag, 9) == 0) {
-			tag += 9;
-			while (*tag && iswspace(*tag)) {
-				tag++;
-			}
-			//if (m_shoutcastEvents)
-			m_shoutcastEvents->OnShoutcastMetaDataCallback(tag);
-		}
-
-		astring += wcslen(astring) + 1;
-	}
-}
-
-void BassDecoder::GetHTTPInfos()
-{
-	LPCSTR icyTags;
-	LPCSTR httpHeaders;
-
-	if (!m_isLiveStream) {
-		return;
-	}
-
-	icyTags = BASS_ChannelGetTags(m_stream, BASS_TAG_ICY);
-	if (icyTags) {
-		GetNameTag(icyTags);
-	}
-
-	httpHeaders = BASS_ChannelGetTags(m_stream, BASS_TAG_HTTP);
-	if (httpHeaders) {
-		GetNameTag(httpHeaders);
-	}
-
-	LPCSTR metaTagsUtf8 = BASS_ChannelGetTags(m_stream, BASS_TAG_META);
-	if (metaTagsUtf8) {
-		std::wstring metaTags = ConvertUtf8ToWide(metaTagsUtf8);
-		DLog(L"Received Meta Tag: %s", metaTags.c_str());
-
-		size_t k1 = metaTags.find(L"StreamTitle='");
-		if (k1 != metaTags.npos) {
-			k1 += 13;
-			size_t k2 = metaTags.find(L'\'', k1);
-			if (k2 != metaTags.npos) {
-				const std::wstring title = metaTags.substr(k1, k2 - k1);
-				m_shoutcastEvents->OnShoutcastMetaDataCallback(title.c_str());
-			}
-		}
-		else if ((k1 = metaTags.find(L"TITLE=") != metaTags.npos) ||
-			(k1 = metaTags.find(L"Title=") != metaTags.npos) ||
-			(k1 = metaTags.find(L"title=") != metaTags.npos)) {
-			k1 += 6;
-			m_shoutcastEvents->OnShoutcastMetaDataCallback(metaTags.c_str() + k1);
-		}
-	}
 }
 
 LONGLONG BassDecoder::GetDuration()

@@ -21,7 +21,10 @@
  */
 
 #include "stdafx.h"
+#include "Utils/StringUtil.h"
 #include "BassHelper.h"
+
+#include "ID3v2Tag.h"
 
 #include <../Include/bass.h>
 #include <../Include/bass_aac.h>
@@ -99,4 +102,90 @@ LPCWSTR GetBassTypeStr(const DWORD ctype)
 	}
 
 	return L"Unknown";
+}
+
+void ReadTagsÑommon(const char* p, ContentTags& tags)
+{
+	while (p && *p) {
+		std::string_view str(p);
+		const size_t k = str.find('=');
+		if (k > 0 && k < str.size()) {
+			// convert the field name to lowercase to make it easier to recognize
+			// examples:"Title", "TITLE", "title"
+			std::string field_name(k, '\0');
+			std::transform(str.begin(), str.begin() + field_name.size(),
+				field_name.begin(), [](unsigned char c) { return std::tolower(c); });
+
+			if (field_name.compare("title") == 0) {
+				tags.Title = ConvertUtf8ToWide(p + k + 1);
+			}
+			else if (field_name.compare("artist") == 0 || field_name.compare("author") == 0) {
+				tags.AuthorName = ConvertUtf8ToWide(p + k + 1);
+			}
+			else if (field_name.compare("comment") == 0 || field_name.compare("description") == 0) {
+				tags.Description = ConvertUtf8ToWide(p + k + 1);
+				str_trim_end(tags.Description, L' ');
+			}
+		}
+
+		p += str.size() + 1;
+	}
+
+	int gg = 0;
+}
+
+void ReadTagsID3v2(const char* p, ContentTags& tags)
+{
+	if (p) {
+		std::list<ID3v2Frame> id3v2Frames;
+		if (ParseID3v2Tag((const BYTE*)p, id3v2Frames)) {
+			for (const auto& frame : id3v2Frames) {
+				switch (frame.id) {
+				case 'TIT2':
+				case '\0TT2':
+					tags.Title = GetID3v2FrameText(frame);
+					break;
+				case 'TPE1':
+				case '\0TP1':
+					tags.AuthorName = GetID3v2FrameText(frame);
+					break;
+				case 'COMM':
+				case '\0COM':
+					tags.Description = GetID3v2FrameText(frame);
+					break;
+				}
+			}
+		}
+	}
+}
+
+void ReadTagsID3v1(const char* p, ContentTags& tags)
+{
+	if (p && std::string_view(p).compare(0, 3, "TAG") == 0) {
+		p += 3;
+		std::string str;
+
+		auto id3v1_truncate = [](std::string& s) {
+			for (auto it = s.crbegin(); it != s.crend(); ++it) {
+				if (*it != 0 && *it != 0x20) {
+					s.resize(std::distance(it, s.crend()));
+					break;
+				}
+			}
+		};
+
+		str.assign(p, 30);
+		id3v1_truncate(str);
+		tags.Title = ConvertAnsiToWide(str);
+		p += 30;
+
+		str.assign(p, 30);
+		id3v1_truncate(str);
+		tags.AuthorName = ConvertAnsiToWide(str);
+		p += 30 + 30 + 4;
+
+		str.assign(p, p[28] == 0 ? 28 : 30);
+		id3v1_truncate(str);
+		tags.Description = ConvertAnsiToWide(str);
+	}
 }

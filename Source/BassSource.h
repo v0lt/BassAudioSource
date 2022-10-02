@@ -41,13 +41,14 @@ class __declspec(uuid(STR_CLSID_BassAudioSource))
 {
 protected:
 	CCritSec* m_metaLock = nullptr;
+	ContentTags m_Tags;
+
 	BassSourceStream* m_pin = nullptr;
 	std::wstring m_fileName;
-	std::wstring m_currentTag;
 	int m_buffersizeMS = 0;
 	int m_preBufferMS = 0;
 
-	void STDMETHODCALLTYPE OnShoutcastMetaDataCallback(LPCWSTR text);
+	void STDMETHODCALLTYPE OnMetaDataCallback(ContentTags* tags);
 	void STDMETHODCALLTYPE OnShoutcastBufferCallback(const void* buffer, DWORD size);
 	void LoadSettings();
 	void SaveSettings();

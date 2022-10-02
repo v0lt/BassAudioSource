@@ -24,3 +24,25 @@
 
 bool IsOgg(const DWORD ctype);
 LPCWSTR GetBassTypeStr(const DWORD ctype);
+
+
+struct ContentTags
+{
+	std::wstring Title;
+	std::wstring AuthorName;
+	std::wstring Description;
+
+	void Clear() {
+		Title.clear();
+		AuthorName.clear();
+		Description.clear();
+	}
+
+	bool Empty() {
+		return Title.empty() && AuthorName.empty() && Description.empty();
+	}
+};
+
+void ReadTags—ommon(const char* p, ContentTags& tags);
+void ReadTagsID3v2(const char* p, ContentTags& tags);
+void ReadTagsID3v1(const char* p, ContentTags& tags);

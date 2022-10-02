@@ -28,7 +28,7 @@
 class ShoutcastEvents
 {
 public:
-	virtual void STDMETHODCALLTYPE OnShoutcastMetaDataCallback(LPCWSTR text) = 0;
+	virtual void STDMETHODCALLTYPE OnMetaDataCallback(ContentTags* pTags) = 0;
 	virtual void STDMETHODCALLTYPE OnShoutcastBufferCallback(const void* buffer, DWORD size) = 0;
 };
 
@@ -65,8 +65,6 @@ protected:
 	void LoadPlugins();
 
 	bool GetStreamInfos();
-	void GetHTTPInfos();
-	void GetNameTag(LPCSTR string);
 public:
 	LONGLONG GetDuration();
 	LONGLONG GetPosition();
@@ -75,10 +73,6 @@ public:
 public:
 	BassDecoder(ShoutcastEvents* shoutcastEvents, int buffersizeMS, int prebufferMS);
 	~BassDecoder();
-
-	void ReadTags—ommon(LPCSTR p);
-	void ReadTagsID3v2(LPCSTR p);
-	void ReadTagsID3v1(LPCSTR p);
 
 	bool Load(std::wstring path);
 	void Close();

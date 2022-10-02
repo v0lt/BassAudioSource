@@ -24,6 +24,7 @@
 #include "BassDecoder.h"
 #include "BassSource.h"
 #include <MMReg.h>
+#include "Utils/Util.h"
 #include "Utils/StringUtil.h"
 
 #define OPT_REGKEY_BassAudioSource L"Software\\MPC-BE Filters\\BassAudioSource"
@@ -68,6 +69,7 @@ void BassSource::Init()
 	DbgSetModuleLevel(LOG_TRACE, DWORD_MAX);
 	DbgSetModuleLevel(LOG_ERROR, DWORD_MAX);
 #endif
+	DLog(L"BassSource::Init()");
 
 	m_metaLock = new CCritSec();
 
@@ -79,11 +81,16 @@ void BassSource::Init()
 	InterlockedIncrement(&InstanceCount);
 }
 
-void STDMETHODCALLTYPE BassSource::OnShoutcastMetaDataCallback(LPCWSTR text)
+void STDMETHODCALLTYPE BassSource::OnMetaDataCallback(ContentTags* pTags)
 {
+	DLog(L"BassSource::OnMetaDataCallback()");
+	if (!pTags) {
+		return;
+	}
+
 	m_metaLock->Lock();
 	__try {
-		m_currentTag = text;
+		m_Tags = *pTags;
 	}
 	__finally {
 		m_metaLock->Unlock();
@@ -268,8 +275,8 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 
 	m_fileName = pszFileName;
 
-	if (!m_pin->m_decoder->GetIsLiveStream()) {
-		m_currentTag = std::filesystem::path(m_fileName).filename();
+	if (!m_pin->m_decoder->GetIsLiveStream() && m_Tags.Empty()) {
+		m_Tags.Title = std::filesystem::path(m_fileName).filename();
 	}
 
 	return S_OK;
@@ -294,61 +301,67 @@ STDMETHODIMP BassSource::get_AuthorName(THIS_ BSTR FAR* pbstrAuthorName)
 {
 	CheckPointer(pbstrAuthorName, E_POINTER);
 
-	auto tag = m_pin->m_decoder->GetTagArtist();
-	if (tag.empty()) {
-		return VFW_E_NOT_FOUND;
+	HRESULT hr = S_OK;
+
+	m_metaLock->Lock();
+
+	if (m_Tags.AuthorName.size()) {
+		*pbstrAuthorName = SysAllocString(m_Tags.AuthorName.c_str());
+	} else {
+		hr = VFW_E_NOT_FOUND;
 	}
 
-	*pbstrAuthorName = SysAllocString(tag.c_str());
+	m_metaLock->Unlock();
 
 	if (!*pbstrAuthorName) {
 		return E_OUTOFMEMORY;
 	}
 
-	return S_OK;
+	return hr;
 }
 
 STDMETHODIMP BassSource::get_Title(THIS_ BSTR FAR* pbstrTitle)
 {
 	CheckPointer(pbstrTitle, E_POINTER);
 
-	if (m_pin->m_decoder->GetIsLiveStream() && !m_pin->m_decoder->GetIsOgg()) {
-		m_metaLock->Lock();
+	HRESULT hr = S_OK;
 
-		*pbstrTitle = SysAllocString(m_currentTag.c_str());
+	m_metaLock->Lock();
+
+	if (m_Tags.Title.size()) {
+		*pbstrTitle = SysAllocString(m_Tags.Title.c_str());
+	} else {
+		hr = VFW_E_NOT_FOUND;
+	}
 		
-		m_metaLock->Unlock();
-	}
-	else {
-		auto tag = m_pin->m_decoder->GetTagTitle();
-		if (tag.empty()) {
-			return VFW_E_NOT_FOUND;
-		}
-
-		*pbstrTitle = SysAllocString(tag.c_str());
-	}
+	m_metaLock->Unlock();
 
 	if (!*pbstrTitle) {
 		return E_OUTOFMEMORY;
 	}
 
-	return S_OK;
+	return hr;
 }
 
 STDMETHODIMP BassSource::get_Description(THIS_ BSTR FAR* pbstrDescription)
 {
 	CheckPointer(pbstrDescription, E_POINTER);
 
-	auto tag = m_pin->m_decoder->GetTagComment();
-	if (tag.empty()) {
-		return VFW_E_NOT_FOUND;
+	HRESULT hr = S_OK;
+
+	m_metaLock->Lock();
+
+	if (m_Tags.Description.size()) {
+		*pbstrDescription = SysAllocString(m_Tags.Description.c_str());
+	} else {
+		hr = VFW_E_NOT_FOUND;
 	}
 
-	*pbstrDescription = SysAllocString(tag.c_str());
+	m_metaLock->Unlock();
 
 	if (!*pbstrDescription) {
 		return E_OUTOFMEMORY;
 	}
 
-	return S_OK;
+	return hr;
 }
