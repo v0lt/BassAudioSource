@@ -10,6 +10,7 @@
 #include <windows.h>
 
 #include "../external/BaseClasses/streams.h"
+#include "../Include/IDSMResourceBag.h"
 
 #include <algorithm>
 #include <vector>

@@ -38,10 +38,17 @@ class __declspec(uuid(STR_CLSID_BassAudioSource))
 	, protected ShoutcastEvents
 	, public IFileSourceFilter
 	, public IAMMediaContent
+	, public IDSMResourceBag
 {
 protected:
 	CCritSec* m_metaLock = nullptr;
 	ContentTags m_Tags;
+	struct dsm_res_t {
+		DWORD_PTR tag = 0;
+		std::wstring name, desc, mime;
+		std::vector<BYTE> data;
+	};
+	std::list<dsm_res_t> m_resources;
 
 	BassSourceStream* m_pin = nullptr;
 	std::wstring m_fileName;
@@ -87,6 +94,14 @@ public:
 	STDMETHODIMP get_MoreInfoBannerImage(THIS_ BSTR FAR* pbstrMoreInfoBannerImage) { return E_NOTIMPL; }
 	STDMETHODIMP get_MoreInfoBannerURL(THIS_ BSTR FAR* pbstrMoreInfoBannerURL) { return E_NOTIMPL; }
 	STDMETHODIMP get_MoreInfoText(THIS_ BSTR FAR* pbstrMoreInfoText) { return E_NOTIMPL; }
+
+	//IDSMResourceBag
+	STDMETHODIMP_(DWORD) ResGetCount();
+	STDMETHODIMP ResGet(DWORD iIndex, BSTR* ppName, BSTR* ppDesc, BSTR* ppMime, BYTE** ppData, DWORD* pDataLen, DWORD_PTR* pTag);
+	STDMETHODIMP ResSet(DWORD iIndex, LPCWSTR pName, LPCWSTR pDesc, LPCWSTR pMime, BYTE* pData, DWORD len, DWORD_PTR tag) { return E_NOTIMPL; }
+	STDMETHODIMP ResAppend(LPCWSTR pName, LPCWSTR pDesc, LPCWSTR pMime, BYTE* pData, DWORD len, DWORD_PTR tag) { return E_NOTIMPL; }
+	STDMETHODIMP ResRemoveAt(DWORD iIndex) { return E_NOTIMPL; }
+	STDMETHODIMP ResRemoveAll(DWORD_PTR tag) { return E_NOTIMPL; }
 };
 
 

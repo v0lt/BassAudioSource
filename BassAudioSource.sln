@@ -23,6 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include", "Include", "{C7CA
 		Include\basswv.h = Include\basswv.h
 		Include\basszxtune.h = Include\basszxtune.h
 		Include\consts.h = Include\consts.h
+		Include\IDSMResourceBag.h = Include\IDSMResourceBag.h
 		Include\Version.h = Include\Version.h
 	EndProjectSection
 EndProject

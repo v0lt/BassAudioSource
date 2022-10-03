@@ -172,6 +172,14 @@ STDMETHODIMP BassSource::NonDelegatingQueryInterface(REFIID iid, void** ppv)
 			return E_NOINTERFACE;
 		}
 	}
+	else if (IsEqualIID(iid, __uuidof(IDSMResourceBag))) {
+		if (SUCCEEDED(GetInterface((LPUNKNOWN)(IDSMResourceBag*)this, ppv))) {
+			return S_OK;
+		}
+		else {
+			return E_NOINTERFACE;
+		}
+	}
 	else {
 		return CSource::NonDelegatingQueryInterface(iid, ppv);
 	}
@@ -364,4 +372,46 @@ STDMETHODIMP BassSource::get_Description(THIS_ BSTR FAR* pbstrDescription)
 	}
 
 	return hr;
+}
+
+// IDSMResourceBag
+
+STDMETHODIMP_(DWORD) BassSource::ResGetCount()
+{
+	return (DWORD)m_resources.size();
+}
+
+STDMETHODIMP BassSource::ResGet(DWORD iIndex, BSTR* ppName, BSTR* ppDesc, BSTR* ppMime, BYTE** ppData, DWORD* pDataLen, DWORD_PTR* pTag)
+{
+	if (ppData) {
+		CheckPointer(pDataLen, E_POINTER);
+	}
+
+	if (iIndex >= m_resources.size()) {
+		return E_INVALIDARG;
+	}
+
+	auto it = m_resources.cbegin();
+	std::advance(it, iIndex);
+
+	auto& r = *it;
+
+	if (ppName) {
+		*ppName = SysAllocString(r.name.c_str());
+	}
+	if (ppDesc) {
+		*ppDesc = SysAllocString(r.desc.c_str());
+	}
+	if (ppMime) {
+		*ppMime = SysAllocString(r.mime.c_str());
+	}
+	if (ppData) {
+		*pDataLen = (DWORD)r.data.size();
+		memcpy(*ppData = (BYTE*)CoTaskMemAlloc(*pDataLen), r.data.data(), *pDataLen);
+	}
+	if (pTag) {
+		*pTag = r.tag;
+	}
+
+	return S_OK;
 }
