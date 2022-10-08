@@ -44,10 +44,6 @@
 #include <../Include/basswv.h>
 #include <../Include/basszxtune.h>
 
-bool IsOgg(const DWORD ctype)
-{
-	return ctype == BASS_CTYPE_STREAM_FLAC_OGG || ctype == BASS_CTYPE_STREAM_VORBIS;
-}
 
 LPCWSTR GetBassTypeStr(const DWORD ctype)
 {

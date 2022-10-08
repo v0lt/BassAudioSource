@@ -22,9 +22,7 @@
 
 #pragma once
 
-bool IsOgg(const DWORD ctype);
 LPCWSTR GetBassTypeStr(const DWORD ctype);
-
 
 struct ContentTags
 {

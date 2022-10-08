@@ -85,7 +85,6 @@ public:
 	inline bool GetFloat()         { return m_float; }
 	inline LONGLONG GetMSecConv()  { return m_mSecConv; }
 	inline bool GetIsLiveStream()  { return m_isLiveStream; }
-	inline bool GetIsOgg()         { return IsOgg(m_ctype); }
 	std::wstring GetTagTitle()     { return m_tagTitle; }
 	std::wstring GetTagArtist()    { return m_tagArtist; }
 	std::wstring GetTagComment()   { return m_tagComment; }
