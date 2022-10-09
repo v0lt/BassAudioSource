@@ -43,12 +43,12 @@ class __declspec(uuid(STR_CLSID_BassAudioSource))
 protected:
 	CCritSec* m_metaLock = nullptr;
 	ContentTags m_Tags;
-	struct dsm_res_t {
+	struct DSMResource {
 		DWORD_PTR tag = 0;
 		std::wstring name, desc, mime;
 		std::vector<BYTE> data;
 	};
-	std::list<dsm_res_t> m_resources;
+	std::list<DSMResource> m_resources;
 
 	BassSourceStream* m_pin = nullptr;
 	std::wstring m_fileName;
@@ -56,6 +56,7 @@ protected:
 	int m_preBufferMS = 0;
 
 	void STDMETHODCALLTYPE OnMetaDataCallback(ContentTags* tags);
+	void STDMETHODCALLTYPE OnResourceDataCallback(std::list<ID3v2Pict>* pPictList);
 	void STDMETHODCALLTYPE OnShoutcastBufferCallback(const void* buffer, DWORD size);
 	void LoadSettings();
 	void SaveSettings();

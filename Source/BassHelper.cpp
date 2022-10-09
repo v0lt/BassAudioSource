@@ -24,8 +24,6 @@
 #include "Utils/StringUtil.h"
 #include "BassHelper.h"
 
-#include "ID3v2Tag.h"
-
 #include <../Include/bass.h>
 #include <../Include/bass_aac.h>
 #include <../Include/bass_mpc.h>
@@ -130,7 +128,7 @@ void ReadTags—ommon(const char* p, ContentTags& tags)
 	int gg = 0;
 }
 
-void ReadTagsID3v2(const char* p, ContentTags& tags)
+void ReadTagsID3v2(const char* p, ContentTags& tags, std::list<ID3v2Pict>* pPictList)
 {
 	if (p) {
 		std::list<ID3v2Frame> id3v2Frames;
@@ -149,7 +147,17 @@ void ReadTagsID3v2(const char* p, ContentTags& tags)
 				case '\0COM':
 					tags.Description = GetID3v2FrameText(frame);
 					break;
-				}
+				case 'APIC':
+				case '\0PIC':
+					if (pPictList) {
+						ID3v2Pict id3v2Pict;
+						ParseID3v2PictFrame(frame, id3v2Pict);
+						if (id3v2Pict.size) {
+							pPictList->emplace_back(id3v2Pict);
+						}
+					}
+					break;
+ 				}
 			}
 		}
 	}

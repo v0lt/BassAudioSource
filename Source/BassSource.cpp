@@ -97,6 +97,48 @@ void STDMETHODCALLTYPE BassSource::OnMetaDataCallback(ContentTags* pTags)
 	}
 }
 
+void STDMETHODCALLTYPE BassSource::OnResourceDataCallback(std::list<ID3v2Pict>* pPictList)
+{
+	DLog(L"BassSource::OnResourceDataCallback()");
+	if (!pPictList) {
+		return;
+	}
+
+	m_metaLock->Lock();
+
+	m_resources.clear();
+
+	try {
+		for (const auto& pict : *pPictList) {
+			DSMResource dsmr;
+			switch (pict.text_encoding) {
+			case ID3v2Encoding::ISO8859:
+				dsmr.mime = ConvertAnsiToWide(pict.mime_type);
+				dsmr.desc = ConvertAnsiToWide(pict.description);
+				break;
+			case ID3v2Encoding::UTF8:
+				dsmr.mime = ConvertUtf8ToWide(pict.mime_type);
+				dsmr.desc = ConvertUtf8ToWide(pict.description);
+				break;
+			case ID3v2Encoding::UTF16BOM:
+			case ID3v2Encoding::UTF16BE:
+				// TODO
+				ASSERT(0);
+				break;
+			}
+			dsmr.data.resize(pict.size);
+			memcpy(dsmr.data.data(), pict.data, pict.size);
+			m_resources.emplace_back(dsmr);
+		}
+	}
+	catch (...) {
+		DLog(L"BassSource::OnResourceDataCallback() - FAILED!");
+		m_resources.clear();
+	}
+
+	m_metaLock->Unlock();
+}
+
 void STDMETHODCALLTYPE BassSource::OnShoutcastBufferCallback(const void* buffer, DWORD size)
 {
 }

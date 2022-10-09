@@ -22,7 +22,26 @@
 
 #pragma once
 
+#include "ID3v2Tag.h"
+
 LPCWSTR GetBassTypeStr(const DWORD ctype);
+
+struct TagResource
+{
+	std::wstring Title;
+	std::wstring AuthorName;
+	std::wstring Description;
+
+	void Clear() {
+		Title.clear();
+		AuthorName.clear();
+		Description.clear();
+	}
+
+	bool Empty() {
+		return Title.empty() && AuthorName.empty() && Description.empty();
+	}
+};
 
 struct ContentTags
 {
@@ -42,5 +61,5 @@ struct ContentTags
 };
 
 void ReadTags—ommon(const char* p, ContentTags& tags);
-void ReadTagsID3v2(const char* p, ContentTags& tags);
+void ReadTagsID3v2(const char* p, ContentTags& tags, std::list<ID3v2Pict>* pPictList);
 void ReadTagsID3v1(const char* p, ContentTags& tags);
