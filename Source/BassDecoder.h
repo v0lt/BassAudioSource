@@ -85,12 +85,9 @@ public:
 	inline bool GetFloat()         { return m_float; }
 	inline LONGLONG GetMSecConv()  { return m_mSecConv; }
 	inline bool GetIsLiveStream()  { return m_isLiveStream; }
-	std::wstring GetTagTitle()     { return m_tagTitle; }
-	std::wstring GetTagArtist()    { return m_tagArtist; }
-	std::wstring GetTagComment()   { return m_tagComment; }
 
 	friend void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user);
-	friend void CALLBACK OnShoutcastData(const void* buffer, DWORD length, void* user);
+	friend void CALLBACK OnDownloadData(const void* buffer, DWORD length, void* user);
 };
 
 std::wstring GetFilterDirectory();

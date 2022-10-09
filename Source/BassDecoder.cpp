@@ -117,7 +117,7 @@ void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user)
 	}
 }
 
-void CALLBACK OnShoutcastData(const void* buffer, DWORD length, void* user)
+void CALLBACK OnDownloadData(const void* buffer, DWORD length, void* user)
 {
 	BassDecoder* decoder = (BassDecoder*)user;
 	if (buffer && decoder->m_shoutcastEvents) {
@@ -247,7 +247,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 	}
 	else {
 		if (m_isURL) {
-			m_stream = BASS_StreamCreateURL(LPCSTR(path.c_str()), 0, BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS, OnShoutcastData, this);
+			m_stream = BASS_StreamCreateURL(LPCSTR(path.c_str()), 0, BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS, OnDownloadData, this);
 			m_syncMeta = BASS_ChannelSetSync(m_stream, BASS_SYNC_META, 0, OnMetaData, this);
 			m_syncOggChange = BASS_ChannelSetSync(m_stream, BASS_SYNC_OGG_CHANGE, 0, OnMetaData, this);
 
