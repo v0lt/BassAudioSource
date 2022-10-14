@@ -102,6 +102,20 @@ inline void str_trim_end(std::wstring& s, const wchar_t ch)
 }
 
 //
+// truncate after a null character
+//
+
+inline void str_truncate_after_null(std::string& s)
+{
+	s.erase(std::find(s.begin(), s.end(), '\0'), s.end());
+}
+
+inline void str_truncate_after_null(std::wstring& s)
+{
+	s.erase(std::find(s.begin(), s.end(), '\0'), s.end());
+}
+
+//
 //
 //
 
