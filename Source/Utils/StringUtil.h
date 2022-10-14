@@ -1,5 +1,5 @@
 /*
-* (C) 2020-2021 see Authors.txt
+* (C) 2020-2022 see Authors.txt
 *
 * This file is part of MPC-BE.
 *
@@ -124,7 +124,9 @@ inline const std::wstring A2WStr(const std::string_view& sv)
 std::string ConvertWideToANSI(const std::wstring& wstr);
 
 std::wstring ConvertAnsiToWide(const std::string& str);
+std::wstring ConvertAnsiToWide(const char* pstr, int size);
 
 std::string ConvertWideToUtf8(const std::wstring& wstr);
 
 std::wstring ConvertUtf8ToWide(const std::string& str);
+std::wstring ConvertUtf8ToWide(const char* pstr, int size);
