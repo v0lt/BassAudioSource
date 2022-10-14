@@ -55,7 +55,6 @@ uint32_t read4bytes(const uint8_t*& p)
 };
 
 
-
 bool ParseID3v2Tag(const BYTE* buf, std::list<ID3v2Frame>& id3v2Frames)
 {
 	id3v2Frames.clear();
@@ -142,57 +141,98 @@ bool ParseID3v2Tag(const BYTE* buf, std::list<ID3v2Frame>& id3v2Frames)
 	return (id3v2Frames.size() > 0);
 }
 
+void DecodeString(const int encoding, const uint8_t*& str, const uint8_t* end, std::wstring& wstr)
+{
+	auto p = str;
+	int len = 0;
+	uint16_t bom = 0;
+
+	switch (encoding) {
+	case ID3v2Encoding::ISO8859:
+	case ID3v2Encoding::UTF8:
+		while (p < end && *p) {
+			p++;
+		}
+		len = p - str;
+		if (len) {
+			wstr = (encoding == ID3v2Encoding::ISO8859)
+				? ConvertAnsiToWide((char*)str, len)
+				: ConvertUtf8ToWide((char*)str, len);
+		}
+		if (p < end && *p == 0) {
+			p++;
+		}
+		str = p;
+		return;
+	case UTF16BOM:
+		if (str + 2 < end) {
+			bom = read2bytes(str);
+			p = str;
+		}
+		break;
+	case UTF16BE:
+		bom = 0xfeff;
+		break;
+	}
+
+	if (bom == 0xfffe || bom == 0xfeff) {
+		while ((p+1) < end && *(uint16_t*)p) {
+			p += 2;
+		}
+		wstr.assign((p - str) / 2, '\0');
+		if (bom == 0xfffe) {
+			memcpy(wstr.data(), p, wstr.size() * 2);
+		}
+		else { //if (bom == 0xfeff)
+			auto src = (const wchar_t*)str;
+			auto dst = wstr.data();
+			for (size_t i = 0; i < wstr.size(); i++) {
+				*dst++ = _byteswap_ushort(*src++);
+			}
+		}
+		if ((p + 1) < end && *(uint16_t*)p == 0) {
+			p += 2;
+		}
+		p = str;
+	}
+
+	return;
+}
+
 std::wstring GetID3v2FrameText(const ID3v2Frame& id3v2Frame)
 {
 	std::wstring wstr;
 
-	if (id3v2Frame.data && id3v2Frame.size > 2) {
-
+	if (id3v2Frame.data && id3v2Frame.size >= 2) {
 		const uint8_t* p = id3v2Frame.data;
 		const uint8_t* end = p + id3v2Frame.size;
 
 		const int encoding = *p++;
 
-		uint16_t bom = 0;
+		DecodeString(encoding, p, end, wstr);
 
-		switch (encoding) {
-		case ID3v2Encoding::ISO8859:
-		case ID3v2Encoding::UTF8:
-			if (p + 1 < end) {
-				std::string str(end - p, '\0');
-				memcpy(str.data(), p, str.size());
-				wstr = (encoding == ID3v2Encoding::ISO8859)
-					? ConvertAnsiToWide(str)
-					: ConvertUtf8ToWide(str);
-			}
-			break;
-		case UTF16BOM:
-			if (p + 4 < end) {
-				bom = read2bytes(p);
-			}
-			break;
-		case UTF16BE:
-			if (p + 2 < end) {
-				bom = 0xfeff;
-			}
-			break;
-		}
+		str_trim(wstr);
+	}
 
-		if (bom == 0xfffe || bom == 0xfeff) {
-			wstr.assign((end - p) / 2, '\0');
-			if (bom == 0xfffe) {
-				memcpy(wstr.data(), p, wstr.size() * 2);
-			}
-			else { //if (bom == 0xfeff)
-				auto src = (const uint16_t*)p;
-				auto dst = wstr.data();
-				for (size_t i = 0; i < wstr.size(); i++) {
-					*dst++ = *src++;
-				}
-			}
-		}
+	return wstr;
+}
 
-		wstr.erase(std::find(wstr.begin(), wstr.end(), '\0'), wstr.end());
+std::wstring GetID3v2FrameComment(const ID3v2Frame& id3v2Frame)
+{
+	std::wstring wstr;
+
+	if (id3v2Frame.data && id3v2Frame.size >= 5) {
+		const uint8_t* p = id3v2Frame.data;
+		const uint8_t* end = p + id3v2Frame.size;
+
+		const int encoding = *p++;
+		const uint32_t lang = read3bytes(p);
+
+		std::wstring content_desc;
+		DecodeString(encoding, p, end, content_desc);
+
+		DecodeString(encoding, p, end, wstr);
+
 		str_trim(wstr);
 	}
 

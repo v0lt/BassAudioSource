@@ -37,5 +37,6 @@ struct ID3v2Pict
 bool ParseID3v2Tag(const BYTE* buf, std::list<ID3v2Frame>& id3v2Frames);
 
 std::wstring GetID3v2FrameText(const ID3v2Frame& id3v2Frame);
+std::wstring GetID3v2FrameComment(const ID3v2Frame& id3v2Frame);
 
 void ParseID3v2PictFrame(const ID3v2Frame& id3v2Frame, ID3v2Pict& id3v2Pict);

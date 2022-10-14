@@ -145,7 +145,7 @@ void ReadTagsID3v2(const char* p, ContentTags& tags, std::list<ID3v2Pict>* pPict
 					break;
 				case 'COMM':
 				case '\0COM':
-					tags.Description = GetID3v2FrameText(frame);
+					tags.Description = GetID3v2FrameComment(frame);
 					break;
 				case 'APIC':
 				case '\0PIC':
