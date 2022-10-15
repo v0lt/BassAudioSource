@@ -181,7 +181,7 @@ void DecodeString(const int encoding, const uint8_t*& str, const uint8_t* end, s
 		}
 		wstr.assign((p - str) / 2, '\0');
 		if (bom == 0xfffe) {
-			memcpy(wstr.data(), p, wstr.size() * 2);
+			memcpy(wstr.data(), str, wstr.size() * 2);
 		}
 		else { //if (bom == 0xfeff)
 			auto src = (const wchar_t*)str;
@@ -193,7 +193,7 @@ void DecodeString(const int encoding, const uint8_t*& str, const uint8_t* end, s
 		if ((p + 1) < end && *(uint16_t*)p == 0) {
 			p += 2;
 		}
-		p = str;
+		str = p;
 	}
 
 	return;
