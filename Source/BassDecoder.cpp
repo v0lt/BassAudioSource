@@ -24,6 +24,8 @@
 #include "BassDecoder.h"
 #include "BassSource.h"
 #include <../Include/bass.h>
+#include <../Include/bass_aac.h>
+#include <../Include/basswma.h>
 #include "Utils/Util.h"
 #include "Utils/StringUtil.h"
 #include "dllmain.h"
@@ -161,6 +163,10 @@ void BassDecoder::LoadBASS()
 	BASS_SetConfigPtr(BASS_CONFIG_NET_AGENT, LABEL_BassAudioSource);
 	BASS_SetConfig(BASS_CONFIG_NET_BUFFER, m_buffersizeMS);
 	BASS_SetConfig(BASS_CONFIG_NET_PREBUF, m_buffersizeMS * 100 / m_prebufferMS);
+
+	BASS_SetConfig(BASS_CONFIG_MF_VIDEO, FALSE);
+	BASS_SetConfig(BASS_CONFIG_MP4_VIDEO, FALSE);
+	BASS_SetConfig(BASS_CONFIG_WMA_VIDEO, FALSE);
 }
 
 void BassDecoder::UnloadBASS()
