@@ -17,6 +17,9 @@
 #define ID3v2_FLAG_EXPERI 0x20
 #define ID3v2_FLAG_FOOTER 0x10 // only for ID3v2.4
 
+#define ID3v2_FRAME_FLAG_DATALEN 0x0001
+#define ID3v2_FRAME_FLAG_UNSYNCH 0x0002
+
 uint32_t get_id3v2_size(const BYTE* buf)
 {
 	return
@@ -253,6 +256,11 @@ void ParseID3v2PictFrame(const ID3v2Frame& id3v2Frame, ID3v2Pict& id3v2Pict)
 	if (id3v2Frame.data && id3v2Frame.size > 4) {
 		const uint8_t* p = id3v2Frame.data;
 		const uint8_t* end = p + id3v2Frame.size;
+
+		uint32_t datalen = 0;
+		if (id3v2Frame.flags & ID3v2_FRAME_FLAG_DATALEN) {
+			datalen = readframesize(p);
+		}
 
 		id3v2Pict.text_encoding = *p++;
 		int charstep;
