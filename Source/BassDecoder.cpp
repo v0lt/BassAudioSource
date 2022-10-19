@@ -286,7 +286,14 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 			m_tagTitle = ConvertAnsiToWide(p);
 		}
 	}
-	else if (!m_isURL) {
+	else if (m_isLiveStream) {
+		LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_OGG);
+		if (p) {
+			DLog(p, L"Found OGG Tag");
+			ReadTags—ommon(p, tags);
+		}
+	}
+	else {
 		LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_APE);
 		DLogIf(p, L"Found APE Tag");
 		if (!p) {
