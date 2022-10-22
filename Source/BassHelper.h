@@ -26,23 +26,6 @@
 
 LPCWSTR GetBassTypeStr(const DWORD ctype);
 
-struct TagResource
-{
-	std::wstring Title;
-	std::wstring AuthorName;
-	std::wstring Description;
-
-	void Clear() {
-		Title.clear();
-		AuthorName.clear();
-		Description.clear();
-	}
-
-	bool Empty() {
-		return Title.empty() && AuthorName.empty() && Description.empty();
-	}
-};
-
 struct ContentTags
 {
 	std::wstring Title;
