@@ -60,6 +60,6 @@ struct ContentTags
 	}
 };
 
-void ReadTags—ommon(const char* p, ContentTags& tags);
+void ReadTagsCommon(const char* p, ContentTags& tags);
 void ReadTagsID3v2(const char* p, ContentTags& tags, std::list<ID3v2Pict>* pPictList);
 void ReadTagsID3v1(const char* p, ContentTags& tags);

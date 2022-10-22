@@ -98,7 +98,7 @@ LPCWSTR GetBassTypeStr(const DWORD ctype)
 	return L"Unknown";
 }
 
-void ReadTags—ommon(const char* p, ContentTags& tags)
+void ReadTagsCommon(const char* p, ContentTags& tags)
 {
 	while (p && *p) {
 		std::string_view str(p);

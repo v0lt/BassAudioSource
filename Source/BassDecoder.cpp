@@ -112,7 +112,7 @@ void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user)
 		DLog(L"OnMetaData() - BASS_SYNC_OGG_CHANGE");
 		LPCSTR p = BASS_ChannelGetTags(channel, BASS_TAG_OGG);
 		if (p) {
-			ReadTags—ommon(p, tags);
+			ReadTagsCommon(p, tags);
 			decoder->m_shoutcastEvents->OnMetaDataCallback(&tags);
 		}
 		return;
@@ -290,7 +290,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_OGG);
 		if (p) {
 			DLog(p, L"Found OGG Tag");
-			ReadTags—ommon(p, tags);
+			ReadTagsCommon(p, tags);
 		}
 	}
 	else {
@@ -310,7 +310,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		}
 
 		if (p) {
-			ReadTags—ommon(p, tags);
+			ReadTagsCommon(p, tags);
 		}
 		else {
 			p = BASS_ChannelGetTags(m_stream, BASS_TAG_ID3V2);
