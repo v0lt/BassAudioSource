@@ -144,7 +144,7 @@ bool ParseID3v2Tag(const BYTE* buf, std::list<ID3v2Frame>& id3v2Frames)
 	return (id3v2Frames.size() > 0);
 }
 
-void DecodeString(const int encoding, const uint8_t*& str, const uint8_t* end, std::wstring& wstr)
+const uint8_t* DecodeString(const int encoding, const uint8_t* str, const uint8_t* end, std::wstring& wstr)
 {
 	auto p = str;
 	int len = 0;
@@ -165,8 +165,7 @@ void DecodeString(const int encoding, const uint8_t*& str, const uint8_t* end, s
 		if (p < end && *p == 0) {
 			p++;
 		}
-		str = p;
-		return;
+		return p;
 	case UTF16BOM:
 		if (str + 2 < end) {
 			bom = read2bytes(str);
@@ -196,10 +195,9 @@ void DecodeString(const int encoding, const uint8_t*& str, const uint8_t* end, s
 		if ((p + 1) < end && *(uint16_t*)p == 0) {
 			p += 2;
 		}
-		str = p;
 	}
 
-	return;
+	return p;
 }
 
 std::wstring GetID3v2FrameText(const ID3v2Frame& id3v2Frame)
@@ -212,7 +210,7 @@ std::wstring GetID3v2FrameText(const ID3v2Frame& id3v2Frame)
 
 		const int encoding = *p++;
 
-		DecodeString(encoding, p, end, wstr);
+		p = DecodeString(encoding, p, end, wstr);
 
 		str_trim(wstr);
 	}
@@ -232,9 +230,9 @@ std::wstring GetID3v2FrameComment(const ID3v2Frame& id3v2Frame)
 		const uint32_t lang = read3bytes(p);
 
 		std::wstring content_desc;
-		DecodeString(encoding, p, end, content_desc);
+		p = DecodeString(encoding, p, end, content_desc);
 
-		DecodeString(encoding, p, end, wstr);
+		p = DecodeString(encoding, p, end, wstr);
 
 		str_trim(wstr);
 	}

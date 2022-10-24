@@ -43,6 +43,14 @@ struct ContentTags
 	}
 };
 
+struct DSMResource {
+	DWORD_PTR tag = 0;
+	std::wstring name;
+	std::wstring desc;
+	std::wstring mime;
+	std::vector<BYTE> data;
+};
+
 void ReadTagsCommon(const char* p, ContentTags& tags);
-void ReadTagsID3v2(const char* p, ContentTags& tags, std::list<ID3v2Pict>* pPictList);
+void ReadTagsID3v2(const char* p, ContentTags& tags, std::unique_ptr<std::list<DSMResource>>& pResources);
 void ReadTagsID3v1(const char* p, ContentTags& tags);

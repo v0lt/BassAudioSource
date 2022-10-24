@@ -97,43 +97,23 @@ void STDMETHODCALLTYPE BassSource::OnMetaDataCallback(ContentTags* pTags)
 	}
 }
 
-void STDMETHODCALLTYPE BassSource::OnResourceDataCallback(std::list<ID3v2Pict>* pPictList)
+void STDMETHODCALLTYPE BassSource::OnResourceDataCallback(std::unique_ptr<std::list<DSMResource>>& pResources)
 {
 	DLog(L"BassSource::OnResourceDataCallback()");
-	if (!pPictList) {
+	if (!pResources) {
 		return;
 	}
 
 	m_metaLock->Lock();
 
-	m_resources.clear();
-
 	try {
-		for (const auto& pict : *pPictList) {
-			DSMResource dsmr;
-			switch (pict.text_encoding) {
-			case ID3v2Encoding::ISO8859:
-				dsmr.mime = ConvertAnsiToWide(pict.mime_type);
-				dsmr.desc = ConvertAnsiToWide(pict.description);
-				break;
-			case ID3v2Encoding::UTF8:
-				dsmr.mime = ConvertUtf8ToWide(pict.mime_type);
-				dsmr.desc = ConvertUtf8ToWide(pict.description);
-				break;
-			case ID3v2Encoding::UTF16BOM:
-			case ID3v2Encoding::UTF16BE:
-				// TODO
-				ASSERT(0);
-				break;
-			}
-			dsmr.data.resize(pict.size);
-			memcpy(dsmr.data.data(), pict.data, pict.size);
-			m_resources.emplace_back(dsmr);
-		}
+		m_pResources = std::move(pResources);
 	}
 	catch (...) {
 		DLog(L"BassSource::OnResourceDataCallback() - FAILED!");
-		m_resources.clear();
+		if (m_pResources) {
+			m_pResources->clear();
+		}
 	}
 
 	m_metaLock->Unlock();
@@ -420,7 +400,7 @@ STDMETHODIMP BassSource::get_Description(THIS_ BSTR FAR* pbstrDescription)
 
 STDMETHODIMP_(DWORD) BassSource::ResGetCount()
 {
-	return (DWORD)m_resources.size();
+	return m_pResources ? (DWORD)m_pResources->size() : 0;
 }
 
 STDMETHODIMP BassSource::ResGet(DWORD iIndex, BSTR* ppName, BSTR* ppDesc, BSTR* ppMime, BYTE** ppData, DWORD* pDataLen, DWORD_PTR* pTag)
@@ -429,11 +409,11 @@ STDMETHODIMP BassSource::ResGet(DWORD iIndex, BSTR* ppName, BSTR* ppDesc, BSTR* 
 		CheckPointer(pDataLen, E_POINTER);
 	}
 
-	if (iIndex >= m_resources.size()) {
+	if (!m_pResources || iIndex >= m_pResources->size()) {
 		return E_INVALIDARG;
 	}
 
-	auto it = m_resources.cbegin();
+	auto it = m_pResources->cbegin();
 	std::advance(it, iIndex);
 
 	auto& r = *it;
@@ -449,7 +429,10 @@ STDMETHODIMP BassSource::ResGet(DWORD iIndex, BSTR* ppName, BSTR* ppDesc, BSTR* 
 	}
 	if (ppData) {
 		*pDataLen = (DWORD)r.data.size();
-		memcpy(*ppData = (BYTE*)CoTaskMemAlloc(*pDataLen), r.data.data(), *pDataLen);
+		*ppData = (BYTE*)CoTaskMemAlloc(*pDataLen);
+		if (*ppData) {
+			memcpy(*ppData, r.data.data(), *pDataLen);
+		}
 	}
 	if (pTag) {
 		*pTag = r.tag;

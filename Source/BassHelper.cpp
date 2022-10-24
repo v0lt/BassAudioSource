@@ -128,7 +128,7 @@ void ReadTagsCommon(const char* p, ContentTags& tags)
 	int gg = 0;
 }
 
-void ReadTagsID3v2(const char* p, ContentTags& tags, std::list<ID3v2Pict>* pPictList)
+void ReadTagsID3v2(const char* p, ContentTags& tags, std::unique_ptr<std::list<DSMResource>>& pResources)
 {
 	if (p) {
 		std::list<ID3v2Frame> id3v2Frames;
@@ -149,15 +149,21 @@ void ReadTagsID3v2(const char* p, ContentTags& tags, std::list<ID3v2Pict>* pPict
 					break;
 				case 'APIC':
 				case '\0PIC':
-					if (pPictList) {
+					if (pResources) {
 						ID3v2Pict id3v2Pict;
 						ParseID3v2PictFrame(frame, id3v2Pict);
 						if (id3v2Pict.size) {
-							pPictList->emplace_back(id3v2Pict);
+							pResources->emplace_back();
+							auto& res = pResources->back();
+							const uint8_t* end = frame.data + frame.size;
+							DecodeString(id3v2Pict.text_encoding, (const uint8_t*)id3v2Pict.mime_type, end, res.mime);
+							DecodeString(id3v2Pict.text_encoding, (const uint8_t*)id3v2Pict.description, end, res.desc);
+							res.data.resize(id3v2Pict.size);
+							memcpy(res.data.data(), id3v2Pict.data, id3v2Pict.size);
 						}
 					}
 					break;
- 				}
+				}
 			}
 		}
 	}

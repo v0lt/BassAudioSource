@@ -277,7 +277,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		GetBassTypeStr(m_ctype), m_sampleRate, m_channels, m_float ? L"Float" : L"Int", m_bytesPerSample*8);
 
 	ContentTags tags;
-	std::list<ID3v2Pict> pictList;
+	auto pResources = std::make_unique<std::list<DSMResource>>();
 
 	if (m_isMOD) {
 		LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_MUSIC_NAME);
@@ -316,7 +316,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 			p = BASS_ChannelGetTags(m_stream, BASS_TAG_ID3V2);
 			if (p) {
 				DLog(L"Found ID3v2 Tag");
-				ReadTagsID3v2(p, tags, &pictList);
+				ReadTagsID3v2(p, tags, pResources);
 			}
 			else {
 				p = BASS_ChannelGetTags(m_stream, BASS_TAG_ID3);
@@ -368,8 +368,8 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		if (!tags.Empty()) {
 			m_shoutcastEvents->OnMetaDataCallback(&tags);
 		}
-		if (pictList.size()) {
-			m_shoutcastEvents->OnResourceDataCallback(&pictList);
+		if (pResources->size()) {
+			m_shoutcastEvents->OnResourceDataCallback(pResources);
 		}
 	}
 

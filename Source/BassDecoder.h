@@ -29,7 +29,7 @@ class ShoutcastEvents
 {
 public:
 	virtual void STDMETHODCALLTYPE OnMetaDataCallback(ContentTags* pTags) = 0;
-	virtual void STDMETHODCALLTYPE OnResourceDataCallback(std::list<ID3v2Pict>* pPictList) = 0;
+	virtual void STDMETHODCALLTYPE OnResourceDataCallback(std::unique_ptr<std::list<DSMResource>>& pResources) = 0;
 	virtual void STDMETHODCALLTYPE OnShoutcastBufferCallback(const void* buffer, DWORD size) = 0;
 };
 
