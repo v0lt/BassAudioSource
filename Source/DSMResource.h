@@ -22,27 +22,10 @@
 
 #pragma once
 
-#include "ID3v2Tag.h"
-
-LPCWSTR GetBassTypeStr(const DWORD ctype);
-
-struct ContentTags
-{
-	std::wstring Title;
-	std::wstring AuthorName;
-	std::wstring Description;
-
-	void Clear() {
-		Title.clear();
-		AuthorName.clear();
-		Description.clear();
-	}
-
-	bool Empty() {
-		return Title.empty() && AuthorName.empty() && Description.empty();
-	}
+struct DSMResource {
+	DWORD_PTR tag = 0;
+	std::wstring name;
+	std::wstring desc;
+	std::wstring mime;
+	std::vector<BYTE> data;
 };
-
-void ReadTagsCommon(const char* p, ContentTags& tags);
-void ReadTagsID3v2(const char* p, ContentTags& tags, std::unique_ptr<std::list<DSMResource>>& pResources);
-void ReadTagsID3v1(const char* p, ContentTags& tags);

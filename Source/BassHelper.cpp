@@ -150,16 +150,9 @@ void ReadTagsID3v2(const char* p, ContentTags& tags, std::unique_ptr<std::list<D
 				case 'APIC':
 				case '\0PIC':
 					if (pResources) {
-						ID3v2Pict id3v2Pict;
-						ParseID3v2PictFrame(frame, id3v2Pict);
-						if (id3v2Pict.size) {
-							pResources->emplace_back();
-							auto& res = pResources->back();
-							const uint8_t* end = frame.data + frame.size;
-							DecodeString(id3v2Pict.text_encoding, (const uint8_t*)id3v2Pict.mime_type, end, res.mime);
-							DecodeString(id3v2Pict.text_encoding, (const uint8_t*)id3v2Pict.description, end, res.desc);
-							res.data.resize(id3v2Pict.size);
-							memcpy(res.data.data(), id3v2Pict.data, id3v2Pict.size);
+						DSMResource resource;
+						if (GetID3v2FramePicture(frame, resource)) {
+							pResources->emplace_back(resource);
 						}
 					}
 					break;

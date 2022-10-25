@@ -240,17 +240,8 @@ std::wstring GetID3v2FrameComment(const ID3v2Frame& id3v2Frame)
 	return wstr;
 }
 
-void ParseID3v2PictFrame(const ID3v2Frame& id3v2Frame, ID3v2Pict& id3v2Pict)
+bool GetID3v2FramePicture(const ID3v2Frame& id3v2Frame, DSMResource& resource)
 {
-	id3v2Pict.size = 0;
-
-	auto findnullchar = [](const uint8_t* p, const uint8_t* end) {
-		while (*p && p < end) {
-			p++;
-		}
-		return p;
-	};
-
 	if (id3v2Frame.data && id3v2Frame.size > 4) {
 		const uint8_t* p = id3v2Frame.data;
 		const uint8_t* end = p + id3v2Frame.size;
@@ -260,37 +251,24 @@ void ParseID3v2PictFrame(const ID3v2Frame& id3v2Frame, ID3v2Pict& id3v2Pict)
 			datalen = readframesize(p);
 		}
 
-		id3v2Pict.text_encoding = *p++;
-		int charstep;
-		switch (id3v2Pict.text_encoding) {
-		case ID3v2Encoding::ISO8859:
-		case ID3v2Encoding::UTF8:
-			charstep = 1;
-			break;
-		case UTF16BOM:
-		case UTF16BE:
-			charstep = 2;
-			break;
-		default:
-			return;
-		}
+		const int encoding = *p++;
 
-		auto t = findnullchar(p, end);
-		if (t < end) {
-			id3v2Pict.mime_type = (const char*)p;
-			p = t + charstep;
-		}
+		p = DecodeString(encoding, p, end, resource.mime);
+
 		if (p < end) {
-			id3v2Pict.picture_type = *p++;
-		}
-		t = findnullchar(p, end);
-		if (t < end) {
-			id3v2Pict.description = (const char*)p;
-			p = t + charstep;
-		}
-		if (p < end) {
-			id3v2Pict.data = p;
-			id3v2Pict.size = end - p;
+			const int picture_type = *p++;
+
+			p = DecodeString(encoding, p, end, resource.desc);
+
+			if (p < end) {
+				datalen = end - p; // TODO
+				resource.data.resize(datalen);
+				memcpy(resource.data.data(), p, datalen);
+
+				return true;
+			}
 		}
 	}
+
+	return false;
 }

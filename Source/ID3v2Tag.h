@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "DSMResource.h"
+
 // text encoding:
 // 0 - ISO-8859-1
 // 1 - UCS-2 (UTF-16 encoded Unicode with BOM)
@@ -41,4 +43,4 @@ const uint8_t* DecodeString(const int encoding, const uint8_t* str, const uint8_
 std::wstring GetID3v2FrameText(const ID3v2Frame& id3v2Frame);
 std::wstring GetID3v2FrameComment(const ID3v2Frame& id3v2Frame);
 
-void ParseID3v2PictFrame(const ID3v2Frame& id3v2Frame, ID3v2Pict& id3v2Pict);
+bool GetID3v2FramePicture(const ID3v2Frame& id3v2Frame, DSMResource& resource);
