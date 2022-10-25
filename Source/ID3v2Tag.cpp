@@ -261,9 +261,26 @@ bool GetID3v2FramePicture(const ID3v2Frame& id3v2Frame, DSMResource& resource)
 			p = DecodeString(encoding, p, end, resource.desc);
 
 			if (p < end) {
-				datalen = end - p; // TODO
+				const uint32_t len = end - p;
+				if ((id3v2Frame.flags & ID3v2_FRAME_FLAG_DATALEN)==0 || datalen > len) {
+					datalen = len;
+				}
+
 				resource.data.resize(datalen);
-				memcpy(resource.data.data(), p, datalen);
+
+				if (id3v2Frame.flags & ID3v2_FRAME_FLAG_UNSYNCH) {
+					uint32_t i = 0;
+					for (; i < datalen && p < end; i++) {
+						resource.data[i] = *p++;
+						if (resource.data[i] == 0xff && p < end && *p == 0x00) {
+							p++;
+						}
+					}
+					resource.data.resize(i);
+				}
+				else {
+					memcpy(resource.data.data(), p, datalen);
+				}
 
 				return true;
 			}
