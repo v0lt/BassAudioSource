@@ -131,8 +131,9 @@ void ReadTagsCommon(const char* p, ContentTags& tags)
 void ReadTagsID3v2(const char* p, ContentTags& tags, std::unique_ptr<std::list<DSMResource>>& pResources)
 {
 	if (p) {
+		ID3v2TagInfo id3v2tagInfo = {};
 		std::list<ID3v2Frame> id3v2Frames;
-		if (ParseID3v2Tag((const BYTE*)p, id3v2Frames)) {
+		if (ParseID3v2Tag((const BYTE*)p, id3v2tagInfo, id3v2Frames)) {
 			for (const auto& frame : id3v2Frames) {
 				switch (frame.id) {
 				case 'TIT2':
@@ -151,7 +152,7 @@ void ReadTagsID3v2(const char* p, ContentTags& tags, std::unique_ptr<std::list<D
 				case '\0PIC':
 					if (pResources) {
 						DSMResource resource;
-						if (GetID3v2FramePicture(frame, resource)) {
+						if (GetID3v2FramePicture(id3v2tagInfo, frame, resource)) {
 							pResources->emplace_back(resource);
 						}
 					}

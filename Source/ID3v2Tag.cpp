@@ -58,7 +58,7 @@ uint32_t read4bytes(const uint8_t*& p)
 };
 
 
-bool ParseID3v2Tag(const BYTE* buf, std::list<ID3v2Frame>& id3v2Frames)
+bool ParseID3v2Tag(const BYTE* buf, ID3v2TagInfo& tagInfo, std::list<ID3v2Frame>& id3v2Frames)
 {
 	id3v2Frames.clear();
 
@@ -66,24 +66,23 @@ bool ParseID3v2Tag(const BYTE* buf, std::list<ID3v2Frame>& id3v2Frames)
 		return false;
 	}
 
-	const int tag_ver = buf[3];
-	DLog(L"Parsing ID3v2.%d", tag_ver);
-	if (tag_ver < 2 || tag_ver > 4) {
+	tagInfo = { buf[3], buf[4], buf[5] };
+
+	DLog(L"Parsing ID3v2.%d", tagInfo.ver);
+	if (tagInfo.ver < 2 || tagInfo.ver > 4) {
 		DLog(L"ID3v2: unsupported version!");
 		return false;
 	}
 
-	const int tag_rev = buf[4];
-	if (tag_rev == 0xff) {
+	if (tagInfo.rev == 0xff) {
 		DLog(L"ID3v2: invalid revision!");
 		return false;
 	}
 
-	const int tag_flags = buf[5];
-	if (tag_flags & ~(ID3v2_FLAG_UNSYNC | ID3v2_FLAG_EXTHDR | ID3v2_FLAG_EXPERI)) {
+	if (tagInfo.flags & ~(ID3v2_FLAG_UNSYNC | ID3v2_FLAG_EXTHDR | ID3v2_FLAG_EXPERI)) {
 		return false;
 	}
-	DLogIf(tag_flags & ID3v2_FLAG_UNSYNC, L"ID3v2 uses unsynchronisation scheme");
+	DLogIf(tagInfo.flags & ID3v2_FLAG_UNSYNC, L"ID3v2 uses unsynchronisation scheme");
 
 	uint32_t u32 = *(uint32_t*)&buf[6];
 	if (u32 & 0x80808080) {
@@ -96,11 +95,11 @@ bool ParseID3v2Tag(const BYTE* buf, std::list<ID3v2Frame>& id3v2Frames)
 	const BYTE* p = &buf[10];
 	const BYTE* end = p + tag_size;
 
-	if (tag_flags & ID3v2_FLAG_EXTHDR) {
+	if (tagInfo.flags & ID3v2_FLAG_EXTHDR) {
 		// Extended header present, skip it
 		uint32_t extlen = get_id3v2_size(p);
 
-		if (tag_ver == 4) {
+		if (tagInfo.ver == 4) {
 			p += extlen;
 		}
 		else {
@@ -109,7 +108,7 @@ bool ParseID3v2Tag(const BYTE* buf, std::list<ID3v2Frame>& id3v2Frames)
 		DLog(L"ID3v2 skip extended header");
 	}
 
-	if (tag_ver == 2) {
+	if (tagInfo.ver == 2) {
 		while (p + 6 < end) {
 			uint32_t frame_id = read3bytes(p);
 			if (frame_id == 0) {
@@ -129,7 +128,7 @@ bool ParseID3v2Tag(const BYTE* buf, std::list<ID3v2Frame>& id3v2Frames)
 			if (frame_id == 0) {
 				break;
 			}
-			uint32_t frame_size = (tag_ver == 4) ? readframesize(p) : read4bytes(p);
+			uint32_t frame_size = (tagInfo.ver == 4) ? readframesize(p) : read4bytes(p);
 			int frame_flags = read2bytes(p);
 
 			ID3v2Frame frame = { frame_id, frame_flags, p, frame_size };
@@ -240,7 +239,7 @@ std::wstring GetID3v2FrameComment(const ID3v2Frame& id3v2Frame)
 	return wstr;
 }
 
-bool GetID3v2FramePicture(const ID3v2Frame& id3v2Frame, DSMResource& resource)
+bool GetID3v2FramePicture(const ID3v2TagInfo& tagInfo, const ID3v2Frame& id3v2Frame, DSMResource& resource)
 {
 	if (id3v2Frame.data && id3v2Frame.size > 4) {
 		const uint8_t* p = id3v2Frame.data;
@@ -253,7 +252,18 @@ bool GetID3v2FramePicture(const ID3v2Frame& id3v2Frame, DSMResource& resource)
 
 		const int encoding = *p++;
 
-		p = DecodeString(encoding, p, end, resource.mime);
+		if (tagInfo.ver == 2) {
+			uint32_t img_fmt = read3bytes(p);
+			if (img_fmt == 'JPG') {
+				resource.mime = L"image/jpeg";
+			}
+			else if (img_fmt == 'PNG') {
+				resource.mime = L"image/png";
+			}
+		}
+		else {
+			p = DecodeString(encoding, p, end, resource.mime);
+		}
 
 		if (p < end) {
 			const int picture_type = *p++;

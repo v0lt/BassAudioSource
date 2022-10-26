@@ -18,6 +18,12 @@ enum ID3v2Encoding {
 	UTF8 = 3,
 };
 
+struct ID3v2TagInfo {
+	uint32_t ver   : 8;
+	uint32_t rev   : 8;
+	uint32_t flags : 8;
+};
+
 struct ID3v2Frame
 {
 	uint32_t       id;
@@ -36,9 +42,9 @@ struct ID3v2Pict
 	uint32_t size           = 0;
 };
 
-bool ParseID3v2Tag(const BYTE* buf, std::list<ID3v2Frame>& id3v2Frames);
+bool ParseID3v2Tag(const BYTE* buf, ID3v2TagInfo& tagInfo, std::list<ID3v2Frame>& id3v2Frames);
 
 std::wstring GetID3v2FrameText(const ID3v2Frame& id3v2Frame);
 std::wstring GetID3v2FrameComment(const ID3v2Frame& id3v2Frame);
 
-bool GetID3v2FramePicture(const ID3v2Frame& id3v2Frame, DSMResource& resource);
+bool GetID3v2FramePicture(const ID3v2TagInfo& tagInfo, const ID3v2Frame& id3v2Frame, DSMResource& resource);
