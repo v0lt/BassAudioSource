@@ -231,9 +231,11 @@ std::wstring GetID3v2FrameComment(const ID3v2Frame& id3v2Frame)
 		std::wstring content_desc;
 		p = DecodeString(encoding, p, end, content_desc);
 
-		p = DecodeString(encoding, p, end, wstr);
-
-		str_trim(wstr);
+		if (content_desc.empty()) {
+			// ignore comments with content description (usually there is unknown technical information)
+			p = DecodeString(encoding, p, end, wstr);
+			str_trim(wstr);
+		}
 	}
 
 	return wstr;

@@ -146,7 +146,10 @@ void ReadTagsID3v2(const char* p, ContentTags& tags, std::unique_ptr<std::list<D
 					break;
 				case 'COMM':
 				case '\0COM':
-					tags.Description = GetID3v2FrameComment(frame);
+					if (tags.Description.empty()) {
+						// read only the first relevant comment
+						tags.Description = GetID3v2FrameComment(frame);
+					}
 					break;
 				case 'APIC':
 				case '\0PIC':
