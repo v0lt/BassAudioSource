@@ -193,7 +193,6 @@ void BassDecoder::LoadPlugins()
 		L"bassape.dll",
 		L"bassdsd.dll",
 		L"bassflac.dll",
-		L"basshls.dll",
 		L"bassopus.dll",
 		L"basswma.dll",
 		L"basswv.dll",
