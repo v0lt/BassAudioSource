@@ -3,6 +3,11 @@ Bass Audio Source
 0.1.2 dev
 ----------------------
 Added support for HLS (HTTP Live Streaming).
+Added update of tags when listening to radio broadcasts in Ogg format (Vorbis, FLAC, Opus).
+Added the ability to get pictures from ID3v2 tag via the IDSMResourceBag interface.
+Fixed reading comments from ID3v2 tag.
+Various fixes for working with ID3v2 tags.
+Updated bass.dll, bassflac.dll, bass_aac.dll.
 
 
 0.1.1.83 - 2022-06-22
