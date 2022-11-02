@@ -25,6 +25,7 @@
 #include "BassSource.h"
 #include <../Include/bass.h>
 #include <../Include/bass_aac.h>
+#include <../Include/bassflac.h>
 #include <../Include/basswma.h>
 #include "Utils/Util.h"
 #include "Utils/StringUtil.h"
@@ -324,6 +325,15 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 					ReadTagsID3v1(p, tags);
 				}
 			}
+		}
+
+		TAG_FLAC_PICTURE* pFlacPict = (TAG_FLAC_PICTURE*)BASS_ChannelGetTags(m_stream, BASS_TAG_FLAC_PICTURE);
+		if (pFlacPict && pFlacPict->length) {
+			DSMResource resource;
+			resource.mime = ConvertAnsiToWide(pFlacPict->mime);
+			resource.data.resize(pFlacPict->length);
+			memcpy(resource.data.data(), pFlacPict->data, pFlacPict->length);
+			pResources->emplace_back(resource);
 		}
 	}
 
