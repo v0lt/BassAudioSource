@@ -70,6 +70,11 @@ public:
 		return m_pos - m_start;
 	}
 
+	const uint8_t* GetPtr()
+	{
+		return m_pos;
+	}
+
 	size_t GetRemainder()
 	{
 		return m_end - m_pos;

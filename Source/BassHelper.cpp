@@ -21,7 +21,9 @@
  */
 
 #include "stdafx.h"
+#include "Utils/Util.h"
 #include "Utils/StringUtil.h"
+#include "Utils/ByteReader.h"
 #include "BassHelper.h"
 
 #include <../Include/bass.h>
@@ -41,6 +43,22 @@
 #include <../Include/basswma.h>
 #include <../Include/basswv.h>
 #include <../Include/basszxtune.h>
+
+#include <wincrypt.h>
+
+struct METADATA_BLOCK_PICTURE {
+	uint32_t apic;      // ID3v2 "APIC" picture type
+	uint32_t mime_size;
+	const char* mime;   // mime type
+	uint32_t desc_size;
+	const char* desc;   // description
+	uint32_t width;
+	uint32_t height;
+	uint32_t depth;
+	uint32_t colors;
+	uint32_t length;    // data length
+	const void* data;
+};
 
 
 LPCWSTR GetBassTypeStr(const DWORD ctype)
@@ -124,8 +142,65 @@ void ReadTagsCommon(const char* p, ContentTags& tags)
 
 		p += str.size() + 1;
 	}
+}
 
-	int gg = 0;
+void ReadTagsOgg(const char* p, ContentTags& tags, std::unique_ptr<std::list<DSMResource>>& pResources)
+{
+	while (p && *p) {
+		std::string_view str(p);
+		const size_t k = str.find('=');
+		if (k > 0 && k < str.size()) {
+			std::string field_name(str.data(), k);
+			if (field_name.compare("TITLE") == 0) {
+				tags.Title = ConvertUtf8ToWide(p + k + 1);
+			}
+			else if (field_name.compare("ARTIST") == 0) {
+				tags.AuthorName = ConvertUtf8ToWide(p + k + 1);
+			}
+			else if (field_name.compare("COMMENT") == 0) {
+				tags.Description = ConvertUtf8ToWide(p + k + 1);
+				str_trim_end(tags.Description, L' ');
+			}
+			else if (field_name.compare("METADATA_BLOCK_PICTURE") == 0 && pResources) {
+				LPCSTR pstr = p + k + 1;
+				DWORD cbBinary = 0;
+				BOOL ok = CryptStringToBinaryA(pstr, 0, CRYPT_STRING_BASE64, nullptr, &cbBinary, nullptr, nullptr);
+				if (ok && cbBinary > 32) {
+					std::vector<uint8_t> binary(cbBinary);
+					ok = CryptStringToBinaryA(pstr, 0, CRYPT_STRING_BASE64, binary.data(), &cbBinary, nullptr, nullptr);
+					if (ok && cbBinary > 32) {
+						ByteReader br(binary.data());
+						br.SetSize(binary.size());
+
+						METADATA_BLOCK_PICTURE FlacPict = {};
+						FlacPict.apic = br.Read32Be();
+						FlacPict.mime_size = br.Read32Be();
+						FlacPict.mime = (const char*)br.GetPtr();
+						br.Skip(FlacPict.mime_size);
+						FlacPict.desc_size = br.Read32Be();
+						FlacPict.desc = (const char*)br.GetPtr();
+						br.Skip(FlacPict.desc_size);
+						FlacPict.width = br.Read32Be();
+						FlacPict.height = br.Read32Be();
+						FlacPict.depth = br.Read32Be();
+						FlacPict.colors = br.Read32Be();
+						FlacPict.length = br.Read32Be();
+						FlacPict.data   = br.GetPtr();
+
+						if (FlacPict.length && br.GetRemainder() == FlacPict.length) {
+							DSMResource resource;
+							resource.mime = ConvertAnsiToWide(FlacPict.mime, FlacPict.mime_size);
+							resource.data.resize(FlacPict.length);
+							memcpy(resource.data.data(), FlacPict.data, FlacPict.length);
+							pResources->emplace_back(resource);
+						}
+					}
+				}
+			}
+		}
+
+		p += str.size() + 1;
+	}
 }
 
 void ReadTagsID3v2(const char* p, ContentTags& tags, std::unique_ptr<std::list<DSMResource>>& pResources)

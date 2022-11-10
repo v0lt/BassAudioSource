@@ -44,5 +44,6 @@ struct ContentTags
 };
 
 void ReadTagsCommon(const char* p, ContentTags& tags);
+void ReadTagsOgg(const char* p, ContentTags& tags, std::unique_ptr<std::list<DSMResource>>& pResources);
 void ReadTagsID3v2(const char* p, ContentTags& tags, std::unique_ptr<std::list<DSMResource>>& pResources);
 void ReadTagsID3v1(const char* p, ContentTags& tags);

@@ -290,16 +290,12 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_OGG);
 		if (p) {
 			DLog(p, L"Found OGG Tag");
-			ReadTagsCommon(p, tags);
+			ReadTagsOgg(p, tags, pResources);
 		}
 	}
 	else {
 		LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_APE);
 		DLogIf(p, L"Found APE Tag");
-		if (!p) {
-			p = BASS_ChannelGetTags(m_stream, BASS_TAG_OGG);
-			DLogIf(p, L"Found OGG Tag");
-		}
 		if (!p) {
 			p = BASS_ChannelGetTags(m_stream, BASS_TAG_MP4);
 			DLogIf(p, L"Found MP4 Tag");
@@ -312,19 +308,17 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		if (p) {
 			ReadTagsCommon(p, tags);
 		}
-		else {
-			p = BASS_ChannelGetTags(m_stream, BASS_TAG_ID3V2);
-			if (p) {
-				DLog(L"Found ID3v2 Tag");
-				ReadTagsID3v2(p, tags, pResources);
-			}
-			else {
-				p = BASS_ChannelGetTags(m_stream, BASS_TAG_ID3);
-				if (p) {
-					DLog(L"Found ID3v1 Tag");
-					ReadTagsID3v1(p, tags);
-				}
-			}
+		else if (p = BASS_ChannelGetTags(m_stream, BASS_TAG_OGG)) {
+			DLog(L"Found OGG Tag");
+			ReadTagsOgg(p, tags, pResources);
+		}
+		else if (p = BASS_ChannelGetTags(m_stream, BASS_TAG_ID3V2)) {
+			DLog(L"Found ID3v2 Tag");
+			ReadTagsID3v2(p, tags, pResources);
+		}
+		else if (p = BASS_ChannelGetTags(m_stream, BASS_TAG_ID3)) {
+			DLog(L"Found ID3v1 Tag");
+			ReadTagsID3v1(p, tags);
 		}
 
 		TAG_FLAC_PICTURE* pFlacPict = (TAG_FLAC_PICTURE*)BASS_ChannelGetTags(m_stream, BASS_TAG_FLAC_PICTURE);

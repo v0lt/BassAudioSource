@@ -8,6 +8,7 @@
 // and not in this file
 
 #pragma comment(lib, "winmm.lib")
+#pragma comment(lib, "Crypt32.lib")
 
 #ifdef _WIN64
 #pragma comment(lib, "../Lib/x64/bass.lib")
