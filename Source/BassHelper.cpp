@@ -122,19 +122,17 @@ void ReadTagsCommon(const char* p, ContentTags& tags)
 		std::string_view str(p);
 		const size_t k = str.find('=');
 		if (k > 0 && k < str.size()) {
-			// convert the field name to lowercase to make it easier to recognize
-			// examples:"Title", "TITLE", "title"
-			std::string field_name(k, '\0');
-			std::transform(str.begin(), str.begin() + field_name.size(),
-				field_name.begin(), [](unsigned char c) { return std::tolower(c); });
+			// APE/MP4: Title, Artist, Comment
+			// WMA: Title, Author, Description
+			std::string field_name(str.data(), k);
 
-			if (field_name.compare("title") == 0) {
+			if (field_name.compare("Title") == 0) {
 				tags.Title = ConvertUtf8ToWide(p + k + 1);
 			}
-			else if (field_name.compare("artist") == 0 || field_name.compare("author") == 0) {
+			else if (field_name.compare("Artist") == 0 || field_name.compare("Author") == 0) {
 				tags.AuthorName = ConvertUtf8ToWide(p + k + 1);
 			}
-			else if (field_name.compare("comment") == 0 || field_name.compare("description") == 0) {
+			else if (field_name.compare("Comment") == 0 || field_name.compare("Description") == 0) {
 				tags.Description = ConvertUtf8ToWide(p + k + 1);
 				str_trim_end(tags.Description, L' ');
 			}
@@ -150,7 +148,13 @@ void ReadTagsOgg(const char* p, ContentTags& tags, std::unique_ptr<std::list<DSM
 		std::string_view str(p);
 		const size_t k = str.find('=');
 		if (k > 0 && k < str.size()) {
-			std::string field_name(str.data(), k);
+			// Standard Ogg field names are recommended to be written in upper case.
+			// But there are some FLACs where this is not respected.
+			// Therefore, we will convert all field names to upper case.
+			std::string field_name(k, '\0');
+			std::transform(str.begin(), str.begin() + field_name.size(),
+				field_name.begin(), [](unsigned char c) { return std::toupper(c); });
+
 			if (field_name.compare("TITLE") == 0) {
 				tags.Title = ConvertUtf8ToWide(p + k + 1);
 			}
