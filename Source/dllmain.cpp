@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2022 v0lt
+ *  Copyright (C) 2022-2023 v0lt
  *  Based on the following code:
  *  DC-Bass Source filter - http://www.dsp-worx.de/index.php?n=15
  *  DC-Bass Source Filter C++ porting - https://github.com/frafv/DCBassSource
@@ -69,11 +69,7 @@ const AMOVIESETUP_FILTER sudFilter = {
 // COM global table of objects in this dll
 
 CFactoryTemplate g_Templates[] = {
-	{ sudFilter.strName
-	, sudFilter.clsID
-	, CreateInstance<BassSource>
-	, nullptr
-	, &sudFilter }
+	{ sudFilter.strName, sudFilter.clsID, CreateInstance<BassSource>, nullptr, &sudFilter },
 };
 int g_cTemplates = (int)std::size(g_Templates);
 

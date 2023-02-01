@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2022 v0lt
+ *  Copyright (C) 2022-2023 v0lt
  *  Based on the following code:
  *  DC-Bass Source filter - http://www.dsp-worx.de/index.php?n=15
  *  DC-Bass Source Filter C++ porting - https://github.com/frafv/DCBassSource
@@ -180,7 +180,7 @@ void BassSource::SaveSettings()
 
 STDMETHODIMP BassSource::NonDelegatingQueryInterface(REFIID iid, void** ppv)
 {
-	if (IsEqualIID(iid, IID_IFileSourceFilter)/* || IsEqualIID(iid, IID_ISpecifyPropertyPages)*/) {
+	if (IsEqualIID(iid, IID_IFileSourceFilter)) {
 		if (SUCCEEDED(GetInterface((LPUNKNOWN)(IFileSourceFilter*)this, ppv))) {
 			return S_OK;
 		} else {

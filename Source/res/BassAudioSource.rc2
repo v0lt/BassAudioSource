@@ -47,7 +47,7 @@ BEGIN
             VALUE "FileDescription", "BASS Audio Source"
             VALUE "FileVersion", VERSION_STR
             VALUE "InternalName", "BassAudioSource"
-            VALUE "LegalCopyright", "Copyright 2022"
+            VALUE "LegalCopyright", "Copyright 2022-2023"
 #ifdef _WIN64
 
             VALUE "OriginalFilename", "BassAudioSource64.ax"
