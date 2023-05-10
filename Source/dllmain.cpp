@@ -25,6 +25,8 @@
 #include "BassSource.h"
 #include "dllmain.h"
 
+#define STR_GUID_REGISTRY "{FFFB1509-D0C1-4E23-8DAC-4BF554615BB6}" // need a large enough value to be at the end of the list
+
 HMODULE HInstance;
 
 template <class T>
@@ -73,6 +75,16 @@ CFactoryTemplate g_Templates[] = {
 };
 int g_cTemplates = (int)std::size(g_Templates);
 
+void ClearRegistry()
+{
+	HKEY hKey;
+	LONG ec = ::RegOpenKeyExW(HKEY_CLASSES_ROOT, L"Media Type\\{e436eb83-524f-11ce-9f53-0020af0ba770}", 0, KEY_ALL_ACCESS, &hKey);
+	if (ec == ERROR_SUCCESS) {
+		ec = ::RegDeleteKeyW(hKey, _CRT_WIDE(STR_CLSID_BassAudioSource)); // purge registration of old versions
+		ec = ::RegDeleteKeyW(hKey, _CRT_WIDE(STR_GUID_REGISTRY));
+		::RegCloseKey(hKey);
+	}
+}
 
 //
 // DllRegisterServer
@@ -81,8 +93,10 @@ int g_cTemplates = (int)std::size(g_Templates);
 //
 STDAPI DllRegisterServer()
 {
+	ClearRegistry();
+
 	HKEY hKey;
-	LONG ec = ::RegCreateKeyExW(HKEY_CLASSES_ROOT, L"Media Type\\{e436eb83-524f-11ce-9f53-0020af0ba770}\\" STR_CLSID_BassAudioSource, 0, 0, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 0, &hKey, 0);
+	LONG ec = ::RegCreateKeyExW(HKEY_CLASSES_ROOT, L"Media Type\\{e436eb83-524f-11ce-9f53-0020af0ba770}\\" STR_GUID_REGISTRY, 0, 0, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 0, &hKey, 0);
 	if (ec == ERROR_SUCCESS) {
 		const LPCWSTR value_data0 = _CRT_WIDE(STR_CLSID_BassAudioSource);
 		const LPCWSTR value_data1 = L"0,1,00,00"; // connect to any data
@@ -106,12 +120,7 @@ STDAPI DllRegisterServer()
 //
 STDAPI DllUnregisterServer()
 {
-	HKEY hKey;
-	LONG ec = ::RegOpenKeyExW(HKEY_CLASSES_ROOT, L"Media Type\\{e436eb83-524f-11ce-9f53-0020af0ba770}", 0, KEY_ALL_ACCESS, &hKey);
-	if (ec == ERROR_SUCCESS) {
-		ec = ::RegDeleteKeyW(hKey, _CRT_WIDE(STR_CLSID_BassAudioSource));
-		::RegCloseKey(hKey);
-	}
+	ClearRegistry();
 
 	return AMovieDllRegisterServer2(FALSE);
 }
