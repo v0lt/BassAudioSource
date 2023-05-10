@@ -4,6 +4,7 @@ Bass Audio Source
 ----------------------
 Added FLAC picture tag reading for local files.
 Added ability to read cover images from Ogg Vorbis and others.
+Changed registry key name to work around "File Source (Async.)" connection issue when opening AVI files in GraphStudioNext.
 Updated BASS components:
   bassdsd.dll  2.4.1.3;
   basswv.dll   2.4.7.3;
