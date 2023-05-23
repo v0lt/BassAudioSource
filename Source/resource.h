@@ -1,7 +1,11 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
 // Used by BassAudioSource.rc
-
+//
+#define IDD_MAINPROPPAGE                102
+#define IDS_MAINPROPPAGE_TITLE          104
+#define IDC_EDIT1                       1021
+#define IDC_EDIT3                       1023
 
 // Next default values for new objects
 // 

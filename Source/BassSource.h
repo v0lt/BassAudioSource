@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2022 v0lt
+ *  Copyright (C) 2022-2023 v0lt
  *  Based on the following code:
  *  DC-Bass Source filter - http://www.dsp-worx.de/index.php?n=15
  *  DC-Bass Source Filter C++ porting - https://github.com/frafv/DCBassSource
@@ -24,6 +24,7 @@
 
 #include <qnetwork.h>
 #include "BassSourceStream.h"
+#include "IBassSource.h"
 
 #define PREBUFFER_MIN_SIZE 100
 #define PREBUFFER_MAX_SIZE 5000
@@ -39,6 +40,8 @@ class __declspec(uuid(STR_CLSID_BassAudioSource))
 	, public IFileSourceFilter
 	, public IAMMediaContent
 	, public IDSMResourceBag
+	, public ISpecifyPropertyPages
+	, public IBassSource
 {
 protected:
 	CCritSec* m_metaLock = nullptr;
@@ -98,6 +101,12 @@ public:
 	STDMETHODIMP ResAppend(LPCWSTR pName, LPCWSTR pDesc, LPCWSTR pMime, BYTE* pData, DWORD len, DWORD_PTR tag) { return E_NOTIMPL; }
 	STDMETHODIMP ResRemoveAt(DWORD iIndex) { return E_NOTIMPL; }
 	STDMETHODIMP ResRemoveAll(DWORD_PTR tag) { return E_NOTIMPL; }
+
+	// ISpecifyPropertyPages
+	STDMETHODIMP GetPages(CAUUID* pPages) override;
+
+	// IBassSource
+	STDMETHODIMP_(bool) GetActive() override;
 };
 
 

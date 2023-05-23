@@ -8,7 +8,8 @@
 #define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
 #define VC_EXTRALEAN        // Exclude rarely-used stuff from Windows headers
 
-#include <windows.h>
+#include <atlbase.h>
+#include <atlwin.h>
 
 #include "../external/BaseClasses/streams.h"
 #include "../Include/IDSMResourceBag.h"

@@ -23,6 +23,7 @@
 #include "stdafx.h"
 #include "BassDecoder.h"
 #include "BassSource.h"
+#include "PropPage.h"
 #include <MMReg.h>
 #include "Utils/Util.h"
 #include "Utils/StringUtil.h"
@@ -196,6 +197,22 @@ STDMETHODIMP BassSource::NonDelegatingQueryInterface(REFIID iid, void** ppv)
 	}
 	else if (IsEqualIID(iid, __uuidof(IDSMResourceBag))) {
 		if (SUCCEEDED(GetInterface((LPUNKNOWN)(IDSMResourceBag*)this, ppv))) {
+			return S_OK;
+		}
+		else {
+			return E_NOINTERFACE;
+		}
+	}
+	else if (IsEqualIID(iid, IID_ISpecifyPropertyPages)) {
+		if (SUCCEEDED(GetInterface((LPUNKNOWN)(ISpecifyPropertyPages*)this, ppv))) {
+			return S_OK;
+		}
+		else {
+			return E_NOINTERFACE;
+		}
+	}
+	else if (IsEqualIID(iid, __uuidof(IBassSource))) {
+		if (SUCCEEDED(GetInterface((LPUNKNOWN)(IBassSource*)this, ppv))) {
 			return S_OK;
 		}
 		else {
@@ -439,4 +456,27 @@ STDMETHODIMP BassSource::ResGet(DWORD iIndex, BSTR* ppName, BSTR* ppDesc, BSTR* 
 	}
 
 	return S_OK;
+}
+
+// ISpecifyPropertyPages
+STDMETHODIMP BassSource::GetPages(CAUUID* pPages)
+{
+	CheckPointer(pPages, E_POINTER);
+
+	pPages->cElems = 1;
+	pPages->pElems = reinterpret_cast<GUID*>(CoTaskMemAlloc(sizeof(GUID) * pPages->cElems));
+	if (pPages->pElems == nullptr) {
+		return E_OUTOFMEMORY;
+	}
+
+	pPages->pElems[0] = __uuidof(CBassMainPPage);
+
+	return S_OK;
+}
+
+// IBassSource
+
+STDMETHODIMP_(bool) BassSource::GetActive()
+{
+	return (GetPinCount() > 0);
 }

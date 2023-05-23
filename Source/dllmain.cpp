@@ -23,6 +23,7 @@
 #include "stdafx.h"
 #include <InitGuid.h>
 #include "BassSource.h"
+#include "PropPage.h"
 #include "dllmain.h"
 
 #define STR_GUID_REGISTRY "{FFFB1509-D0C1-4E23-8DAC-4BF554615BB6}" // need a large enough value to be at the end of the list
@@ -72,6 +73,7 @@ const AMOVIESETUP_FILTER sudFilter = {
 
 CFactoryTemplate g_Templates[] = {
 	{ sudFilter.strName, sudFilter.clsID, CreateInstance<BassSource>, nullptr, &sudFilter },
+	{L"MainProp",&__uuidof(CBassMainPPage), CreateInstance<CBassMainPPage>, nullptr, nullptr}
 };
 int g_cTemplates = (int)std::size(g_Templates);
 
