@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2022 v0lt
+ *  Copyright (C) 2022-2023 v0lt
  */
 
 #include "stdafx.h"
@@ -68,7 +68,7 @@ bool ParseID3v2Tag(const BYTE* buf, ID3v2TagInfo& tagInfo, std::list<ID3v2Frame>
 
 	tagInfo = { buf[3], buf[4], buf[5] };
 
-	DLog(L"Parsing ID3v2.%d", tagInfo.ver);
+	DLog(L"Parsing ID3v2.{}", (uint32_t)tagInfo.ver);
 	if (tagInfo.ver < 2 || tagInfo.ver > 4) {
 		DLog(L"ID3v2: unsupported version!");
 		return false;
@@ -138,7 +138,7 @@ bool ParseID3v2Tag(const BYTE* buf, ID3v2TagInfo& tagInfo, std::list<ID3v2Frame>
 		}
 	}
 
-	DLog(L"ID3v2 found %u frames", (unsigned)id3v2Frames.size());
+	DLog(L"ID3v2 found {} frames", (unsigned)id3v2Frames.size());
 
 	return (id3v2Frames.size() > 0);
 }

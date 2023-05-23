@@ -1,5 +1,5 @@
 /*
-* (C) 2020-2022 see Authors.txt
+* (C) 2020-2023 see Authors.txt
 *
 * This file is part of MPC-BE.
 *
@@ -27,10 +27,16 @@
                   (((DWORD)(ch4) & 0xFF000000) >> 24))
 #endif
 
+template <typename... Args>
+inline void DebugLogFmt(std::wstring_view format, Args&& ...args)
+{
+	DbgLogInfo(LOG_TRACE, 3, std::vformat(format, std::make_wformat_args(args...)).c_str());
+}
+
 #ifdef _DEBUG
-#define DLog(...) DbgLogInfo(LOG_TRACE, 3, __VA_ARGS__)
-#define DLogIf(f,...) {if (f) DbgLogInfo(LOG_TRACE, 3, __VA_ARGS__);}
-#define DLogError(...) DbgLogInfo(LOG_ERROR, 3, __VA_ARGS__)
+#define DLog(...) DebugLogFmt(__VA_ARGS__)
+#define DLogIf(f,...) {if (f) DebugLogFmt(__VA_ARGS__);}
+#define DLogError(...) DebugLogFmt(LOG_ERROR, 3, __VA_ARGS__)
 #else
 #define DLog(...) __noop
 #define DLogIf(f,...) __noop
@@ -48,13 +54,17 @@
 
 
 // A byte that is not initialized to std::vector when using the resize method.
+// Note: can be slow in debug mode.
 struct NoInitByte
 {
 	uint8_t value;
+#pragma warning(push)
+#pragma warning(disable:26495)
 	NoInitByte() {
 		// do nothing
-		static_assert(sizeof(*this) == sizeof (value), "invalid size");
+		static_assert(sizeof(*this) == sizeof(value), "invalid size");
 	}
+#pragma warning(pop)
 };
 
 template <typename T>
@@ -79,11 +89,14 @@ inline T round_pow2(T number, T pow2)
 
 inline std::wstring GUIDtoWString(const GUID& guid)
 {
-	WCHAR buff[40];
-	if (StringFromGUID2(guid, buff, 39) <= 0) {
-		StringFromGUID2(GUID_NULL, buff, 39);
+	std::wstring str(39, 0);
+	int ret = StringFromGUID2(guid, &str[0], 39);
+	if (ret) {
+		str.resize(ret - 1);
+	} else {
+		str.clear();
 	}
-	return std::wstring(buff);
+	return str;
 }
 
 std::wstring HR2Str(const HRESULT hr);

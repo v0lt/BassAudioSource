@@ -87,7 +87,7 @@ void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user)
 		LPCSTR metaTagsUtf8 = BASS_ChannelGetTags(channel, BASS_TAG_META);
 		if (metaTagsUtf8) {
 			std::wstring metaTags = ConvertUtf8ToWide(metaTagsUtf8);
-			DLog(L"Received Meta Tag: %s", metaTags.c_str());
+			DLog(L"Received Meta Tag: {}", metaTags.c_str());
 
 			size_t k1 = metaTags.find(L"StreamTitle='");
 			if (k1 != metaTags.npos) {
@@ -273,7 +273,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		return false;
 	}
 
-	DLog(L"BassDecoder::Load() - '%s', %d Hz, %d ch, %s%d",
+	DLog(L"BassDecoder::Load() - '{}', {} Hz, {} ch, {}{}",
 		GetBassTypeStr(m_ctype), m_sampleRate, m_channels, m_float ? L"Float" : L"Int", m_bytesPerSample*8);
 
 	ContentTags tags;
@@ -348,7 +348,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		LPCSTR metaTagsUtf8 = BASS_ChannelGetTags(m_stream, BASS_TAG_META);
 		if (metaTagsUtf8) {
 			std::wstring metaTags = ConvertUtf8ToWide(metaTagsUtf8);
-			DLog(L"Received Meta Tag: %s", metaTags.c_str());
+			DLog(L"Received Meta Tag: {}", metaTags.c_str());
 
 			size_t k1 = metaTags.find(L"StreamTitle='");
 			if (k1 != metaTags.npos) {
