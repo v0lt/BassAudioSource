@@ -107,6 +107,7 @@ public:
 
 	// IBassSource
 	STDMETHODIMP_(bool) GetActive() override;
+	STDMETHODIMP GetInfo(std::wstring& str) override;
 };
 
 

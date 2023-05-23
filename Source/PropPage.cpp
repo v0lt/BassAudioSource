@@ -6,6 +6,7 @@
 #include "resource.h"
 #include "Helper.h"
 #include "Utils/Util.h"
+#include "Utils/StringUtil.h"
 #include "PropPage.h"
 
 void SetCursor(HWND hWnd, LPCWSTR lpCursorName)
@@ -68,9 +69,8 @@ CBassMainPPage::~CBassMainPPage()
 void CBassMainPPage::SetControls()
 {
 	std::wstring strInfo;
-	if (!m_pBassSource->GetActive()) {
-		strInfo.assign(L"filter is not active");
-	}
+	m_pBassSource->GetInfo(strInfo);
+	str_replace(strInfo, L"\n", L"\r\n");
 	SetDlgItemTextW(IDC_EDIT1, strInfo.c_str());
 }
 

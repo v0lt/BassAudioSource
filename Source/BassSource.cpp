@@ -480,3 +480,21 @@ STDMETHODIMP_(bool) BassSource::GetActive()
 {
 	return (GetPinCount() > 0);
 }
+
+STDMETHODIMP BassSource::GetInfo(std::wstring& str)
+{
+	if (GetActive() && m_pin && m_pin->m_decoder) {
+		auto& d = m_pin->m_decoder;
+		str = std::format(L"'{}', {} Hz, {} ch, {}{}",
+			GetBassTypeStr(d->GetBassCType()),
+			d->GetSampleRate(),
+			d->GetChannels(),
+			d->GetFloat() ? L"Float" : L"Int",
+			d->GetBytesPerSample() * 8);
+		return S_OK;
+	}
+	else {
+		str.assign(L"filter is not active");
+		return S_FALSE;
+	}
+}

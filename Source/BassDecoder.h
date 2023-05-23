@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2022 v0lt
+ *  Copyright (C) 2022-2023 v0lt
  *  Based on the following code:
  *  DC-Bass Source filter - http://www.dsp-worx.de/index.php?n=15
  *  DC-Bass Source Filter C++ porting - https://github.com/frafv/DCBassSource
@@ -80,6 +80,7 @@ public:
 
 	int GetData(void* buffer, int size);
 
+	inline DWORD GetBassCType()    { return m_ctype; }
 	inline int GetChannels()       { return m_channels; }
 	inline int GetSampleRate()     { return m_sampleRate; }
 	inline int GetBytesPerSample() { return m_bytesPerSample; }
