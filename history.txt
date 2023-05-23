@@ -1,5 +1,9 @@
 Bass Audio Source
 
+0.2.1.x dev
+----------------------
+
+
 0.2.0.132 - 2023-05-11
 ----------------------
 Added FLAC picture tag reading for local files.

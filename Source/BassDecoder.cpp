@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2022 v0lt
+ *  Copyright (C) 2022-2023 v0lt
  *  Based on the following code:
  *  DC-Bass Source filter - http://www.dsp-worx.de/index.php?n=15
  *  DC-Bass Source Filter C++ porting - https://github.com/frafv/DCBassSource
@@ -289,7 +289,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 	else if (m_isLiveStream) {
 		LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_OGG);
 		if (p) {
-			DLog(p, L"Found OGG Tag");
+			DLog(L"Found OGG Tag");
 			ReadTagsOgg(p, tags, pResources);
 		}
 	}
