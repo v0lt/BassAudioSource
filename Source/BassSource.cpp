@@ -484,8 +484,20 @@ STDMETHODIMP_(bool) BassSource::GetActive()
 STDMETHODIMP BassSource::GetInfo(std::wstring& str)
 {
 	if (GetActive() && m_pin && m_pin->m_decoder) {
+		union {
+			struct {
+				BYTE d;
+				BYTE c;
+				BYTE b;
+				BYTE a;
+			};
+			DWORD value;
+		} version;
+		version.value = BASS_GetVersion();
+		str = std::format(L"BASS {}.{}.{}.{}", version.a, version.b, version.c, version.d);
+
 		auto& d = m_pin->m_decoder;
-		str = std::format(L"'{}', {} Hz, {} ch, {}{}",
+		str += std::format(L"\nStream: '{}', {} Hz, {} ch, {}{}",
 			GetBassTypeStr(d->GetBassCType()),
 			d->GetSampleRate(),
 			d->GetChannels(),
