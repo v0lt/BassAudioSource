@@ -14,6 +14,8 @@
 #include "../external/BaseClasses/streams.h"
 #include "../Include/IDSMResourceBag.h"
 
+#include <VersionHelpers.h>
+
 #include <algorithm>
 #include <vector>
 #include <string>

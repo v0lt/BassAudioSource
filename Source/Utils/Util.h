@@ -27,6 +27,12 @@
                   (((DWORD)(ch4) & 0xFF000000) >> 24))
 #endif
 
+#ifndef DEFINE_MEDIATYPE_GUID
+#define DEFINE_MEDIATYPE_GUID(name, format) \
+    DEFINE_GUID(name,                       \
+    format, 0x0000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
+#endif
+
 template <typename... Args>
 inline void DebugLogFmt(std::wstring_view format, Args&& ...args)
 {
@@ -53,19 +59,9 @@ inline void DebugLogFmt(std::wstring_view format, Args&& ...args)
 #define __ALIGN_MASK(x, mask) (((x)+(mask))&~(mask))
 
 
-// A byte that is not initialized to std::vector when using the resize method.
-// Note: can be slow in debug mode.
-struct NoInitByte
-{
-	uint8_t value;
-#pragma warning(push)
-#pragma warning(disable:26495)
-	NoInitByte() {
-		// do nothing
-		static_assert(sizeof(*this) == sizeof(value), "invalid size");
-	}
-#pragma warning(pop)
-};
+// non-standard values for Transfer Matrix
+#define VIDEOTRANSFERMATRIX_FCC     6
+#define VIDEOTRANSFERMATRIX_YCgCo   7
 
 template <typename T>
 // If the specified value is out of range, set to default values.
@@ -87,6 +83,8 @@ inline T round_pow2(T number, T pow2)
 	}
 }
 
+LPCWSTR GetWindowsVersion();
+
 inline std::wstring GUIDtoWString(const GUID& guid)
 {
 	std::wstring str(39, 0);
@@ -100,3 +98,5 @@ inline std::wstring GUIDtoWString(const GUID& guid)
 }
 
 std::wstring HR2Str(const HRESULT hr);
+
+HRESULT GetDataFromResource(LPVOID& data, DWORD& size, UINT resid);

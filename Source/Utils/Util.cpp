@@ -21,6 +21,47 @@
 #include "stdafx.h"
 #include "Util.h"
 
+VERSIONHELPERAPI
+IsWindows11OrGreater() // https://walbourn.github.io/windows-sdk-for-windows-11/
+{
+	OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0, {0}, 0, 0 };
+	DWORDLONG const dwlConditionMask = VerSetConditionMask(
+		VerSetConditionMask(
+		VerSetConditionMask(
+			0, VER_MAJORVERSION, VER_GREATER_EQUAL),
+			   VER_MINORVERSION, VER_GREATER_EQUAL),
+			   VER_BUILDNUMBER, VER_GREATER_EQUAL);
+
+	osvi.dwMajorVersion = HIBYTE(_WIN32_WINNT_WIN10);
+	osvi.dwMinorVersion = LOBYTE(_WIN32_WINNT_WIN10);
+	osvi.dwBuildNumber = 22000;
+
+	return VerifyVersionInfoW(&osvi, VER_MAJORVERSION | VER_MINORVERSION | VER_BUILDNUMBER, dwlConditionMask) != FALSE;
+}
+
+LPCWSTR GetWindowsVersion()
+{
+	if (IsWindows11OrGreater()) {
+		return L"11";
+	}
+	else if (IsWindows10OrGreater()) {
+		return L"10";
+	}
+	else if (IsWindows8Point1OrGreater()) {
+		return L"8.1";
+	}
+	else if (IsWindows8OrGreater()) {
+		return L"8";
+	}
+	else if (IsWindows7SP1OrGreater()) {
+		return L"7 SP1";
+	}
+	else if (IsWindows7OrGreater()) {
+		return L"7";
+	}
+	return L"Vista or older";
+}
+
 std::wstring HR2Str(const HRESULT hr)
 {
 	std::wstring str;
@@ -74,10 +115,33 @@ std::wstring HR2Str(const HRESULT hr)
 		UNPACK_VALUE(D3DERR_NOTAVAILABLE);
 #endif
 	default:
-		//str = std::format(L"{:#010x}", (uint32_t)hr);
-		str = L"Unknown";
+		str = std::format(L"{:#010x}", (uint32_t)hr);
 	};
 #undef UNPACK_VALUE
 #undef UNPACK_HR_WIN32
 	return str;
+}
+
+HRESULT GetDataFromResource(LPVOID& data, DWORD& size, UINT resid)
+{
+	static const HMODULE hModule = (HMODULE)&__ImageBase;
+
+	HRSRC hrsrc = FindResourceW(hModule, MAKEINTRESOURCEW(resid), L"FILE");
+	if (!hrsrc) {
+		return E_INVALIDARG;
+	}
+	HGLOBAL hGlobal = LoadResource(hModule, hrsrc);
+	if (!hGlobal) {
+		return E_FAIL;
+	}
+	size = SizeofResource(hModule, hrsrc);
+	if (!size) {
+		return E_FAIL;
+	}
+	data = LockResource(hGlobal);
+	if (!data) {
+		return E_FAIL;
+	}
+
+	return S_OK;
 }
