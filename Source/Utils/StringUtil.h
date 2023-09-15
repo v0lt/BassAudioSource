@@ -116,7 +116,7 @@ inline void str_truncate_after_null(std::wstring& s)
 }
 
 //
-//
+// replace substring
 //
 
 void str_replace(std::string& s, const std::string_view from, const std::string_view to);
