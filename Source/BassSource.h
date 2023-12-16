@@ -51,7 +51,6 @@ protected:
 	BassSourceStream* m_pin = nullptr;
 	std::wstring m_fileName;
 	int m_buffersizeMS = 0;
-	int m_preBufferMS = 0;
 
 	void STDMETHODCALLTYPE OnMetaDataCallback(ContentTags* tags);
 	void STDMETHODCALLTYPE OnResourceDataCallback(std::unique_ptr<std::list<DSMResource>>& pResources);

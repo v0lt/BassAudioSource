@@ -132,10 +132,9 @@ void CALLBACK OnDownloadData(const void* buffer, DWORD length, void* user)
 // BassDecoder
 //
 
-BassDecoder::BassDecoder(ShoutcastEvents* shoutcastEvents, int buffersizeMS, int prebufferMS)
+BassDecoder::BassDecoder(ShoutcastEvents* shoutcastEvents, int buffersizeMS)
 	: m_shoutcastEvents(shoutcastEvents)
 	, m_buffersizeMS(buffersizeMS)
-	, m_prebufferMS(prebufferMS)
 {
 	const std::wstring ddlPath = GetFilterDirectory().append(L"OptimFROG.dll");
 	m_optimFROGDLL = LoadLibraryW(ddlPath.c_str());
@@ -157,13 +156,8 @@ void BassDecoder::LoadBASS()
 {
 	BASS_Init(0, 44100, 0, GetDesktopWindow(), nullptr);
 
-	if (m_prebufferMS == 0) {
-		m_prebufferMS = 1;
-	}
-
 	BASS_SetConfigPtr(BASS_CONFIG_NET_AGENT, LABEL_BassAudioSource);
 	BASS_SetConfig(BASS_CONFIG_NET_BUFFER, m_buffersizeMS);
-	BASS_SetConfig(BASS_CONFIG_NET_PREBUF, m_buffersizeMS * 100 / m_prebufferMS);
 
 	BASS_SetConfig(BASS_CONFIG_MF_VIDEO, FALSE);
 	BASS_SetConfig(BASS_CONFIG_MP4_VIDEO, FALSE);

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2022 v0lt
+ *  Copyright (C) 2022-2023 v0lt
  *  Based on the following code:
  *  DC-Bass Source filter - http://www.dsp-worx.de/index.php?n=15
  *  DC-Bass Source Filter C++ porting - https://github.com/frafv/DCBassSource
@@ -30,8 +30,7 @@
 
 BassSourceStream::BassSourceStream(
 	LPCWSTR objectName, HRESULT& hr, CSource* filter, LPCWSTR name,
-	LPCWSTR filename, ShoutcastEvents* shoutcastEvents,
-	int buffersizeMS, int prebufferMS
+	LPCWSTR filename, ShoutcastEvents* shoutcastEvents, int buffersizeMS
 )
 	: CSourceStream(objectName, &hr, filter, name)
 {
@@ -39,7 +38,7 @@ BassSourceStream::BassSourceStream(
 		return;
 	}
 
-	m_decoder = new BassDecoder(shoutcastEvents, buffersizeMS, prebufferMS);
+	m_decoder = new BassDecoder(shoutcastEvents, buffersizeMS);
 	if (!m_decoder->Load(filename)) {
 		hr = E_FAIL;
 		return;

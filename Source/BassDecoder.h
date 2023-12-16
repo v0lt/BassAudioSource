@@ -39,7 +39,6 @@ protected:
 	//Use shoutcastEvents instead of FMetaDataCallback and FBufferCallback
 	ShoutcastEvents* m_shoutcastEvents;
 	int m_buffersizeMS;
-	int m_prebufferMS;
 
 	HMODULE m_optimFROGDLL = nullptr;
 	HSTREAM m_stream = 0;
@@ -72,7 +71,7 @@ public:
 	void SetPosition(LONGLONG positionMS);
 
 public:
-	BassDecoder(ShoutcastEvents* shoutcastEvents, int buffersizeMS, int prebufferMS);
+	BassDecoder(ShoutcastEvents* shoutcastEvents, int buffersizeMS);
 	~BassDecoder();
 
 	bool Load(std::wstring path);
