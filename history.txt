@@ -1,6 +1,6 @@
 Bass Audio Source
 
-0.2.1.x dev
+0.2.2.145 - 2023-12-17
 ----------------------
 Added information window.
 Opening network streams of known size has been accelerated.
