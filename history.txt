@@ -1,5 +1,9 @@
 Bass Audio Source
 
+0.3.0.x dev
+----------------------
+
+
 0.2.2.145 - 2023-12-17
 ----------------------
 Added information window.
