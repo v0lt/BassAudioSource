@@ -281,6 +281,8 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 		"ahx", "ay", "gbs", "nsf", "pt2", "pt3",
 		"sap", "sid", "spc", "stc",
 		"v2m", "vgm", "vgz", "vtx", "ym",
+		// bassmidi.dll
+		"mid", "rmi",
 	};
 
 	if (IsLikelyFilePath(pszFileName)) {

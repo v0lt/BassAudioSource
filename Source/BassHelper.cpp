@@ -43,6 +43,7 @@
 #include <../Include/basswma.h>
 #include <../Include/basswv.h>
 #include <../Include/basszxtune.h>
+#include <../Include/bassmidi.h>
 
 #include <wincrypt.h>
 
@@ -85,6 +86,7 @@ LPCWSTR GetBassTypeStr(const DWORD ctype)
 		case BASS_CTYPE_STREAM_FLAC_OGG: return L"Ogg FLAC";
 		case BASS_CTYPE_STREAM_OPUS:     return L"Opus";
 		case BASS_CTYPE_STREAM_WV:       return L"WavPack";
+		case BASS_CTYPE_STREAM_MIDI:     return L"MIDI";
 		}
 	}
 	if (ctype & BASS_CTYPE_STREAM_WAV) {

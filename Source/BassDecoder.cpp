@@ -192,13 +192,30 @@ void BassDecoder::LoadPlugins()
 		L"basswma.dll",
 		L"basswv.dll",
 		L"basszxtune.dll",
+		L"bassmidi.dll",
 	};
 
 	const std::wstring filterDir = GetFilterDirectory();
 
 	for (const auto pligin : BassPlugins) {
 		const std::wstring pluginPath = filterDir + pligin;
-		BASS_PluginLoad(LPCSTR(pluginPath.c_str()), BASS_UNICODE);
+		HPLUGIN hPlugin = BASS_PluginLoad(LPCSTR(pluginPath.c_str()), BASS_UNICODE);
+#ifdef _DEBUG
+		if (hPlugin) {
+			std::wstring dbgstr = std::format(L"{}:\n", pligin);
+			const BASS_PLUGININFO* pPluginInfo = BASS_PluginGetInfo(hPlugin);
+			if (pPluginInfo) {
+				for (DWORD i = 0; i < pPluginInfo->formatc; i++) {
+					dbgstr += std::format(L"ctype={} name={} exts={}\n",
+						pPluginInfo->formats[i].ctype,
+						A2WStr(pPluginInfo->formats[i].name),
+						A2WStr(pPluginInfo->formats[i].exts)
+					);
+				}
+			}
+			DLog(dbgstr);
+		}
+#endif
 	}
 }
 
