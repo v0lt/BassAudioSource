@@ -50,7 +50,7 @@ private:
 
 public:
 	BassSourceStream(LPCWSTR objectName, HRESULT& hr, CSource* filter, LPCWSTR name,
-		LPCWSTR filename, ShoutcastEvents* shoutcastEvents, int buffersizeMS);
+		LPCWSTR filename, ShoutcastEvents* shoutcastEvents, Settings_t& sets);
 	~BassSourceStream();
 
 	HRESULT GetMediaType(CMediaType* pMediaType);

@@ -29,7 +29,8 @@
 #include "Utils/StringUtil.h"
 
 #define OPT_REGKEY_BassAudioSource L"Software\\MPC-BE Filters\\BassAudioSource"
-#define OPT_BuffersizeMS           L"BuffersizeMS"
+#define OPT_BufferSizeMS           L"BufferSizeMS"
+#define OPT_MidiSoundFontDefault   L"MIDI_SoundFontDefault"
 
 volatile LONG InstanceCount = 0;
 
@@ -59,8 +60,6 @@ BassSource::~BassSource()
 	}
 
 	delete m_metaLock;
-
-	SaveSettings();
 }
 
 void BassSource::Init()
@@ -72,8 +71,6 @@ void BassSource::Init()
 	DLog(L"BassSource::Init()");
 
 	m_metaLock = new CCritSec();
-
-	m_buffersizeMS = PREBUFFER_MAX_SIZE;
 
 	LoadSettings();
 
@@ -122,53 +119,48 @@ void STDMETHODCALLTYPE BassSource::OnShoutcastBufferCallback(const void* buffer,
 {
 }
 
-bool RegReadDword(HKEY key, LPCWSTR name, DWORD& dwValue)
-{
-	DWORD dwType;
-	ULONG nBytes = sizeof(DWORD);
-
-	LONG lRes = ::RegQueryValueExW(key, name, nullptr, &dwType, reinterpret_cast<LPBYTE>(&dwValue), &nBytes);
-	
-	return (lRes == ERROR_SUCCESS && dwType == REG_DWORD);
-}
-
-void RegWriteDword(HKEY key, LPCWSTR name, DWORD dwValue)
-{
-	LONG lRes = ::RegSetValueExW(key, name, 0, REG_DWORD, reinterpret_cast<const BYTE*>(&dwValue), sizeof(DWORD));
-
-	return;
-}
-
 void BassSource::LoadSettings()
 {
-	HKEY reg;
-	DWORD num;
+	HKEY key;
+	DWORD dwType;
+	ULONG nBytes;
 
-	if (RegOpenKeyW(HKEY_CURRENT_USER, OPT_REGKEY_BassAudioSource, &reg) == ERROR_SUCCESS)
-	{
-		__try {
-			if (RegReadDword(reg, OPT_BuffersizeMS, num)) {
-				m_buffersizeMS = std::clamp<int>(num, PREBUFFER_MIN_SIZE, PREBUFFER_MAX_SIZE);
+	LSTATUS lRes = RegOpenKeyW(HKEY_CURRENT_USER, OPT_REGKEY_BassAudioSource, &key);
+	if (lRes == ERROR_SUCCESS) {
+		DWORD dwValue;
+		nBytes = sizeof(DWORD);
+		lRes = ::RegQueryValueExW(key, OPT_BufferSizeMS, nullptr, &dwType, reinterpret_cast<LPBYTE>(&dwValue), &nBytes);
+		if (lRes == ERROR_SUCCESS && dwType == REG_DWORD) {
+			m_Sets.iBuffersizeMS = std::clamp<int>(dwValue, PREBUFFER_MIN_SIZE, PREBUFFER_MAX_SIZE);
+		}
+
+		lRes = ::RegQueryValueExW(key, OPT_MidiSoundFontDefault, nullptr, &dwType, nullptr, &nBytes);
+		if (lRes == ERROR_SUCCESS && dwType == REG_SZ) {
+			std::wstring str(nBytes, 0);
+			lRes = ::RegQueryValueExW(key, OPT_MidiSoundFontDefault, nullptr, &dwType, reinterpret_cast<LPBYTE>(str.data()), &nBytes);
+			if (lRes == ERROR_SUCCESS && dwType == REG_SZ) {
+				str_truncate_after_null(str);
+				m_Sets.sMidiSoundFontDefault = str;
 			}
 		}
-		__finally {
-			RegCloseKey(reg);
-		}
+
+		RegCloseKey(key);
 	}
 }
 
 void BassSource::SaveSettings()
 {
-	HKEY reg;
+	HKEY key;
 
-	if (RegCreateKeyW(HKEY_CURRENT_USER, OPT_REGKEY_BassAudioSource, &reg) == ERROR_SUCCESS)
-	{
-		__try {
-			RegWriteDword(reg, OPT_BuffersizeMS, m_buffersizeMS);
-		}
-		__finally {
-			RegCloseKey(reg);
-		}
+	LSTATUS lRes = RegCreateKeyW(HKEY_CURRENT_USER, OPT_REGKEY_BassAudioSource, &key);
+	if (lRes == ERROR_SUCCESS) {
+		DWORD dwValue = m_Sets.iBuffersizeMS;
+		lRes = ::RegSetValueExW(key, OPT_BufferSizeMS, 0, REG_DWORD, reinterpret_cast<const BYTE*>(&dwValue), sizeof(DWORD));
+
+		std::wstring str(m_Sets.sMidiSoundFontDefault);
+		lRes = ::RegSetValueExW(key, OPT_BufferSizeMS, 0, REG_SZ, reinterpret_cast<const BYTE*>(str.c_str()), (DWORD)(str.size()+1));
+
+		RegCloseKey(key);
 	}
 }
 
@@ -310,7 +302,7 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 	}
 
 	HRESULT hr;
-	m_pin = new BassSourceStream(L"Bass Source Stream", hr, this, L"Output", pszFileName, this, m_buffersizeMS);
+	m_pin = new BassSourceStream(L"Bass Source Stream", hr, this, L"Output", pszFileName, this, m_Sets);
 	if (FAILED(hr) || !m_pin) {
 		return hr;
 	}

@@ -12,6 +12,8 @@
 
 #ifdef _WIN64
 #pragma comment(lib, "../Lib/x64/bass.lib")
+#pragma comment(lib, "../Lib/x64/bassmidi.lib")
 #else
 #pragma comment(lib, "../Lib/x86/bass.lib")
+#pragma comment(lib, "../Lib/x86/bassmidi.lib")
 #endif

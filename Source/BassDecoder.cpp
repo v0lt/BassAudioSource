@@ -23,7 +23,6 @@
 #include "stdafx.h"
 #include "BassDecoder.h"
 #include "BassSource.h"
-#include <../Include/bass.h>
 #include <../Include/bass_aac.h>
 #include <../Include/bassflac.h>
 #include <../Include/basswma.h>
@@ -56,6 +55,21 @@ bool IsMODFile(const std::wstring_view& path)
 
 	for (const auto& mod_ext : mod_exts) {
 		if (lstrcmpiW(mod_ext, ext.c_str()) == 0) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool IsMIDIFile(const std::wstring_view& path)
+{
+	static LPCWSTR midi_exts[] = { L".midi", L".mid", L".rmi", L".kar" };
+
+	auto ext = std::filesystem::path(path).extension();
+
+	for (const auto& midi_ext : midi_exts) {
+		if (lstrcmpiW(midi_ext, ext.c_str()) == 0) {
 			return true;
 		}
 	}
@@ -132,9 +146,10 @@ void CALLBACK OnDownloadData(const void* buffer, DWORD length, void* user)
 // BassDecoder
 //
 
-BassDecoder::BassDecoder(ShoutcastEvents* shoutcastEvents, int buffersizeMS)
+BassDecoder::BassDecoder(ShoutcastEvents* shoutcastEvents, Settings_t& sets)
 	: m_shoutcastEvents(shoutcastEvents)
-	, m_buffersizeMS(buffersizeMS)
+	, m_buffersizeMS(sets.iBuffersizeMS)
+	, m_midiSoundFontDefault(sets.sMidiSoundFontDefault)
 {
 	const std::wstring ddlPath = GetFilterDirectory().append(L"OptimFROG.dll");
 	m_optimFROGDLL = LoadLibraryW(ddlPath.c_str());
@@ -254,8 +269,22 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		path[3] = 'p';
 	}
 
-	m_isMOD = IsMODFile(path);
-	m_isURL = IsURLPath(path);
+	if (IsMODFile(path)) {
+		m_isMOD = true;
+	}
+	else if (IsMIDIFile(path)) {
+		m_isMIDI = true;
+		m_soundFont = BASS_MIDI_FontInit((const void*)m_midiSoundFontDefault.c_str(), BASS_MIDI_FONT_MMAP | BASS_UNICODE);
+		if (m_soundFont) {
+			BASS_MIDI_FONT sf = { m_soundFont, -1, 0 };
+			BOOL ret = BASS_MIDI_StreamSetFonts(0, &sf, 1); // set default soundfont
+		} else {
+			DLog(L"ERROR: default SoundFont not found!");
+			return false;
+		}
+		
+	}
+	m_isURL  = IsURLPath(path);
 
 	if (m_isMOD) {
 		if (!m_isURL) {
@@ -414,6 +443,11 @@ void BassDecoder::Close()
 		m_stream = 0;
 	}
 
+	if (m_soundFont) {
+		BASS_MIDI_FontFree(m_soundFont);
+		m_soundFont = 0;
+	}
+
 	m_syncMeta = 0;
 	m_syncOggChange = 0;
 
@@ -424,8 +458,9 @@ void BassDecoder::Close()
 	m_mSecConv = 0;
 	m_ctype = 0;
 
-	m_isMOD = false;
-	m_isURL = false;
+	m_isMOD  = false;
+	m_isMIDI = false;
+	m_isURL  = false;
 	m_isLiveStream = false;
 
 	m_tagTitle.clear();

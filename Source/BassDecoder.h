@@ -23,7 +23,9 @@
 #pragma once
 
 #include <../Include/bass.h>
+#include <../Include/bassmidi.h>
 #include "BassHelper.h"
+#include "IBassSource.h"
 
 class ShoutcastEvents
 {
@@ -38,14 +40,17 @@ class BassDecoder
 protected:
 	//Use shoutcastEvents instead of FMetaDataCallback and FBufferCallback
 	ShoutcastEvents* m_shoutcastEvents;
-	int m_buffersizeMS;
+	const int m_buffersizeMS;
+	const std::wstring m_midiSoundFontDefault;
 
 	HMODULE m_optimFROGDLL = nullptr;
 	HSTREAM m_stream = 0;
+	HSOUNDFONT m_soundFont = 0;
 	HSYNC m_syncMeta = 0;
 	HSYNC m_syncOggChange = 0;
-	bool m_isMOD = false;
-	bool m_isURL = false;
+	bool m_isMOD  = false;
+	bool m_isMIDI = false;
+	bool m_isURL  = false;
 	bool m_isLiveStream = false;
 
 	int m_channels = 0;
@@ -71,7 +76,7 @@ public:
 	void SetPosition(LONGLONG positionMS);
 
 public:
-	BassDecoder(ShoutcastEvents* shoutcastEvents, int buffersizeMS);
+	BassDecoder(ShoutcastEvents* shoutcastEvents, Settings_t& sets);
 	~BassDecoder();
 
 	bool Load(std::wstring path);

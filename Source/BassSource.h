@@ -26,9 +26,6 @@
 #include "BassSourceStream.h"
 #include "IBassSource.h"
 
-#define PREBUFFER_MIN_SIZE 100
-#define PREBUFFER_MAX_SIZE 5000
-
 #define LABEL_BassAudioSource L"Bass Audio Source"
 
 #define STR_CLSID_BassAudioSource "{A351970E-4601-4BEC-93DE-CEE7AF64C636}"
@@ -50,7 +47,7 @@ protected:
 
 	BassSourceStream* m_pin = nullptr;
 	std::wstring m_fileName;
-	int m_buffersizeMS = 0;
+	Settings_t m_Sets;
 
 	void STDMETHODCALLTYPE OnMetaDataCallback(ContentTags* tags);
 	void STDMETHODCALLTYPE OnResourceDataCallback(std::unique_ptr<std::list<DSMResource>>& pResources);
