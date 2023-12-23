@@ -29,7 +29,6 @@
 #include "Utils/StringUtil.h"
 
 #define OPT_REGKEY_BassAudioSource L"Software\\MPC-BE Filters\\BassAudioSource"
-#define OPT_BufferSizeMS           L"BufferSizeMS"
 #define OPT_MidiSoundFontDefault   L"MIDI_SoundFontDefault"
 
 volatile LONG InstanceCount = 0;
@@ -127,12 +126,14 @@ void BassSource::LoadSettings()
 
 	LSTATUS lRes = RegOpenKeyW(HKEY_CURRENT_USER, OPT_REGKEY_BassAudioSource, &key);
 	if (lRes == ERROR_SUCCESS) {
+		/*
 		DWORD dwValue;
 		nBytes = sizeof(DWORD);
 		lRes = ::RegQueryValueExW(key, OPT_BufferSizeMS, nullptr, &dwType, reinterpret_cast<LPBYTE>(&dwValue), &nBytes);
 		if (lRes == ERROR_SUCCESS && dwType == REG_DWORD) {
 			m_Sets.iBuffersizeMS = std::clamp<int>(dwValue, PREBUFFER_MIN_SIZE, PREBUFFER_MAX_SIZE);
 		}
+		*/
 
 		lRes = ::RegQueryValueExW(key, OPT_MidiSoundFontDefault, nullptr, &dwType, nullptr, &nBytes);
 		if (lRes == ERROR_SUCCESS && dwType == REG_SZ) {
@@ -154,11 +155,13 @@ void BassSource::SaveSettings()
 
 	LSTATUS lRes = RegCreateKeyW(HKEY_CURRENT_USER, OPT_REGKEY_BassAudioSource, &key);
 	if (lRes == ERROR_SUCCESS) {
+		/*
 		DWORD dwValue = m_Sets.iBuffersizeMS;
 		lRes = ::RegSetValueExW(key, OPT_BufferSizeMS, 0, REG_DWORD, reinterpret_cast<const BYTE*>(&dwValue), sizeof(DWORD));
+		*/
 
 		std::wstring str(m_Sets.sMidiSoundFontDefault);
-		lRes = ::RegSetValueExW(key, OPT_BufferSizeMS, 0, REG_SZ, reinterpret_cast<const BYTE*>(str.c_str()), (DWORD)(str.size()+1));
+		lRes = ::RegSetValueExW(key, OPT_MidiSoundFontDefault, 0, REG_SZ, reinterpret_cast<const BYTE*>(str.c_str()), (DWORD)(str.size()+1));
 
 		RegCloseKey(key);
 	}

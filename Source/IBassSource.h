@@ -4,11 +4,7 @@
 
 #pragma once
 
-#define PREBUFFER_MIN_SIZE 100
-#define PREBUFFER_MAX_SIZE 5000
-
 struct Settings_t {
-	int iBuffersizeMS;
 	std::wstring sMidiSoundFontDefault;
 
 	Settings_t() {
@@ -16,7 +12,6 @@ struct Settings_t {
 	}
 
 	void SetDefault() {
-		iBuffersizeMS = PREBUFFER_MAX_SIZE;
 		sMidiSoundFontDefault.clear();
 	}
 };

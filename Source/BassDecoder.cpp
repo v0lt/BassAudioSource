@@ -148,7 +148,6 @@ void CALLBACK OnDownloadData(const void* buffer, DWORD length, void* user)
 
 BassDecoder::BassDecoder(ShoutcastEvents* shoutcastEvents, Settings_t& sets)
 	: m_shoutcastEvents(shoutcastEvents)
-	, m_buffersizeMS(sets.iBuffersizeMS)
 	, m_midiSoundFontDefault(sets.sMidiSoundFontDefault)
 {
 	const std::wstring ddlPath = GetFilterDirectory().append(L"OptimFROG.dll");
@@ -172,7 +171,6 @@ void BassDecoder::LoadBASS()
 	BASS_Init(0, 44100, 0, GetDesktopWindow(), nullptr);
 
 	BASS_SetConfigPtr(BASS_CONFIG_NET_AGENT, LABEL_BassAudioSource);
-	BASS_SetConfig(BASS_CONFIG_NET_BUFFER, m_buffersizeMS);
 
 	BASS_SetConfig(BASS_CONFIG_MF_VIDEO, FALSE);
 	BASS_SetConfig(BASS_CONFIG_MP4_VIDEO, FALSE);
