@@ -2,6 +2,7 @@ Bass Audio Source
 
 0.3.0.x dev
 ----------------------
+Added support for playing MIDI files (.mid, .rmi). The user must specify the path to the SoundFont file (.sf2, .sfz) in the "MIDI_SoundFontDefault" setting.
 
 
 0.2.2.145 - 2023-12-17

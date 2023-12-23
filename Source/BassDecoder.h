@@ -40,6 +40,7 @@ class BassDecoder
 protected:
 	//Use shoutcastEvents instead of FMetaDataCallback and FBufferCallback
 	ShoutcastEvents* m_shoutcastEvents;
+
 	const std::wstring m_midiSoundFontDefault;
 
 	HMODULE m_optimFROGDLL = nullptr;
