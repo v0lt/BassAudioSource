@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2022-2023 v0lt
+ *  Copyright (C) 2022-2024 v0lt
  *  Based on the following code:
  *  DC-Bass Source filter - http://www.dsp-worx.de/index.php?n=15
  *  DC-Bass Source Filter C++ porting - https://github.com/frafv/DCBassSource
@@ -135,7 +135,7 @@ HRESULT BassSourceStream::FillBuffer(IMediaSample* pSamp)
 			if (received <= 0) {
 				if (m_decoder->GetIsLiveStream()) {
 					received = BASS_BLOCK_SIZE;
-					memset(buffer, BASS_BLOCK_SIZE, 0);
+					memset(buffer, 0, BASS_BLOCK_SIZE);
 				}
 				else {
 					result = S_FALSE;
