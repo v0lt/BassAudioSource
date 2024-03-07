@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2022-2023 v0lt
+ *  Copyright (C) 2022-2024 v0lt
  *  Based on the following code:
  *  DC-Bass Source filter - http://www.dsp-worx.de/index.php?n=15
  *  DC-Bass Source Filter C++ porting - https://github.com/frafv/DCBassSource
@@ -98,7 +98,7 @@ STDAPI DllRegisterServer()
 	ClearRegistry();
 
 	HKEY hKey;
-	LONG ec = ::RegCreateKeyExW(HKEY_CLASSES_ROOT, L"Media Type\\{e436eb83-524f-11ce-9f53-0020af0ba770}\\" STR_GUID_REGISTRY, 0, 0, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 0, &hKey, 0);
+	LONG ec = ::RegCreateKeyExW(HKEY_CLASSES_ROOT, L"Media Type\\{e436eb83-524f-11ce-9f53-0020af0ba770}\\" _CRT_WIDE(STR_GUID_REGISTRY), 0, 0, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 0, &hKey, 0);
 	if (ec == ERROR_SUCCESS) {
 		const LPCWSTR value_data0 = _CRT_WIDE(STR_CLSID_BassAudioSource);
 		const LPCWSTR value_data1 = L"0,1,00,00"; // connect to any data
