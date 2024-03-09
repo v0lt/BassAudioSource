@@ -217,6 +217,8 @@ BassDecoder::~BassDecoder()
 		BASS_PluginFree(pliggin);
 	}
 
+	UnloadBASS();
+
 	if (m_optimFROGDLL) {
 		FreeLibrary(m_optimFROGDLL);
 	}
@@ -241,6 +243,7 @@ void BassDecoder::UnloadBASS()
 		}
 	}
 	catch (...) {
+		DLog(L"BASS_Free() threw an exception!");
 		// crashes mplayer2.exe ???
 	}
 }
