@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2022-2023 v0lt
+ *  Copyright (C) 2022-2024 v0lt
  *  Based on the following code:
  *  DC-Bass Source filter - http://www.dsp-worx.de/index.php?n=15
  *  DC-Bass Source Filter C++ porting - https://github.com/frafv/DCBassSource
@@ -82,6 +82,58 @@ bool IsURLPath(const std::wstring_view& path)
 	return path.compare(0, 7, L"http://") == 0
 		|| path.compare(0, 8, L"https://") == 0
 		|| path.compare(0, 6, L"ftp://") == 0;
+}
+
+
+const wchar_t* BassErrorToStr(const int er)
+{
+#define UNPACK_VALUE(VALUE) case VALUE: return L#VALUE;
+	switch (er) {
+		UNPACK_VALUE(BASS_OK);
+		UNPACK_VALUE(BASS_ERROR_MEM);
+		UNPACK_VALUE(BASS_ERROR_FILEOPEN);
+		UNPACK_VALUE(BASS_ERROR_DRIVER);
+		UNPACK_VALUE(BASS_ERROR_BUFLOST);
+		UNPACK_VALUE(BASS_ERROR_HANDLE);
+		UNPACK_VALUE(BASS_ERROR_FORMAT);
+		UNPACK_VALUE(BASS_ERROR_POSITION);
+		UNPACK_VALUE(BASS_ERROR_INIT);
+		UNPACK_VALUE(BASS_ERROR_START);
+		UNPACK_VALUE(BASS_ERROR_SSL);
+		UNPACK_VALUE(BASS_ERROR_REINIT);
+		UNPACK_VALUE(BASS_ERROR_ALREADY);
+		UNPACK_VALUE(BASS_ERROR_NOTAUDIO);
+		UNPACK_VALUE(BASS_ERROR_NOCHAN);
+		UNPACK_VALUE(BASS_ERROR_ILLTYPE);
+		UNPACK_VALUE(BASS_ERROR_ILLPARAM);
+		UNPACK_VALUE(BASS_ERROR_NO3D);
+		UNPACK_VALUE(BASS_ERROR_NOEAX);
+		UNPACK_VALUE(BASS_ERROR_DEVICE);
+		UNPACK_VALUE(BASS_ERROR_NOPLAY);
+		UNPACK_VALUE(BASS_ERROR_FREQ);
+		UNPACK_VALUE(BASS_ERROR_NOTFILE);
+		UNPACK_VALUE(BASS_ERROR_NOHW);
+		UNPACK_VALUE(BASS_ERROR_EMPTY);
+		UNPACK_VALUE(BASS_ERROR_NONET);
+		UNPACK_VALUE(BASS_ERROR_CREATE);
+		UNPACK_VALUE(BASS_ERROR_NOFX);
+		UNPACK_VALUE(BASS_ERROR_NOTAVAIL);
+		UNPACK_VALUE(BASS_ERROR_DECODE);
+		UNPACK_VALUE(BASS_ERROR_DX);
+		UNPACK_VALUE(BASS_ERROR_TIMEOUT);
+		UNPACK_VALUE(BASS_ERROR_FILEFORM);
+		UNPACK_VALUE(BASS_ERROR_SPEAKER);
+		UNPACK_VALUE(BASS_ERROR_VERSION);
+		UNPACK_VALUE(BASS_ERROR_CODEC);
+		UNPACK_VALUE(BASS_ERROR_ENDED);
+		UNPACK_VALUE(BASS_ERROR_BUSY);
+		UNPACK_VALUE(BASS_ERROR_UNSTREAMABLE);
+		UNPACK_VALUE(BASS_ERROR_PROTOCOL);
+		UNPACK_VALUE(BASS_ERROR_DENIED);
+	default:
+		UNPACK_VALUE(BASS_ERROR_UNKNOWN);
+	};
+#undef UNPACK_VALUE
 }
 
 /*** Callbacks ****************************************************************/
@@ -258,6 +310,7 @@ std::wstring GetNameTag(LPCSTR string)
 bool BassDecoder::Load(std::wstring path) // use copy of path here
 {
 	Close();
+	DLog(L"BassDecoder::Load - \"{}\"", path);
 
 	if (path.compare(0, 4, L"icyx") == 0) {
 		// replace ICYX
@@ -289,25 +342,28 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 			m_stream = BASS_MusicLoad(false, (const void*)path.c_str(), 0, 0, BASS_MUSIC_DECODE | BASS_MUSIC_RAMP | BASS_MUSIC_POSRESET | BASS_MUSIC_PRESCAN | BASS_UNICODE, 0);
 		}
 	}
+	else if (m_isURL) {
+		m_stream = BASS_StreamCreateURL(
+			LPCSTR(path.c_str()), 0,
+			BASS_STREAM_BLOCK | BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS,
+			OnDownloadData, this
+		);
+	}
 	else {
-		if (m_isURL) {
-			m_stream = BASS_StreamCreateURL(
-				LPCSTR(path.c_str()), 0,
-				BASS_STREAM_BLOCK | BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS,
-				OnDownloadData, this
-			);
-			m_syncMeta = BASS_ChannelSetSync(m_stream, BASS_SYNC_META, 0, OnMetaData, this);
-			m_syncOggChange = BASS_ChannelSetSync(m_stream, BASS_SYNC_OGG_CHANGE, 0, OnMetaData, this);
-
-			m_isLiveStream = GetDuration() == 0;
-		}
-		else {
-			m_stream = BASS_StreamCreateFile(false, (const void*)path.c_str(), 0, 0, BASS_STREAM_DECODE | BASS_UNICODE);
-		}
+		m_stream = BASS_StreamCreateFile(false, (const void*)path.c_str(), 0, 0, BASS_STREAM_DECODE | BASS_UNICODE);
 	}
 
 	if (!m_stream) {
+		const int error_code = BASS_ErrorGetCode();
+		DLog(L"BassDecoder::Load - Opening the path failed with error = {}", BassErrorToStr(error_code));
 		return false;
+	}
+
+	if (m_isURL) {
+		m_syncMeta = BASS_ChannelSetSync(m_stream, BASS_SYNC_META, 0, OnMetaData, this);
+		m_syncOggChange = BASS_ChannelSetSync(m_stream, BASS_SYNC_OGG_CHANGE, 0, OnMetaData, this);
+
+		m_isLiveStream = GetDuration() == 0;
 	}
 
 	if (!GetStreamInfos()) {
@@ -315,7 +371,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		return false;
 	}
 
-	DLog(L"BassDecoder::Load() - '{}', {} Hz, {} ch, {}{}",
+	DLog(L"BassDecoder::Load - '{}', {} Hz, {} ch, {}{}",
 		GetBassTypeStr(m_ctype), m_sampleRate, m_channels, m_float ? L"Float" : L"Int", m_bytesPerSample*8);
 
 	ContentTags tags;
