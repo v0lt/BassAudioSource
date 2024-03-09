@@ -213,6 +213,10 @@ BassDecoder::~BassDecoder()
 {
 	Close();
 
+	for (auto& pliggin : m_pluggins) {
+		BASS_PluginFree(pliggin);
+	}
+
 	if (m_optimFROGDLL) {
 		FreeLibrary(m_optimFROGDLL);
 	}
@@ -265,8 +269,9 @@ void BassDecoder::LoadPlugins()
 	for (const auto pligin : BassPlugins) {
 		const std::wstring pluginPath = filterDir + pligin;
 		HPLUGIN hPlugin = BASS_PluginLoad(LPCSTR(pluginPath.c_str()), BASS_UNICODE);
-#ifdef _DEBUG
 		if (hPlugin) {
+			m_pluggins.emplace_back(hPlugin);
+#ifdef _DEBUG
 			std::wstring dbgstr = std::format(L"{}:\n", pligin);
 			const BASS_PLUGININFO* pPluginInfo = BASS_PluginGetInfo(hPlugin);
 			if (pPluginInfo) {
@@ -279,8 +284,8 @@ void BassDecoder::LoadPlugins()
 				}
 			}
 			DLog(dbgstr);
-		}
 #endif
+		}
 	}
 }
 
