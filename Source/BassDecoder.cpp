@@ -164,12 +164,19 @@ void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user)
 					decoder->m_shoutcastEvents->OnMetaDataCallback(&tags);
 				}
 			}
-			else if ((k1 = metaTags.find(L"TITLE=") != metaTags.npos) ||
-				(k1 = metaTags.find(L"Title=") != metaTags.npos) ||
-				(k1 = metaTags.find(L"title=") != metaTags.npos)) {
-				k1 += 6;
-				tags.Title = metaTags.substr(k1);
-				decoder->m_shoutcastEvents->OnMetaDataCallback(&tags);
+			else {
+				k1 = metaTags.find(L"TITLE=");
+				if (k1 == metaTags.npos) {
+					k1 = metaTags.find(L"Title=");
+					if (k1 == metaTags.npos) {
+						k1 = metaTags.find(L"title=");
+					}
+				}
+				if (k1 != metaTags.npos) {
+					k1 += 6;
+					tags.Title = metaTags.substr(k1);
+					decoder->m_shoutcastEvents->OnMetaDataCallback(&tags);
+				}
 			}
 		}
 		return;
@@ -464,11 +471,18 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 					tags.Title = metaTags.substr(k1, k2 - k1);
 				}
 			}
-			else if ((k1 = metaTags.find(L"TITLE=") != metaTags.npos) ||
-				(k1 = metaTags.find(L"Title=") != metaTags.npos) ||
-				(k1 = metaTags.find(L"title=") != metaTags.npos)) {
-				k1 += 6;
-				tags.Title = metaTags.substr(k1);
+			else {
+				k1 = metaTags.find(L"TITLE=");
+				if (k1 == metaTags.npos) {
+					k1 = metaTags.find(L"Title=");
+					if (k1 == metaTags.npos) {
+						k1 = metaTags.find(L"title=");
+					}
+				}
+				if (k1 != metaTags.npos) {
+					k1 += 6;
+					tags.Title = metaTags.substr(k1);
+				}
 			}
 		}
 	}
