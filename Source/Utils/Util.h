@@ -1,22 +1,22 @@
-/*
-* (C) 2020-2023 see Authors.txt
-*
-* This file is part of MPC-BE.
-*
-* MPC-BE is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 3 of the License, or
-* (at your option) any later version.
-*
-* MPC-BE is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*
-*/
+// Copyright (c) 2020-2024 v0lt, Aleksoid
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 #pragma once
 
@@ -42,11 +42,9 @@ inline void DebugLogFmt(std::wstring_view format, Args&& ...args)
 #ifdef _DEBUG
 #define DLog(...) DebugLogFmt(__VA_ARGS__)
 #define DLogIf(f,...) {if (f) DebugLogFmt(__VA_ARGS__);}
-#define DLogError(...) DebugLogFmt(LOG_ERROR, 3, __VA_ARGS__)
 #else
 #define DLog(...) __noop
 #define DLogIf(f,...) __noop
-#define DLogError(...) __noop
 #endif
 
 #define SAFE_RELEASE(p)      { if (p) { (p)->Release(); (p) = nullptr; } }
@@ -58,6 +56,27 @@ inline void DebugLogFmt(std::wstring_view format, Args&& ...args)
 #define ALIGN(x, a)           __ALIGN_MASK(x,(decltype(x))(a)-1)
 #define __ALIGN_MASK(x, mask) (((x)+(mask))&~(mask))
 
+// Media subtypes
+DEFINE_MEDIATYPE_GUID(MEDIASUBTYPE_Y8,        0x20203859);
+DEFINE_MEDIATYPE_GUID(MEDIASUBTYPE_Y800,      0x30303859);
+DEFINE_MEDIATYPE_GUID(MEDIASUBTYPE_Y16,       0x10003159); // Y1[0][16]
+DEFINE_MEDIATYPE_GUID(MEDIASUBTYPE_YV16,      0x36315659);
+DEFINE_MEDIATYPE_GUID(MEDIASUBTYPE_YV24,      0x34325659);
+DEFINE_MEDIATYPE_GUID(MEDIASUBTYPE_I420,      0x30323449); // from "wmcodecdsp.h"
+DEFINE_MEDIATYPE_GUID(MEDIASUBTYPE_Y42B,      0x42323459);
+DEFINE_MEDIATYPE_GUID(MEDIASUBTYPE_444P,      0x50343434);
+DEFINE_MEDIATYPE_GUID(MEDIASUBTYPE_Y210,      0x30313259);
+DEFINE_MEDIATYPE_GUID(MEDIASUBTYPE_Y216,      0x36313259);
+DEFINE_MEDIATYPE_GUID(MEDIASUBTYPE_Y410,      0x30313459);
+DEFINE_MEDIATYPE_GUID(MEDIASUBTYPE_Y416,      0x36313459);
+DEFINE_MEDIATYPE_GUID(MEDIASUBTYPE_YUV444P16, 0x10003359); // Y3[0][16]
+DEFINE_MEDIATYPE_GUID(MEDIASUBTYPE_RGB48,     0x30424752); // RGB[48] (RGB0)
+DEFINE_MEDIATYPE_GUID(MEDIASUBTYPE_BGR48,     0x30524742); // BGR[48] (BGR0)
+DEFINE_MEDIATYPE_GUID(MEDIASUBTYPE_BGRA64,    0x40415242); // BRA[64] (BRA@)
+DEFINE_MEDIATYPE_GUID(MEDIASUBTYPE_b48r,      0x72383462);
+DEFINE_MEDIATYPE_GUID(MEDIASUBTYPE_b64a,      0x61343662);
+DEFINE_MEDIATYPE_GUID(MEDIASUBTYPE_r210,      0x30313272);
+DEFINE_GUID(MEDIASUBTYPE_LAV_RAWVIDEO, 0xd80fa03c, 0x35c1, 0x4fa1, 0x8c, 0x8e, 0x37, 0x5c, 0x86, 0x67, 0x16, 0x6e);
 
 // non-standard values for Transfer Matrix
 #define VIDEOTRANSFERMATRIX_FCC     6
