@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <list>
 #include <string>
 #include <format>
 #include <filesystem>
