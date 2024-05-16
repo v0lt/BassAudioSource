@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2022-2023 v0lt
+ *  Copyright (C) 2022-2024 v0lt
  */
 
 #include "stdafx.h"
@@ -264,7 +264,9 @@ bool GetID3v2FramePicture(const ID3v2TagInfo& tagInfo, const ID3v2Frame& id3v2Fr
 			}
 		}
 		else {
-			p = DecodeString(encoding, p, end, resource.mime);
+			// For ID3v2.3 the mime type is ANSI string (see 4.15. Attached picture).
+			// For ID3v2.4 this should also work.
+			p = DecodeString(ID3v2Encoding::ISO8859, p, end, resource.mime);
 		}
 
 		if (p < end) {
