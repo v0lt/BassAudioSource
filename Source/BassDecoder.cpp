@@ -375,16 +375,16 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		return false;
 	}
 
+	if (!GetStreamInfos()) {
+		Close();
+		return false;
+	}
+
 	if (m_isURL) {
 		m_syncMeta = BASS_ChannelSetSync(m_stream, BASS_SYNC_META, 0, OnMetaData, this);
 		m_syncOggChange = BASS_ChannelSetSync(m_stream, BASS_SYNC_OGG_CHANGE, 0, OnMetaData, this);
 
-		m_isLiveStream = GetDuration() == 0;
-	}
-
-	if (!GetStreamInfos()) {
-		Close();
-		return false;
+		m_isLiveStream = (GetDuration() == 0);
 	}
 
 	DLog(L"BassDecoder::Load - '{}', {} Hz, {} ch, {}{}",
@@ -532,7 +532,7 @@ void BassDecoder::Close()
 	m_sampleRate = 0;
 	m_bytesPerSample = 0;
 	m_float = false;
-	m_mSecConv = 0;
+	m_bytesPerSecond = 0;
 	m_ctype = 0;
 
 	m_isMOD  = false;
@@ -577,9 +577,9 @@ bool BassDecoder::GetStreamInfos()
 		m_bytesPerSample = 2;
 	}
 
-	m_mSecConv = m_sampleRate * m_channels * m_bytesPerSample;
+	m_bytesPerSecond = m_sampleRate * m_channels * m_bytesPerSample;
 
-	if (m_mSecConv == 0) {
+	if (m_bytesPerSecond == 0) {
 		return false;
 	}
 
@@ -588,43 +588,36 @@ bool BassDecoder::GetStreamInfos()
 
 LONGLONG BassDecoder::GetDuration()
 {
-	if (m_mSecConv == 0) {
-		return 0;
-	}
 	if (!m_stream) {
 		return 0;
 	}
 
-	// bytes = samplerate * channel * bytes_per_second
-	// msecs = (bytes * 1000) / (samplerate * channels * bytes_per_second)
+	QWORD len = BASS_ChannelGetLength(m_stream, BASS_POS_BYTE);
+	double time = BASS_ChannelBytes2Seconds(m_stream, len);
 
-	return BASS_ChannelGetLength(m_stream, BASS_POS_BYTE) * 1000 / m_mSecConv;
+	return (LONGLONG)(time * 1000);
 }
 
 LONGLONG BassDecoder::GetPosition()
 {
-	if (m_mSecConv == 0) {
-		return 0;
-	}
 	if (!m_stream) {
 		return 0;
 	}
 
-	return BASS_ChannelGetPosition(m_stream, BASS_POS_BYTE) * 1000 / m_mSecConv;
+	QWORD len = BASS_ChannelGetLength(m_stream, BASS_POS_BYTE);
+	double time = BASS_ChannelBytes2Seconds(m_stream, len);
+
+	return (LONGLONG)(time * 1000);
 }
 
 void BassDecoder::SetPosition(LONGLONG positionMS)
 {
-	LONGLONG pos;
-
-	if (m_mSecConv == 0) {
-		return;
-	}
 	if (!m_stream) {
 		return;
 	}
 
-	pos = LONGLONG(positionMS * m_mSecConv) / 1000L;
+	double time = (double)positionMS / 1000;
+	QWORD len = BASS_ChannelSeconds2Bytes(m_stream, time);
 
-	BASS_ChannelSetPosition(m_stream, pos, BASS_POS_BYTE);
+	BASS_ChannelSetPosition(m_stream, len, BASS_POS_BYTE);
 }

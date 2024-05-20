@@ -59,7 +59,7 @@ protected:
 	int m_sampleRate = 0;
 	int m_bytesPerSample = 0;
 	bool m_float = false;
-	LONGLONG m_mSecConv = 0;
+	int m_bytesPerSecond = 0;
 
 	DWORD m_ctype = 0;
 
@@ -90,8 +90,8 @@ public:
 	inline int GetChannels()       { return m_channels; }
 	inline int GetSampleRate()     { return m_sampleRate; }
 	inline int GetBytesPerSample() { return m_bytesPerSample; }
+	inline int GetBytesPerSecond() { return m_bytesPerSecond; }
 	inline bool GetFloat()         { return m_float; }
-	inline LONGLONG GetMSecConv()  { return m_mSecConv; }
 	inline bool GetIsLiveStream()  { return m_isLiveStream; }
 
 	friend void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user);

@@ -116,10 +116,7 @@ HRESULT BassSourceStream::DecideBufferSize(IMemAllocator* pAlloc, ALLOCATOR_PROP
 
 HRESULT BassSourceStream::FillBuffer(IMediaSample* pSamp)
 {
-	BYTE* buffer;
 	int received = 0;
-	REFERENCE_TIME timeStart, timeStop;
-	LONGLONG sampleTime;
 	HRESULT result = S_OK;
 
 	m_lock->Lock();
@@ -129,6 +126,7 @@ HRESULT BassSourceStream::FillBuffer(IMediaSample* pSamp)
 			result = S_FALSE;
 		}
 		else {
+			BYTE* buffer;
 			pSamp->GetPointer(&buffer);
 			received = m_decoder->GetData(buffer, BASS_BLOCK_SIZE);
 
@@ -143,18 +141,13 @@ HRESULT BassSourceStream::FillBuffer(IMediaSample* pSamp)
 			}
 		}
 		if (SUCCEEDED(result)) {
-			if (m_decoder->GetMSecConv() > 0) {
-				sampleTime = (LONGLONG(received) * 1000LL * 10000LL) / m_decoder->GetMSecConv();
-			}
-			else {
-				sampleTime = 1024LL; // Dummy Value .. should never happen though ...
-			}
+			REFERENCE_TIME sampleTime = (LONGLONG)received * UNITS / m_decoder->GetBytesPerSecond();
 
 			pSamp->SetActualDataLength(received);
 
-			timeStart = m_sampleTime;
+			REFERENCE_TIME timeStart = m_sampleTime;
 			m_sampleTime += sampleTime;
-			timeStop = m_sampleTime;
+			REFERENCE_TIME timeStop = m_sampleTime;
 			pSamp->SetTime(&timeStart, &timeStop);
 
 			timeStart = m_mediaTime;
@@ -429,11 +422,11 @@ STDMETHODIMP BassSourceStream::ConvertTimeFormat(LONGLONG* pTarget, const GUID* 
 
 STDMETHODIMP BassSourceStream::SetPositions(LONGLONG* pCurrent, DWORD dwCurrentFlags, LONGLONG* pStop, DWORD dwStopFlags)
 {
-	DWORD stopPosBits;
-	DWORD startPosBits;
-	CheckPointer(pCurrent, E_POINTER); CheckPointer(pStop, E_POINTER);
-	stopPosBits = dwStopFlags & AM_SEEKING_PositioningBitsMask;
-	startPosBits = dwCurrentFlags & AM_SEEKING_PositioningBitsMask;
+	CheckPointer(pCurrent, E_POINTER);
+	CheckPointer(pStop, E_POINTER);
+
+	DWORD stopPosBits = dwStopFlags & AM_SEEKING_PositioningBitsMask;
+	DWORD startPosBits = dwCurrentFlags & AM_SEEKING_PositioningBitsMask;
 
 	if (dwStopFlags > 0) {
 		if (stopPosBits != dwStopFlags) {
