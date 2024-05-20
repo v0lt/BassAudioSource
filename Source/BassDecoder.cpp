@@ -238,8 +238,6 @@ void BassDecoder::LoadBASS()
 	BASS_SetConfigPtr(BASS_CONFIG_NET_AGENT, LABEL_BassAudioSource);
 
 	BASS_SetConfig(BASS_CONFIG_MF_VIDEO, FALSE);
-	BASS_SetConfig(BASS_CONFIG_MP4_VIDEO, FALSE);
-	BASS_SetConfig(BASS_CONFIG_WMA_VIDEO, FALSE);
 }
 
 void BassDecoder::UnloadBASS()
@@ -297,6 +295,9 @@ void BassDecoder::LoadPlugins()
 #endif
 		}
 	}
+
+	BASS_SetConfig(BASS_CONFIG_MP4_VIDEO, FALSE);
+	BASS_SetConfig(BASS_CONFIG_WMA_VIDEO, FALSE);
 }
 
 std::wstring GetNameTag(LPCSTR string)
