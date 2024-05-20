@@ -73,9 +73,9 @@ protected:
 
 	bool GetStreamInfos();
 public:
-	LONGLONG GetDuration();
-	LONGLONG GetPosition();
-	void SetPosition(LONGLONG positionMS);
+	REFERENCE_TIME GetDuration();
+	REFERENCE_TIME GetPosition();
+	void SetPosition(REFERENCE_TIME refTime);
 
 public:
 	BassDecoder(ShoutcastEvents* shoutcastEvents, Settings_t& sets);

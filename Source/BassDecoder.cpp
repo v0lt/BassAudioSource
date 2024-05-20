@@ -586,37 +586,41 @@ bool BassDecoder::GetStreamInfos()
 	return true;
 }
 
-LONGLONG BassDecoder::GetDuration()
+REFERENCE_TIME BassDecoder::GetDuration()
 {
 	if (!m_stream) {
 		return 0;
 	}
 
 	QWORD len = BASS_ChannelGetLength(m_stream, BASS_POS_BYTE);
+	if (len == QWORD(-1)) {
+		return 0;
+	}
 	double time = BASS_ChannelBytes2Seconds(m_stream, len);
 
-	return (LONGLONG)(time * 1000);
+	return (REFERENCE_TIME)(time * UNITS);
 }
 
-LONGLONG BassDecoder::GetPosition()
+REFERENCE_TIME BassDecoder::GetPosition()
 {
 	if (!m_stream) {
 		return 0;
 	}
 
-	QWORD len = BASS_ChannelGetLength(m_stream, BASS_POS_BYTE);
+	QWORD len = BASS_ChannelGetPosition(m_stream, BASS_POS_BYTE);
+	ASSERT(len != QWORD(-1));
 	double time = BASS_ChannelBytes2Seconds(m_stream, len);
 
-	return (LONGLONG)(time * 1000);
+	return (REFERENCE_TIME)(time * UNITS);
 }
 
-void BassDecoder::SetPosition(LONGLONG positionMS)
+void BassDecoder::SetPosition(REFERENCE_TIME refTime)
 {
 	if (!m_stream) {
 		return;
 	}
 
-	double time = (double)positionMS / 1000;
+	double time = (double)refTime / UNITS;
 	QWORD len = BASS_ChannelSeconds2Bytes(m_stream, time);
 
 	BASS_ChannelSetPosition(m_stream, len, BASS_POS_BYTE);

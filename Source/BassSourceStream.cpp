@@ -48,10 +48,10 @@ BassSourceStream::BassSourceStream(
 	m_seekingCaps = AM_SEEKING_CanSeekForwards | AM_SEEKING_CanSeekBackwards |
 		AM_SEEKING_CanSeekAbsolute | AM_SEEKING_CanGetStopPos | AM_SEEKING_CanGetDuration;
 
-	m_stop = m_decoder->GetDuration() * MSEC_REFTIME_FACTOR;
+	m_stop = m_decoder->GetDuration();
 	// If Duration = 0 then it's most likely a Shoutcast Stream
 	if (m_stop == 0) {
-		m_stop = MSEC_REFTIME_FACTOR * 50;
+		m_stop = 50 * (UNITS / MILLISECONDS);
 	}
 	m_duration = m_stop;
 }
@@ -286,12 +286,12 @@ void BassSourceStream::UpdateFromSeek()
 	if (ThreadExists()) {
 		DeliverBeginFlush();
 		Stop();
-		m_decoder->SetPosition(m_start / MSEC_REFTIME_FACTOR);
+		m_decoder->SetPosition(m_start);
 		DeliverEndFlush();
 		Run();
 	}
 	else {
-		m_decoder->SetPosition(m_start / MSEC_REFTIME_FACTOR);
+		m_decoder->SetPosition(m_start);
 	}
 }
 

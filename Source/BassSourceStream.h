@@ -25,7 +25,6 @@
 #include "BassDecoder.h"
 
 #define BASS_BLOCK_SIZE               2048
-#define MSEC_REFTIME_FACTOR           10000
 
 
 class BassSourceStream : public CSourceStream, public IMediaSeeking
