@@ -359,6 +359,9 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		}
 	}
 	else if (m_isURL) {
+		// disable Media Foundation because navigation for M4A (HTTP, YouTube) does not work
+		BASS_SetConfig(BASS_CONFIG_MF_DISABLE, TRUE);
+
 		m_stream = BASS_StreamCreateURL(
 			LPCSTR(path.c_str()), 0,
 			BASS_STREAM_BLOCK | BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS,
