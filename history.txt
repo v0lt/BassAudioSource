@@ -4,6 +4,11 @@ Bass Audio Source
 ----------------------
 Added support for playing MIDI files (.midi, .mid, .rmi, .kar). The user must specify the path to the SoundFont file (.sf2, .sfz) in the "MIDI_SoundFontDefault" setting.
 Removed "BufferSizeMS" option.
+Fixed a crash when going to the next URL.
+Fixed ignoring MP4 and WMA video files.
+Disabled the use of Media Foundation for URLs because navigation on MP4 files does not work.
+Updated BASS components:
+  basswv.dll 2.4.7.4.
 
 
 0.2.2.145 - 2023-12-17
