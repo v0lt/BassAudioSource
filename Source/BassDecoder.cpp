@@ -233,11 +233,11 @@ BassDecoder::~BassDecoder()
 
 void BassDecoder::LoadBASS()
 {
-	BASS_Init(0, 44100, 0, GetDesktopWindow(), nullptr);
+	EXECUTE_ASSERT(BASS_Init(0, 44100, 0, GetDesktopWindow(), nullptr));
 
-	BASS_SetConfigPtr(BASS_CONFIG_NET_AGENT, LABEL_BassAudioSource);
+	EXECUTE_ASSERT(BASS_SetConfigPtr(BASS_CONFIG_NET_AGENT, LABEL_BassAudioSource));
 
-	BASS_SetConfig(BASS_CONFIG_MF_VIDEO, FALSE);
+	EXECUTE_ASSERT(BASS_SetConfig(BASS_CONFIG_MF_VIDEO, FALSE));
 }
 
 void BassDecoder::UnloadBASS()
@@ -296,8 +296,8 @@ void BassDecoder::LoadPlugins()
 		}
 	}
 
-	BASS_SetConfig(BASS_CONFIG_MP4_VIDEO, FALSE);
-	BASS_SetConfig(BASS_CONFIG_WMA_VIDEO, FALSE);
+	EXECUTE_ASSERT(BASS_SetConfig(BASS_CONFIG_MP4_VIDEO, FALSE));
+	EXECUTE_ASSERT(BASS_SetConfig(BASS_CONFIG_WMA_VIDEO, FALSE));
 }
 
 std::wstring GetNameTag(LPCSTR string)
@@ -360,7 +360,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 	}
 	else if (m_isURL) {
 		// disable Media Foundation because navigation for M4A (HTTP, YouTube) does not work
-		BASS_SetConfig(BASS_CONFIG_MF_DISABLE, TRUE);
+		EXECUTE_ASSERT(BASS_SetConfig(BASS_CONFIG_MF_DISABLE, TRUE));
 
 		m_stream = BASS_StreamCreateURL(
 			LPCSTR(path.c_str()), 0,
