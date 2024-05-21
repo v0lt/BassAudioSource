@@ -596,9 +596,11 @@ REFERENCE_TIME BassDecoder::GetDuration()
 	if (len == QWORD(-1)) {
 		return 0;
 	}
-	double time = BASS_ChannelBytes2Seconds(m_stream, len);
 
-	return (REFERENCE_TIME)(time * UNITS);
+	//REFERENCE_TIME time = (REFERENCE_TIME)(BASS_ChannelBytes2Seconds(m_stream, len) * UNITS);
+	REFERENCE_TIME time = Int64x32Div32(len, UNITS, m_bytesPerSecond, 0);
+
+	return time;
 }
 
 REFERENCE_TIME BassDecoder::GetPosition()
@@ -609,9 +611,11 @@ REFERENCE_TIME BassDecoder::GetPosition()
 
 	QWORD len = BASS_ChannelGetPosition(m_stream, BASS_POS_BYTE);
 	ASSERT(len != QWORD(-1));
-	double time = BASS_ChannelBytes2Seconds(m_stream, len);
 
-	return (REFERENCE_TIME)(time * UNITS);
+	//REFERENCE_TIME time = (REFERENCE_TIME)(BASS_ChannelBytes2Seconds(m_stream, len) * UNITS);
+	REFERENCE_TIME time = Int64x32Div32(len, UNITS, m_bytesPerSecond, 0);
+
+	return time;
 }
 
 void BassDecoder::SetPosition(REFERENCE_TIME refTime)
@@ -620,8 +624,8 @@ void BassDecoder::SetPosition(REFERENCE_TIME refTime)
 		return;
 	}
 
-	double time = (double)refTime / UNITS;
-	QWORD len = BASS_ChannelSeconds2Bytes(m_stream, time);
+	//QWORD len = BASS_ChannelSeconds2Bytes(m_stream, (double)refTime / UNITS);
+	QWORD len = Int64x32Div32(refTime, m_bytesPerSecond, UNITS, 0);
 
 	BASS_ChannelSetPosition(m_stream, len, BASS_POS_BYTE);
 }
