@@ -137,6 +137,7 @@ void BassDecoder::LoadBASS()
 	EXECUTE_ASSERT(BASS_SetConfigPtr(BASS_CONFIG_NET_AGENT, LABEL_BassAudioSource));
 
 	EXECUTE_ASSERT(BASS_SetConfig(BASS_CONFIG_MF_VIDEO, FALSE));
+	//EXECUTE_ASSERT(BASS_SetConfig(BASS_CONFIG_MF_DISABLE, TRUE));
 }
 
 void BassDecoder::UnloadBASS()
@@ -270,7 +271,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		m_stream = BASS_MusicLoad(false, (const void*)path.c_str(), 0, 0, BASS_MUSIC_DECODE | BASS_MUSIC_RAMP | BASS_MUSIC_POSRESET | BASS_MUSIC_PRESCAN | BASS_UNICODE, 0);
 	}
 	else if (m_pathType & PATH_TYPE_URL) {
-		// disable Media Foundation because navigation for M4A (HTTP, YouTube) does not work
+		// disable Media Foundation because navigation for M4A DASH (YouTube) does not work
 		EXECUTE_ASSERT(BASS_SetConfig(BASS_CONFIG_MF_DISABLE, TRUE));
 
 		m_stream = BASS_StreamCreateURL(
