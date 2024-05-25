@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2022 v0lt
+ *  Copyright (C) 2022-2024 v0lt
  *  Based on the following code:
  *  DC-Bass Source filter - http://www.dsp-worx.de/index.php?n=15
  *  DC-Bass Source Filter C++ porting - https://github.com/frafv/DCBassSource
@@ -23,6 +23,8 @@
 #pragma once
 
 #include "ID3v2Tag.h"
+
+const wchar_t* BassErrorToStr(const int er);
 
 LPCWSTR GetBassTypeStr(const DWORD ctype);
 

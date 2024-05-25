@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2022-2023 v0lt
+ *  Copyright (C) 2022-2024 v0lt
  *  Based on the following code:
  *  DC-Bass Source filter - http://www.dsp-worx.de/index.php?n=15
  *  DC-Bass Source Filter C++ porting - https://github.com/frafv/DCBassSource
@@ -25,10 +25,12 @@
 #include "BassSource.h"
 #include "PropPage.h"
 #include <MMReg.h>
+#include "Helper.h"
 #include "Utils/Util.h"
 #include "Utils/StringUtil.h"
 
 #define OPT_REGKEY_BassAudioSource L"Software\\MPC-BE Filters\\BassAudioSource"
+#define OPT_MidiEnable             L"MIDI_Enable"
 #define OPT_MidiSoundFontDefault   L"MIDI_SoundFontDefault"
 
 volatile LONG InstanceCount = 0;
@@ -126,14 +128,12 @@ void BassSource::LoadSettings()
 
 	LSTATUS lRes = RegOpenKeyW(HKEY_CURRENT_USER, OPT_REGKEY_BassAudioSource, &key);
 	if (lRes == ERROR_SUCCESS) {
-		/*
 		DWORD dwValue;
 		nBytes = sizeof(DWORD);
-		lRes = ::RegQueryValueExW(key, OPT_BufferSizeMS, nullptr, &dwType, reinterpret_cast<LPBYTE>(&dwValue), &nBytes);
+		lRes = ::RegQueryValueExW(key, OPT_MidiEnable, nullptr, &dwType, reinterpret_cast<LPBYTE>(&dwValue), &nBytes);
 		if (lRes == ERROR_SUCCESS && dwType == REG_DWORD) {
-			m_Sets.iBuffersizeMS = std::clamp<int>(dwValue, PREBUFFER_MIN_SIZE, PREBUFFER_MAX_SIZE);
+			m_Sets.bMidiEnable = !!dwValue;
 		}
-		*/
 
 		lRes = ::RegQueryValueExW(key, OPT_MidiSoundFontDefault, nullptr, &dwType, nullptr, &nBytes);
 		if (lRes == ERROR_SUCCESS && dwType == REG_SZ) {
@@ -144,24 +144,6 @@ void BassSource::LoadSettings()
 				m_Sets.sMidiSoundFontDefault = str;
 			}
 		}
-
-		RegCloseKey(key);
-	}
-}
-
-void BassSource::SaveSettings()
-{
-	HKEY key;
-
-	LSTATUS lRes = RegCreateKeyW(HKEY_CURRENT_USER, OPT_REGKEY_BassAudioSource, &key);
-	if (lRes == ERROR_SUCCESS) {
-		/*
-		DWORD dwValue = m_Sets.iBuffersizeMS;
-		lRes = ::RegSetValueExW(key, OPT_BufferSizeMS, 0, REG_DWORD, reinterpret_cast<const BYTE*>(&dwValue), sizeof(DWORD));
-		*/
-
-		std::wstring str(m_Sets.sMidiSoundFontDefault);
-		lRes = ::RegSetValueExW(key, OPT_MidiSoundFontDefault, 0, REG_SZ, reinterpret_cast<const BYTE*>(str.c_str()), (DWORD)(str.size()+1));
 
 		RegCloseKey(key);
 	}
@@ -212,28 +194,6 @@ STDMETHODIMP BassSource::NonDelegatingQueryInterface(REFIID iid, void** ppv)
 	}
 }
 
-// simple file system path detector
-bool IsLikelyFilePath(const std::wstring_view str)
-{
-	if (str.size() >= 4) {
-		auto s = str.data();
-
-		// local file path
-		if (s[1] == ':' && s[2] == '\\' &&
-			(s[0] >= 'A' && s[0] <= 'Z' || s[0] >= 'a' && s[0] <= 'z')) {
-			return true;
-		}
-
-		// net file path
-		if (str.size() >= 7 && s[0] == '\\' && s[1] == '\\' &&
-			(s[2] == '-' || s[2] >= '0' && s[2] <= '9' || s[2] >= 'A' && s[2] <= 'Z' || s[2] >= 'a' && s[2] <= 'z')) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
 // IFileSourceFilter
 
 STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
@@ -247,7 +207,6 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 	static LPCSTR bass_exts[] = {
 		// bass.dll
 		"mp3", "mp2", "mp1", "ogg", "oga", "wav", "aif", "aiff",
-		"it", "mod", "mptm", "mtm", "s3m", "umx", "xm", "mo3",
 		// bass_aac.dll
 		"aac", "m4a",
 		// bass_mpc.dll
@@ -276,44 +235,72 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 		"ahx", "ay", "gbs", "nsf", "pt2", "pt3",
 		"sap", "sid", "spc", "stc",
 		"v2m", "vgm", "vgz", "vtx", "ym",
+	};
+	static LPCSTR bass_mod_exts[] = {
+		// bass.dll
+		"it", "mod", "mptm", "mtm", "s3m", "umx", "xm", "mo3",
+	};
+	static LPCSTR bass_midi_exts[] = {
 		// bassmidi.dll
 		"midi", "mid", "rmi", "kar",
 	};
 
+	m_filePath = pszFileName;
+	UINT path_type = PATH_TYPE_UNKNOWN;
+
 	if (IsLikelyFilePath(pszFileName)) {
 		std::wstring wext = std::filesystem::path(pszFileName).extension();
-		str_tolower(wext);
 
-		if (wext.size() <= 1) {
+		if (wext.size() <= 1 || wext.size() > 8) {
 			return VFW_E_CANNOT_LOAD_SOURCE_FILTER;
 		}
 
 		ASSERT(wext[0] == L'.');
 		wext.erase(0, 1);
 		std::string ext = ConvertWideToANSI(wext);
+		str_tolower(ext);
 
-		size_t i = 0;
-		for (; i < std::size(bass_exts); i++) {
-			if (ext.compare(bass_exts[i]) == 0) {
+		for (const auto& bass_ext : bass_exts) {
+			if (ext.compare(bass_ext) == 0) {
+				path_type = PATH_TYPE_REGULAR;
 				break;
 			}
 		}
-
-		if (i == std::size(bass_exts)) {
-			return VFW_E_CANNOT_LOAD_SOURCE_FILTER;
+		if (!path_type) {
+			for (const auto& bass_ext : bass_mod_exts) {
+				if (ext.compare(bass_ext) == 0) {
+					path_type = PATH_TYPE_MOD;
+					break;
+				}
+			}
 		}
+		if (!path_type && m_Sets.bMidiEnable) {
+			for (const auto& bass_ext : bass_midi_exts) {
+				if (ext.compare(bass_ext) == 0) {
+					path_type = PATH_TYPE_MIDI;
+					break;
+				}
+			}
+		}
+	}
+	else if (m_filePath.starts_with(L"http://")
+			|| m_filePath.starts_with(L"https://")
+			|| m_filePath.starts_with(L"ftp://")) {
+		path_type = PATH_TYPE_URL;
+	}
+
+	if (!path_type) {
+		return VFW_E_CANNOT_LOAD_SOURCE_FILTER;
 	}
 
 	HRESULT hr;
-	m_pin = new BassSourceStream(L"Bass Source Stream", hr, this, L"Output", pszFileName, this, m_Sets);
+	m_pin = new BassSourceStream(L"Bass Source Stream", hr, this, L"Output", m_filePath.c_str(), this, path_type, m_Sets);
 	if (FAILED(hr) || !m_pin) {
 		return hr;
 	}
 
-	m_fileName = pszFileName;
-
 	if (!m_pin->m_decoder->GetIsLiveStream() && m_Tags.Empty()) {
-		m_Tags.Title = std::filesystem::path(m_fileName).filename();
+		m_Tags.Title = std::filesystem::path(m_filePath).filename();
 	}
 
 	return S_OK;
@@ -323,7 +310,7 @@ STDMETHODIMP BassSource::GetCurFile(LPOLESTR* ppszFileName, AM_MEDIA_TYPE* pmt)
 {
 	CheckPointer(ppszFileName, E_POINTER);
 
-	return AMGetWideString(m_fileName.c_str(), ppszFileName);
+	return AMGetWideString(m_filePath.c_str(), ppszFileName);
 }
 
 /*
@@ -469,6 +456,35 @@ STDMETHODIMP BassSource::GetPages(CAUUID* pPages)
 STDMETHODIMP_(bool) BassSource::GetActive()
 {
 	return (GetPinCount() > 0);
+}
+
+STDMETHODIMP_(void) BassSource::GetSettings(Settings_t& setings)
+{
+	setings = m_Sets;
+}
+
+STDMETHODIMP_(void) BassSource::SetSettings(const Settings_t setings)
+{
+	m_Sets = setings;
+}
+
+STDMETHODIMP BassSource::SaveSettings()
+{
+	HKEY key;
+
+	LSTATUS lRes = RegCreateKeyW(HKEY_CURRENT_USER, OPT_REGKEY_BassAudioSource, &key);
+	if (lRes == ERROR_SUCCESS) {
+
+		DWORD dwValue = m_Sets.bMidiEnable;
+		lRes = ::RegSetValueExW(key, OPT_MidiEnable, 0, REG_DWORD, reinterpret_cast<const BYTE*>(&dwValue), sizeof(DWORD));
+
+		std::wstring str(m_Sets.sMidiSoundFontDefault);
+		lRes = ::RegSetValueExW(key, OPT_MidiSoundFontDefault, 0, REG_SZ, reinterpret_cast<const BYTE*>(str.c_str()), (DWORD)(str.size() + 1) * sizeof(wchar_t));
+
+		RegCloseKey(key);
+	}
+
+	return S_OK;
 }
 
 STDMETHODIMP BassSource::GetInfo(std::wstring& str)

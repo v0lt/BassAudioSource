@@ -27,6 +27,12 @@
 #include "BassHelper.h"
 #include "IBassSource.h"
 
+#define PATH_TYPE_UNKNOWN  0
+#define PATH_TYPE_REGULAR  1
+#define PATH_TYPE_MOD      2
+#define PATH_TYPE_MIDI     3
+#define PATH_TYPE_URL      0x10000
+
 class ShoutcastEvents
 {
 public:
@@ -43,16 +49,14 @@ protected:
 	//Use shoutcastEvents instead of FMetaDataCallback and FBufferCallback
 	ShoutcastEvents* m_shoutcastEvents;
 
-	const std::wstring m_midiSoundFontDefault;
+	const UINT m_pathType;
+	std::wstring m_midiSoundFontDefault;
 
 	HMODULE m_optimFROGDLL = nullptr;
 	HSTREAM m_stream = 0;
 	HSOUNDFONT m_soundFont = 0;
 	HSYNC m_syncMeta = 0;
 	HSYNC m_syncOggChange = 0;
-	bool m_isMOD  = false;
-	bool m_isMIDI = false;
-	bool m_isURL  = false;
 	bool m_isLiveStream = false;
 
 	int m_channels = 0;
@@ -78,7 +82,7 @@ public:
 	void SetPosition(REFERENCE_TIME refTime);
 
 public:
-	BassDecoder(ShoutcastEvents* shoutcastEvents, Settings_t& sets);
+	BassDecoder(ShoutcastEvents* shoutcastEvents, UINT pathType, Settings_t& sets);
 	~BassDecoder();
 
 	bool Load(std::wstring path);

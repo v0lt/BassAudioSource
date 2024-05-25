@@ -30,7 +30,7 @@
 
 BassSourceStream::BassSourceStream(
 	LPCWSTR objectName, HRESULT& hr, CSource* filter, LPCWSTR name,
-	LPCWSTR filename, ShoutcastEvents* shoutcastEvents, Settings_t& sets
+	LPCWSTR filename, ShoutcastEvents* shoutcastEvents, UINT pathType, Settings_t& sets
 )
 	: CSourceStream(objectName, &hr, filter, name)
 {
@@ -38,7 +38,7 @@ BassSourceStream::BassSourceStream(
 		return;
 	}
 
-	m_decoder = new BassDecoder(shoutcastEvents, sets);
+	m_decoder = new BassDecoder(shoutcastEvents, pathType, sets);
 	if (!m_decoder->Load(filename)) {
 		hr = E_FAIL;
 		return;

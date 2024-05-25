@@ -26,115 +26,9 @@
 #include <../Include/bass_aac.h>
 #include <../Include/bassflac.h>
 #include <../Include/basswma.h>
+#include "Helper.h"
 #include "Utils/Util.h"
 #include "Utils/StringUtil.h"
-#include "dllmain.h"
-
-/*** Utilities ****************************************************************/
-
-std::wstring GetFilterDirectory()
-{
-	std::wstring path(MAX_PATH + 1, '\0');
-
-	DWORD res = GetModuleFileNameW(HInstance, path.data(), (DWORD)(path.size()-1));
-	if (res) {
-		path.resize(path.rfind('\\', res) + 1);
-	}
-	else {
-		path.clear();
-	}
-
-	return path;
-}
-
-bool IsMODFile(const std::wstring_view& path)
-{
-	static LPCWSTR mod_exts[] = { L".it", L".mo3", L".mod", L".mptm", L".mtm", L".s3m", L".umx", L".xm"};
-
-	auto ext = std::filesystem::path(path).extension();
-
-	for (const auto& mod_ext : mod_exts) {
-		if (lstrcmpiW(mod_ext, ext.c_str()) == 0) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-bool IsMIDIFile(const std::wstring_view& path)
-{
-	static LPCWSTR midi_exts[] = { L".midi", L".mid", L".rmi", L".kar" };
-
-	auto ext = std::filesystem::path(path).extension();
-
-	for (const auto& midi_ext : midi_exts) {
-		if (lstrcmpiW(midi_ext, ext.c_str()) == 0) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-bool IsURLPath(const std::wstring_view& path)
-{
-	return path.compare(0, 7, L"http://") == 0
-		|| path.compare(0, 8, L"https://") == 0
-		|| path.compare(0, 6, L"ftp://") == 0;
-}
-
-
-const wchar_t* BassErrorToStr(const int er)
-{
-#define UNPACK_VALUE(VALUE) case VALUE: return L#VALUE;
-	switch (er) {
-		UNPACK_VALUE(BASS_OK);
-		UNPACK_VALUE(BASS_ERROR_MEM);
-		UNPACK_VALUE(BASS_ERROR_FILEOPEN);
-		UNPACK_VALUE(BASS_ERROR_DRIVER);
-		UNPACK_VALUE(BASS_ERROR_BUFLOST);
-		UNPACK_VALUE(BASS_ERROR_HANDLE);
-		UNPACK_VALUE(BASS_ERROR_FORMAT);
-		UNPACK_VALUE(BASS_ERROR_POSITION);
-		UNPACK_VALUE(BASS_ERROR_INIT);
-		UNPACK_VALUE(BASS_ERROR_START);
-		UNPACK_VALUE(BASS_ERROR_SSL);
-		UNPACK_VALUE(BASS_ERROR_REINIT);
-		UNPACK_VALUE(BASS_ERROR_ALREADY);
-		UNPACK_VALUE(BASS_ERROR_NOTAUDIO);
-		UNPACK_VALUE(BASS_ERROR_NOCHAN);
-		UNPACK_VALUE(BASS_ERROR_ILLTYPE);
-		UNPACK_VALUE(BASS_ERROR_ILLPARAM);
-		UNPACK_VALUE(BASS_ERROR_NO3D);
-		UNPACK_VALUE(BASS_ERROR_NOEAX);
-		UNPACK_VALUE(BASS_ERROR_DEVICE);
-		UNPACK_VALUE(BASS_ERROR_NOPLAY);
-		UNPACK_VALUE(BASS_ERROR_FREQ);
-		UNPACK_VALUE(BASS_ERROR_NOTFILE);
-		UNPACK_VALUE(BASS_ERROR_NOHW);
-		UNPACK_VALUE(BASS_ERROR_EMPTY);
-		UNPACK_VALUE(BASS_ERROR_NONET);
-		UNPACK_VALUE(BASS_ERROR_CREATE);
-		UNPACK_VALUE(BASS_ERROR_NOFX);
-		UNPACK_VALUE(BASS_ERROR_NOTAVAIL);
-		UNPACK_VALUE(BASS_ERROR_DECODE);
-		UNPACK_VALUE(BASS_ERROR_DX);
-		UNPACK_VALUE(BASS_ERROR_TIMEOUT);
-		UNPACK_VALUE(BASS_ERROR_FILEFORM);
-		UNPACK_VALUE(BASS_ERROR_SPEAKER);
-		UNPACK_VALUE(BASS_ERROR_VERSION);
-		UNPACK_VALUE(BASS_ERROR_CODEC);
-		UNPACK_VALUE(BASS_ERROR_ENDED);
-		UNPACK_VALUE(BASS_ERROR_BUSY);
-		UNPACK_VALUE(BASS_ERROR_UNSTREAMABLE);
-		UNPACK_VALUE(BASS_ERROR_PROTOCOL);
-		UNPACK_VALUE(BASS_ERROR_DENIED);
-	default:
-		UNPACK_VALUE(BASS_ERROR_UNKNOWN);
-	};
-#undef UNPACK_VALUE
-}
 
 /*** Callbacks ****************************************************************/
 
@@ -205,12 +99,17 @@ void CALLBACK OnDownloadData(const void* buffer, DWORD length, void* user)
 // BassDecoder
 //
 
-BassDecoder::BassDecoder(ShoutcastEvents* shoutcastEvents, Settings_t& sets)
+BassDecoder::BassDecoder(ShoutcastEvents* shoutcastEvents, UINT pathType, Settings_t& sets)
 	: m_shoutcastEvents(shoutcastEvents)
+	, m_pathType(pathType)
 	, m_midiSoundFontDefault(sets.sMidiSoundFontDefault)
 {
-	const std::wstring ddlPath = GetFilterDirectory().append(L"OptimFROG.dll");
-	m_optimFROGDLL = LoadLibraryW(ddlPath.c_str());
+	if (IsLikelyFilePath(sets.sMidiSoundFontDefault)) {
+		m_midiSoundFontDefault = sets.sMidiSoundFontDefault;
+	}
+	else {
+		m_midiSoundFontDefault = GetFilterDirectory() + sets.sMidiSoundFontDefault;
+	}
 
 	LoadBASS();
 	LoadPlugins();
@@ -224,11 +123,11 @@ BassDecoder::~BassDecoder()
 		BASS_PluginFree(pliggin);
 	}
 
-	UnloadBASS();
-
 	if (m_optimFROGDLL) {
 		FreeLibrary(m_optimFROGDLL);
 	}
+
+	UnloadBASS();
 }
 
 void BassDecoder::LoadBASS()
@@ -253,6 +152,26 @@ void BassDecoder::UnloadBASS()
 	}
 }
 
+#ifdef _DEBUG
+void LogPluginInfo(HPLUGIN hPlugin, LPCWSTR pligin)
+{
+	std::wstring dbgstr = std::format(L"{}:\n", pligin);
+	const BASS_PLUGININFO* pPluginInfo = BASS_PluginGetInfo(hPlugin);
+	if (pPluginInfo) {
+		for (DWORD i = 0; i < pPluginInfo->formatc; i++) {
+			dbgstr += std::format(L"ctype={} name={} exts={}\n",
+				pPluginInfo->formats[i].ctype,
+				A2WStr(pPluginInfo->formats[i].name),
+				A2WStr(pPluginInfo->formats[i].exts)
+			);
+		}
+	}
+	DLog(dbgstr);
+}
+#else
+#define LogPluginInfo(hPlugin, pligin) __noop
+#endif
+
 void BassDecoder::LoadPlugins()
 {
 	static LPCWSTR BassPlugins[] = {
@@ -269,30 +188,29 @@ void BassDecoder::LoadPlugins()
 		L"basswma.dll",
 		L"basswv.dll",
 		L"basszxtune.dll",
-		L"bassmidi.dll",
 	};
 
 	const std::wstring filterDir = GetFilterDirectory();
+
+	const std::wstring optimFrogDllPath = filterDir + L"OptimFROG.dll";
+	m_optimFROGDLL = LoadLibraryW(optimFrogDllPath.c_str());
 
 	for (const auto pligin : BassPlugins) {
 		const std::wstring pluginPath = filterDir + pligin;
 		HPLUGIN hPlugin = BASS_PluginLoad(LPCSTR(pluginPath.c_str()), BASS_UNICODE);
 		if (hPlugin) {
 			m_pluggins.emplace_back(hPlugin);
-#ifdef _DEBUG
-			std::wstring dbgstr = std::format(L"{}:\n", pligin);
-			const BASS_PLUGININFO* pPluginInfo = BASS_PluginGetInfo(hPlugin);
-			if (pPluginInfo) {
-				for (DWORD i = 0; i < pPluginInfo->formatc; i++) {
-					dbgstr += std::format(L"ctype={} name={} exts={}\n",
-						pPluginInfo->formats[i].ctype,
-						A2WStr(pPluginInfo->formats[i].name),
-						A2WStr(pPluginInfo->formats[i].exts)
-					);
-				}
-			}
-			DLog(dbgstr);
-#endif
+			LogPluginInfo(hPlugin, pligin);
+		}
+	}
+
+	if (m_pathType == PATH_TYPE_MIDI) {
+		LPCWSTR pligin = L"bassmidi.dll";
+		const std::wstring pluginPath = filterDir + pligin;
+		HPLUGIN hPlugin = BASS_PluginLoad(LPCSTR(pluginPath.c_str()), BASS_UNICODE);
+		if (hPlugin) {
+			m_pluggins.emplace_back(hPlugin);
+			LogPluginInfo(hPlugin, pligin);
 		}
 	}
 
@@ -336,11 +254,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		path[3] = 'p';
 	}
 
-	if (IsMODFile(path)) {
-		m_isMOD = true;
-	}
-	else if (IsMIDIFile(path)) {
-		m_isMIDI = true;
+	if (m_pathType == PATH_TYPE_MIDI) {
 		m_soundFont = BASS_MIDI_FontInit((const void*)m_midiSoundFontDefault.c_str(), BASS_MIDI_FONT_MMAP | BASS_UNICODE);
 		if (m_soundFont) {
 			BASS_MIDI_FONT sf = { m_soundFont, -1, 0 };
@@ -351,14 +265,11 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		}
 		
 	}
-	m_isURL  = IsURLPath(path);
 
-	if (m_isMOD) {
-		if (!m_isURL) {
-			m_stream = BASS_MusicLoad(false, (const void*)path.c_str(), 0, 0, BASS_MUSIC_DECODE | BASS_MUSIC_RAMP | BASS_MUSIC_POSRESET | BASS_MUSIC_PRESCAN | BASS_UNICODE, 0);
-		}
+	if (m_pathType == PATH_TYPE_MOD) {
+		m_stream = BASS_MusicLoad(false, (const void*)path.c_str(), 0, 0, BASS_MUSIC_DECODE | BASS_MUSIC_RAMP | BASS_MUSIC_POSRESET | BASS_MUSIC_PRESCAN | BASS_UNICODE, 0);
 	}
-	else if (m_isURL) {
+	else if (m_pathType & PATH_TYPE_URL) {
 		// disable Media Foundation because navigation for M4A (HTTP, YouTube) does not work
 		EXECUTE_ASSERT(BASS_SetConfig(BASS_CONFIG_MF_DISABLE, TRUE));
 
@@ -383,7 +294,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		return false;
 	}
 
-	if (m_isURL) {
+	if (m_pathType & PATH_TYPE_URL) {
 		m_syncMeta = BASS_ChannelSetSync(m_stream, BASS_SYNC_META, 0, OnMetaData, this);
 		m_syncOggChange = BASS_ChannelSetSync(m_stream, BASS_SYNC_OGG_CHANGE, 0, OnMetaData, this);
 
@@ -396,7 +307,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 	ContentTags tags;
 	auto pResources = std::make_unique<std::list<DSMResource>>();
 
-	if (m_isMOD) {
+	if (m_pathType == PATH_TYPE_MOD) {
 		LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_MUSIC_NAME);
 		if (p) {
 			DLog(L"Found Music Name");
@@ -513,7 +424,7 @@ void BassDecoder::Close()
 			BASS_ChannelRemoveSync(m_stream, m_syncOggChange);
 		}
 
-		if (m_isMOD) {
+		if (m_pathType == PATH_TYPE_MOD) {
 			BASS_MusicFree(m_stream);
 		}
 		else {
@@ -538,9 +449,6 @@ void BassDecoder::Close()
 	m_bytesPerSecond = 0;
 	m_ctype = 0;
 
-	m_isMOD  = false;
-	m_isMIDI = false;
-	m_isURL  = false;
 	m_isLiveStream = false;
 
 	m_tagTitle.clear();

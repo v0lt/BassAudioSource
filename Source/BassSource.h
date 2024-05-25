@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2022-2023 v0lt
+ *  Copyright (C) 2022-2024 v0lt
  *  Based on the following code:
  *  DC-Bass Source filter - http://www.dsp-worx.de/index.php?n=15
  *  DC-Bass Source Filter C++ porting - https://github.com/frafv/DCBassSource
@@ -46,14 +46,13 @@ protected:
 	std::unique_ptr<std::list<DSMResource>> m_pResources;
 
 	BassSourceStream* m_pin = nullptr;
-	std::wstring m_fileName;
+	std::wstring m_filePath;
 	Settings_t m_Sets;
 
 	void STDMETHODCALLTYPE OnMetaDataCallback(ContentTags* tags);
 	void STDMETHODCALLTYPE OnResourceDataCallback(std::unique_ptr<std::list<DSMResource>>& pResources);
 	void STDMETHODCALLTYPE OnShoutcastBufferCallback(const void* buffer, DWORD size);
 	void LoadSettings();
-	void SaveSettings();
 
 	void Init();
 
@@ -103,6 +102,11 @@ public:
 
 	// IBassSource
 	STDMETHODIMP_(bool) GetActive() override;
+
+	STDMETHODIMP_(void) GetSettings(Settings_t& setings) override;
+	STDMETHODIMP_(void) SetSettings(const Settings_t setings) override;
+	STDMETHODIMP SaveSettings() override;
+
 	STDMETHODIMP GetInfo(std::wstring& str) override;
 };
 
