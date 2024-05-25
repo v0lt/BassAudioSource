@@ -2,7 +2,7 @@ Bass Audio Source
 
 0.3.0.x dev
 ----------------------
-Added support for playing MIDI files (.midi, .mid, .rmi, .kar). The user must specify the path to the SoundFont file (.sf2, .sfz) in the "MIDI_SoundFontDefault" setting.
+Added support for playing MIDI files (.midi, .mid, .rmi, .kar). The user must specify the path to the SoundFont file (.sf2, .sfz) in the filter settings panel.
 Removed "BufferSizeMS" option.
 Fixed a crash when going to the next URL.
 Fixed ignoring MP4 and WMA video files.

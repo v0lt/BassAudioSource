@@ -121,7 +121,7 @@ HRESULT CBassMainPPage::OnActivate()
 		if (std::filesystem::is_regular_file(p)) {
 			std::wstring ext = p.path().extension();
 			str_tolower(ext);
-			if (ext == L".sf2") {
+			if (ext == L".sf2" || ext == L".sfz") {
 				std::wstring filename = p.path().filename();
 				if (listPos < 0
 					&& filename.length() == m_SetsPP.sMidiSoundFontDefault.length()
