@@ -4,10 +4,11 @@
 //
 #define IDD_MAINPROPPAGE                102
 #define IDS_MAINPROPPAGE_TITLE          104
-#define IDC_CHECK1                      1001
-#define IDC_COMBO1                      1002
-#define IDC_EDIT1                       1021
-#define IDC_EDIT3                       1023
+#define IDC_STATIC1                     1001
+#define IDC_CHECK1                      1011
+#define IDC_COMBO1                      1021
+#define IDC_EDIT1                       1031
+#define IDC_EDIT3                       1033
 
 // Next default values for new objects
 // 

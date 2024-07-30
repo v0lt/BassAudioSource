@@ -113,6 +113,8 @@ HRESULT CBassMainPPage::OnActivate()
 	m_pBassSource->GetSettings(m_SetsPP);
 
 	CheckDlgButton(IDC_CHECK1, m_SetsPP.bMidiEnable ? BST_CHECKED : BST_UNCHECKED);
+	GetDlgItem(IDC_STATIC1).EnableWindow(m_SetsPP.bMidiEnable);
+	GetDlgItem(IDC_COMBO1).EnableWindow(m_SetsPP.bMidiEnable);
 
 	const std::wstring filterDir = GetFilterDirectory();
 	std::vector<std::wstring> soundFontFiles;
@@ -173,6 +175,8 @@ INT_PTR CBassMainPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		if (action == BN_CLICKED) {
 			if (nID == IDC_CHECK1) {
 				m_SetsPP.bMidiEnable = IsDlgButtonChecked(IDC_CHECK1) == BST_CHECKED;
+				GetDlgItem(IDC_STATIC1).EnableWindow(m_SetsPP.bMidiEnable);
+				GetDlgItem(IDC_COMBO1).EnableWindow(m_SetsPP.bMidiEnable);
 				SetDirty();
 				return (LRESULT)1;
 			}
