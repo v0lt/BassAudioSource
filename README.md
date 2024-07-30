@@ -3,7 +3,7 @@
 Bass Audio Source is a free and open-source DirectShow filter. The filter allows you to play audio files supported by the BASS library in media players with DirectShow support.
 
 
-## Installation.
+## Installation
 
 1. Download ZIP file: BassAudioSource.zip or BassAudioSource64.zip.
 
@@ -14,6 +14,13 @@ Bass Audio Source is a free and open-source DirectShow filter. The filter allows
 4. If you want to use a filter for all supported files and streams, then add BassAudioSource.ax or BassAudioSource64.ax to the list of external filters of MPC-BE, MPC-HC or other DirectShow player and set "prefer".
 
 5. Open the audio file in the DirectShow player.
+
+
+## MIDI support
+
+To play MIDI files, you need to copy the SoundFont file (.sf2, .sfz) to the folder with the installed BassAudioSource and select it in the settings.
+
+PS: Links to a couple of SF2 files are available in the [BASSMIDI plugin description](https://www.un4seen.com/bass.html#addons).
 
 
 ## Links

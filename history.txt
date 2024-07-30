@@ -2,11 +2,12 @@ Bass Audio Source
 
 0.3.0.x dev
 ----------------------
-Added support for playing MIDI files (.midi, .mid, .rmi, .kar). The user must specify the path to the SoundFont file (.sf2, .sfz) in the filter settings panel.
+Added support for playing MIDI files (.midi, .mid, .rmi, .kar). The user must specify the SoundFont file (.sf2, .sfz) in the filter settings panel. SoundFont files should be located in the BassAudioSource folder.
 Removed "BufferSizeMS" option.
 Fixed a crash when going to the next URL.
 Fixed ignoring MP4 and WMA video files.
 Disabled the use of Media Foundation for URLs because navigation on MP4 files does not work.
+Disabled the use of Media Foundation for local files to prevent unwanted files from opening.
 Updated BASS components:
   basswv.dll 2.4.7.4;
   bassape.dll 2.4.0.1.
