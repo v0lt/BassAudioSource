@@ -137,7 +137,10 @@ void BassDecoder::LoadBASS()
 	EXECUTE_ASSERT(BASS_SetConfigPtr(BASS_CONFIG_NET_AGENT, LABEL_BassAudioSource));
 
 	EXECUTE_ASSERT(BASS_SetConfig(BASS_CONFIG_MF_VIDEO, FALSE));
-	//EXECUTE_ASSERT(BASS_SetConfig(BASS_CONFIG_MF_DISABLE, TRUE));
+
+	// disable Media Foundation to prevent playback of some video files
+	// but local MP4 DASH files will not play
+	EXECUTE_ASSERT(BASS_SetConfig(BASS_CONFIG_MF_DISABLE, TRUE));
 }
 
 void BassDecoder::UnloadBASS()
