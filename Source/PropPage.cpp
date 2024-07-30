@@ -134,10 +134,11 @@ HRESULT CBassMainPPage::OnActivate()
 			}
 		}
 	}
-	if (listPos < 0) {
-		soundFontFiles.insert(soundFontFiles.cbegin(), m_SetsPP.sMidiSoundFontDefault);
-		listPos = 0;
-	}
+
+	// add empty line
+	SendDlgItemMessageW(IDC_COMBO1, CB_ADDSTRING, 0, (LPARAM)L"");
+	listPos++;
+
 	for (const auto& sff : soundFontFiles) {
 		SendDlgItemMessageW(IDC_COMBO1, CB_ADDSTRING, 0, (LPARAM)sff.c_str());
 	}
@@ -184,7 +185,7 @@ INT_PTR CBassMainPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		else if (action == CBN_SELCHANGE) {
 			if (nID == IDC_COMBO1) {
 				std::wstring str = ComboBox_GetCurItemText(m_hWnd, IDC_COMBO1);
-				if (str.length()) {
+				if (str != m_SetsPP.sMidiSoundFontDefault) {
 					m_SetsPP.sMidiSoundFontDefault = str;
 					SetDirty();
 					return (LRESULT)1;
