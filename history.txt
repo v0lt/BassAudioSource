@@ -11,7 +11,8 @@ Disabled the use of Media Foundation for local files to prevent unwanted files f
 Updated BASS components:
   basswv.dll   2.4.7.4;
   bassape.dll  2.4.0.1;
-  bassflac.dll 2.4.5.5.
+  bassflac.dll 2.4.5.5;
+  bassalac.dll 2.4.1.
 
 
 0.2.2.145 - 2023-12-17
