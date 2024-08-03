@@ -218,6 +218,9 @@ void BassDecoder::LoadPlugins()
 		// that have not been opened by bass or other plugins.
 		LoadBassPlugin(L"basszxtune.dll");
 	}
+	else if (m_pathType == PATH_TYPE_MOD) {
+		// no plugins needed
+	}
 	else {
 		for (const auto pligin : BassPlugins) {
 			LoadBassPlugin(pligin);
