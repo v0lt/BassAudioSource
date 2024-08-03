@@ -211,8 +211,6 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 		"aac", "m4a",
 		// bass_mpc.dll
 		"mpc",
-		// bass_ofr.dll
-		"ofr",
 		// bass_spx.dll
 		"spx",
 		// bass_tta.dll
@@ -235,6 +233,10 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 	static LPCSTR bass_mod_exts[] = {
 		// bass.dll
 		"it", "mod", "mptm", "mtm", "s3m", "umx", "xm", "mo3",
+	};
+	static LPCSTR bass_ofr_exts[] = {
+		// bass_ofr.dll
+		"ofr", "ofs",
 	};
 	static LPCSTR bass_midi_exts[] = {
 		// bassmidi.dll
@@ -272,6 +274,14 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 			for (const auto& bass_ext : bass_mod_exts) {
 				if (ext.compare(bass_ext) == 0) {
 					path_type = PATH_TYPE_MOD;
+					break;
+				}
+			}
+		}
+		if (!path_type) {
+			for (const auto& bass_ext : bass_ofr_exts) {
+				if (ext.compare(bass_ext) == 0) {
+					path_type = PATH_TYPE_OFR;
 					break;
 				}
 			}

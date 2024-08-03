@@ -30,8 +30,9 @@
 #define PATH_TYPE_UNKNOWN  0
 #define PATH_TYPE_REGULAR  1
 #define PATH_TYPE_MOD      2
-#define PATH_TYPE_MIDI     3
-#define PATH_TYPE_ZXTUNE   4
+#define PATH_TYPE_OFR      3
+#define PATH_TYPE_MIDI     4
+#define PATH_TYPE_ZXTUNE   5
 #define PATH_TYPE_URL      0x10000
 
 class ShoutcastEvents

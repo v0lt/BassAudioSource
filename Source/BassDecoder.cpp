@@ -195,39 +195,32 @@ void BassDecoder::LoadPlugins()
 
 	const std::wstring filterDir = GetFilterDirectory();
 
-	const std::wstring optimFrogDllPath = filterDir + L"OptimFROG.dll";
-	m_optimFROGDLL = LoadLibraryW(optimFrogDllPath.c_str());
+	auto LoadBassPlugin = [&](LPCWSTR pligin) {
+		const std::wstring pluginPath = filterDir + pligin;
+		HPLUGIN hPlugin = BASS_PluginLoad(LPCSTR(pluginPath.c_str()), BASS_UNICODE);
+		if (hPlugin) {
+			m_pluggins.emplace_back(hPlugin);
+			LogPluginInfo(hPlugin, pligin);
+		}
+	};
 
 	for (const auto pligin : BassPlugins) {
-		const std::wstring pluginPath = filterDir + pligin;
-		HPLUGIN hPlugin = BASS_PluginLoad(LPCSTR(pluginPath.c_str()), BASS_UNICODE);
-		if (hPlugin) {
-			m_pluggins.emplace_back(hPlugin);
-			LogPluginInfo(hPlugin, pligin);
-		}
+		LoadBassPlugin(pligin);
 	}
 
-	if (m_pathType == PATH_TYPE_MIDI) {
-		LPCWSTR pligin = L"bassmidi.dll";
-		const std::wstring pluginPath = filterDir + pligin;
-		HPLUGIN hPlugin = BASS_PluginLoad(LPCSTR(pluginPath.c_str()), BASS_UNICODE);
-		if (hPlugin) {
-			m_pluggins.emplace_back(hPlugin);
-			LogPluginInfo(hPlugin, pligin);
-		}
+	if (m_pathType == PATH_TYPE_OFR) {
+		const std::wstring optimFrogDllPath = filterDir + L"OptimFROG.dll";
+		m_optimFROGDLL = LoadLibraryW(optimFrogDllPath.c_str());
+		LoadBassPlugin(L"bass_ofr.dll");
 	}
-
-	if (m_pathType == PATH_TYPE_ZXTUNE) {
+	else if (m_pathType == PATH_TYPE_MIDI) {
+		LoadBassPlugin(L"bassmidi.dll");
+	}
+	else if (m_pathType == PATH_TYPE_ZXTUNE) {
 		// Load basszxtune only for specific files.
 		// This will prevent slowdowns in parsing large files
 		// that have not been opened by bass or other plugins.
-		LPCWSTR pligin = L"basszxtune.dll";
-		const std::wstring pluginPath = filterDir + pligin;
-		HPLUGIN hPlugin = BASS_PluginLoad(LPCSTR(pluginPath.c_str()), BASS_UNICODE);
-		if (hPlugin) {
-			m_pluggins.emplace_back(hPlugin);
-			LogPluginInfo(hPlugin, pligin);
-		}
+		LoadBassPlugin(L"basszxtune.dll");
 	}
 
 	EXECUTE_ASSERT(BASS_SetConfig(BASS_CONFIG_MP4_VIDEO, FALSE));
