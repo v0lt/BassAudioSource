@@ -231,10 +231,6 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 		"wma",
 		// basswv.dll
 		"wv",
-		// basszxtune.dll
-		"ahx", "ay", "gbs", "nsf", "pt2", "pt3",
-		"sap", "sid", "spc", "stc",
-		"v2m", "vgm", "vgz", "vtx", "ym",
 	};
 	static LPCSTR bass_mod_exts[] = {
 		// bass.dll
@@ -243,6 +239,12 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 	static LPCSTR bass_midi_exts[] = {
 		// bassmidi.dll
 		"midi", "mid", "rmi", "kar",
+	};
+	static LPCSTR bass_zxtune_exts[] = {
+		// basszxtune.dll
+		"ahx", "ay", "gbs", "nsf", "pt2", "pt3",
+		"sap", "sid", "spc", "stc",
+		"v2m", "vgm", "vgz", "vtx", "ym",
 	};
 
 	m_filePath = pszFileName;
@@ -278,6 +280,14 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 			for (const auto& bass_ext : bass_midi_exts) {
 				if (ext.compare(bass_ext) == 0) {
 					path_type = PATH_TYPE_MIDI;
+					break;
+				}
+			}
+		}
+		if (!path_type) {
+			for (const auto& bass_ext : bass_zxtune_exts) {
+				if (ext.compare(bass_ext) == 0) {
+					path_type = PATH_TYPE_ZXTUNE;
 					break;
 				}
 			}

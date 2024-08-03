@@ -191,7 +191,6 @@ void BassDecoder::LoadPlugins()
 		L"bassopus.dll",
 		L"basswma.dll",
 		L"basswv.dll",
-		L"basszxtune.dll",
 	};
 
 	const std::wstring filterDir = GetFilterDirectory();
@@ -210,6 +209,19 @@ void BassDecoder::LoadPlugins()
 
 	if (m_pathType == PATH_TYPE_MIDI) {
 		LPCWSTR pligin = L"bassmidi.dll";
+		const std::wstring pluginPath = filterDir + pligin;
+		HPLUGIN hPlugin = BASS_PluginLoad(LPCSTR(pluginPath.c_str()), BASS_UNICODE);
+		if (hPlugin) {
+			m_pluggins.emplace_back(hPlugin);
+			LogPluginInfo(hPlugin, pligin);
+		}
+	}
+
+	if (m_pathType == PATH_TYPE_ZXTUNE) {
+		// Load basszxtune only for specific files.
+		// This will prevent slowdowns in parsing large files
+		// that have not been opened by bass or other plugins.
+		LPCWSTR pligin = L"basszxtune.dll";
 		const std::wstring pluginPath = filterDir + pligin;
 		HPLUGIN hPlugin = BASS_PluginLoad(LPCSTR(pluginPath.c_str()), BASS_UNICODE);
 		if (hPlugin) {
