@@ -204,10 +204,6 @@ void BassDecoder::LoadPlugins()
 		}
 	};
 
-	for (const auto pligin : BassPlugins) {
-		LoadBassPlugin(pligin);
-	}
-
 	if (m_pathType == PATH_TYPE_OFR) {
 		const std::wstring optimFrogDllPath = filterDir + L"OptimFROG.dll";
 		m_optimFROGDLL = LoadLibraryW(optimFrogDllPath.c_str());
@@ -222,9 +218,14 @@ void BassDecoder::LoadPlugins()
 		// that have not been opened by bass or other plugins.
 		LoadBassPlugin(L"basszxtune.dll");
 	}
+	else {
+		for (const auto pligin : BassPlugins) {
+			LoadBassPlugin(pligin);
+		}
 
-	EXECUTE_ASSERT(BASS_SetConfig(BASS_CONFIG_MP4_VIDEO, FALSE));
-	EXECUTE_ASSERT(BASS_SetConfig(BASS_CONFIG_WMA_VIDEO, FALSE));
+		EXECUTE_ASSERT(BASS_SetConfig(BASS_CONFIG_MP4_VIDEO, FALSE));
+		EXECUTE_ASSERT(BASS_SetConfig(BASS_CONFIG_WMA_VIDEO, FALSE));
+	}
 }
 
 std::wstring GetNameTag(LPCSTR string)
