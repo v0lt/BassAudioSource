@@ -9,6 +9,7 @@ Fixed ignoring MP4 and WMA video files.
 Disabled the use of Media Foundation for URLs because navigation on MP4 files does not work.
 Disabled the use of Media Foundation for local files to prevent unwanted files from opening.
 Optimized loading of BASS components, which resulted in faster analysis of some files.
+Now uses 32-bit OptimFROG.dll with SSE2 support.
 Updated BASS components:
   bassmidi.dll 2.4.14.1;
   basswv.dll   2.4.7.4;
