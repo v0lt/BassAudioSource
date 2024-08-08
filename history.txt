@@ -1,5 +1,9 @@
 Bass Audio Source
 
+0.3.2.x dev
+----------------------
+
+
 0.3.1.192 - 2024-08-06
 ----------------------
 Added support for playing MIDI files (.midi, .mid, .rmi, .kar). The user must specify the SoundFont file (.sf2, .sfz) in the filter settings panel. SoundFont files should be located in the BassAudioSource folder.
