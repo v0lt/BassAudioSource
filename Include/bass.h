@@ -1,6 +1,6 @@
 /*
 	BASS 2.4 C/C++ header file
-	Copyright (c) 1999-2022 Un4seen Developments Ltd.
+	Copyright (c) 1999-2024 Un4seen Developments Ltd.
 
 	See the BASS.CHM file for more detailed documentation
 */
@@ -171,6 +171,7 @@ typedef DWORD HPLUGIN;		// plugin handle
 #define BASS_CONFIG_ANDROID_JAVAVM	63
 #define BASS_CONFIG_LIBSSL			64
 #define BASS_CONFIG_FILENAME		75
+#define BASS_CONFIG_FILEOPENPROCS	77
 
 #define BASS_CONFIG_THREAD			0x40000000 // flag: thread-specific setting
 
@@ -322,7 +323,7 @@ typedef struct {
 #define BASS_SAMPLE_3D			8	// 3D functionality
 #define BASS_SAMPLE_SOFTWARE	16	// unused
 #define BASS_SAMPLE_MUTEMAX		32	// mute at max distance (3D only)
-#define BASS_SAMPLE_VAM			64	// unused
+#define BASS_SAMPLE_NOREORDER	64	// don't reorder channels to match speakers
 #define BASS_SAMPLE_FX			128	// unused
 #define BASS_SAMPLE_OVER_VOL	0x10000	// override lowest volume
 #define BASS_SAMPLE_OVER_POS	0x20000	// override longest playing
@@ -502,11 +503,12 @@ RETURN : Number of bytes written. Set the BASS_STREAMPROC_END flag to end the st
 #define STREAMFILE_BUFFER		1
 #define STREAMFILE_BUFFERPUSH	2
 
-// User file stream callback functions
+// User file callback functions
 typedef void (CALLBACK FILECLOSEPROC)(void *user);
 typedef QWORD (CALLBACK FILELENPROC)(void *user);
 typedef DWORD (CALLBACK FILEREADPROC)(void *buffer, DWORD length, void *user);
 typedef BOOL (CALLBACK FILESEEKPROC)(QWORD offset, void *user);
+typedef void *(CALLBACK FILEOPENPROC)(const char *filename, DWORD flags);
 
 typedef struct {
 	FILECLOSEPROC *close;
@@ -514,6 +516,14 @@ typedef struct {
 	FILEREADPROC *read;
 	FILESEEKPROC *seek;
 } BASS_FILEPROCS;
+
+typedef struct {
+	FILECLOSEPROC *close;
+	FILELENPROC *length;
+	FILEREADPROC *read;
+	FILESEEKPROC *seek;
+	FILEOPENPROC *open;
+} BASS_FILEOPENPROCS;
 
 // BASS_StreamPutFileData options
 #define BASS_FILEDATA_END		0	// end & close the file
@@ -553,6 +563,7 @@ user   : The 'user' parameter value given when calling BASS_StreamCreateURL */
 #define BASS_SYNC_OGG_CHANGE	12
 #define BASS_SYNC_DEV_FAIL		14
 #define BASS_SYNC_DEV_FORMAT	15
+#define BASS_SYNC_POS_RAW		16
 #define BASS_SYNC_THREAD		0x20000000	// flag: call sync in other thread
 #define BASS_SYNC_MIXTIME		0x40000000	// flag: sync at mixtime, else at playtime
 #define BASS_SYNC_ONETIME		0x80000000	// flag: sync only once, else continuously
@@ -579,6 +590,10 @@ buffer : Buffer containing the recorded sample data
 length : Number of bytes
 user   : The 'user' parameter value given when calling BASS_RecordStart
 RETURN : TRUE = continue recording, FALSE = stop */
+
+// Special RECORDPROCs
+#define RECORDPROC_NONE			(RECORDPROC*)0
+#define RECORDPROC_EMPTY		(RECORDPROC*)-1
 
 // BASS_ChannelIsActive return values
 #define BASS_ACTIVE_STOPPED			0
@@ -673,6 +688,7 @@ RETURN : TRUE = continue recording, FALSE = stop */
 #define BASS_TAG_RIFF_CUE	0x104 // RIFF "cue " chunk : TAG_CUE structure
 #define BASS_TAG_RIFF_SMPL	0x105 // RIFF "smpl" chunk : TAG_SMPL structure
 #define BASS_TAG_APE_BINARY	0x1000	// + index #, binary APE tag : TAG_APE_BINARY structure
+#define BASS_TAG_MP4_PICTURE 0x1400	// + index #, picture : TAG_BINARY structure
 #define BASS_TAG_MUSIC_NAME		0x10000	// MOD music name : ANSI string
 #define BASS_TAG_MUSIC_MESSAGE	0x10001	// MOD message : ANSI string
 #define BASS_TAG_MUSIC_ORDERS	0x10002	// MOD order list : BYTE array of pattern numbers
@@ -698,6 +714,11 @@ typedef struct {
 	const void *data;
 	DWORD length;
 } TAG_APE_BINARY;
+
+typedef struct {
+	const void *data;
+	DWORD length;
+} TAG_BINARY;
 
 // BWF "bext" tag structure
 #ifdef _MSC_VER
@@ -847,6 +868,7 @@ typedef const WAVEFORMATEX *LPCWAVEFORMATEX;
 #define BASS_POS_BYTE			0		// byte position
 #define BASS_POS_MUSIC_ORDER	1		// order.row position, MAKELONG(order,row)
 #define BASS_POS_OGG			3		// OGG bitstream number
+#define BASS_POS_RAW			6		// raw byte position
 #define BASS_POS_END			0x10	// trimmed end position
 #define BASS_POS_LOOP			0x11	// loop start positiom
 #define BASS_POS_FLUSH			0x1000000 // flag: flush decoder/FX buffers
@@ -888,6 +910,8 @@ typedef const WAVEFORMATEX *LPCWAVEFORMATEX;
 #define BASS_FX_DX8_PARAMEQ			7
 #define BASS_FX_DX8_REVERB			8
 #define BASS_FX_VOLUME				9
+#define BASS_FX_MONO_N(n)			((n)<<24)
+#define BASS_FX_STEREO_N(n)			(BASS_FX_MONO_N(n) | 0x80000000)
 
 typedef struct {
 	float       fWetDryMix;

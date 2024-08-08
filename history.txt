@@ -2,6 +2,10 @@ Bass Audio Source
 
 0.3.2.x dev
 ----------------------
+Improved ignoring of MOV video files (BASS and component updates helped).
+Updated BASS components:
+  bass.dll     2.4.17.31 beta;
+  bass_aac.dll 2.4.6.3 beta.
 
 
 0.3.1.192 - 2024-08-06
