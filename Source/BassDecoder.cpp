@@ -362,13 +362,26 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 			ReadTagsID3v1(p, tags);
 		}
 
-		TAG_FLAC_PICTURE* pFlacPict = (TAG_FLAC_PICTURE*)BASS_ChannelGetTags(m_stream, BASS_TAG_FLAC_PICTURE);
-		if (pFlacPict && pFlacPict->length) {
+		TAG_FLAC_PICTURE* pFlacPic = (TAG_FLAC_PICTURE*)BASS_ChannelGetTags(m_stream, BASS_TAG_FLAC_PICTURE);
+		if (pFlacPic && pFlacPic->length) {
 			DSMResource resource;
-			resource.mime = ConvertAnsiToWide(pFlacPict->mime);
-			resource.data.resize(pFlacPict->length);
-			memcpy(resource.data.data(), pFlacPict->data, pFlacPict->length);
+			resource.mime = ConvertAnsiToWide(pFlacPic->mime);
+			resource.data.resize(pFlacPic->length);
+			memcpy(resource.data.data(), pFlacPic->data, pFlacPic->length);
 			pResources->emplace_back(resource);
+		}
+
+		const TAG_BINARY* pMP4Pic = (const TAG_BINARY*)BASS_ChannelGetTags(m_stream, BASS_TAG_MP4_PICTURE);
+		if (pMP4Pic && pMP4Pic->length > 16) {
+			auto p = (const BYTE*)pMP4Pic->data;
+			if (p[0] == 0xFF && p[1] == 0xD8 && p[2] == 0xFF) {
+				DSMResource resource;
+				resource.name = L"cover.jpg";
+				resource.mime = L"image/jpeg";
+				resource.data.resize(pMP4Pic->length);
+				memcpy(resource.data.data(), pMP4Pic->data, pMP4Pic->length);
+				pResources->emplace_back(resource);
+			}
 		}
 	}
 
