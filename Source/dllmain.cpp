@@ -100,15 +100,15 @@ STDAPI DllRegisterServer()
 	HKEY hKey;
 	LONG ec = ::RegCreateKeyExW(HKEY_CLASSES_ROOT, L"Media Type\\{e436eb83-524f-11ce-9f53-0020af0ba770}\\" _CRT_WIDE(STR_GUID_REGISTRY), 0, 0, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 0, &hKey, 0);
 	if (ec == ERROR_SUCCESS) {
-		const LPCWSTR value_data0 = _CRT_WIDE(STR_CLSID_BassAudioSource);
-		const LPCWSTR value_data1 = L"0,1,00,00"; // connect to any data
+		LPCWSTR value_data0 = _CRT_WIDE(STR_CLSID_BassAudioSource);
+		LPCWSTR value_data1 = L"0,1,00,00"; // connect to any data
 
 		ec = ::RegSetValueExW(hKey, L"Source Filter", 0, REG_SZ,
-			reinterpret_cast<BYTE*>(const_cast<LPWSTR>(value_data0)),
+			reinterpret_cast<const BYTE*>(value_data0),
 			(DWORD)(wcslen(value_data0) + 1) * sizeof(WCHAR));
 
 		ec = ::RegSetValueExW(hKey, L"1", 0, REG_SZ,
-			reinterpret_cast<BYTE*>(const_cast<LPWSTR>(value_data1)),
+			reinterpret_cast<const BYTE*>(value_data1),
 			(DWORD)(wcslen(value_data1) + 1) * sizeof(WCHAR));
 
 		::RegCloseKey(hKey);;

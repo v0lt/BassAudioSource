@@ -315,7 +315,7 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 
 	HRESULT hr;
 	m_pin = new BassSourceStream(L"Bass Source Stream", hr, this, L"Output", m_filePath.c_str(), this, path_type, m_Sets);
-	if (FAILED(hr) || !m_pin) {
+	if (FAILED(hr)) {
 		return hr;
 	}
 

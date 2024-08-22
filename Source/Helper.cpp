@@ -44,27 +44,17 @@ bool IsLikelyFilePath(const std::wstring_view str)
 	return false;
 }
 
-const std::wstring GetVersionStr()
-{
-	std::wstring version = _CRT_WIDE(VERSION_STR);
-#if VER_RELEASE != 1
-	version += std::format(L" (git-{}-{})",
-		_CRT_WIDE(_CRT_STRINGIZE(REV_DATE)),
-		_CRT_WIDE(_CRT_STRINGIZE(REV_HASH))
-	);
-#endif
-#ifdef _WIN64
-	version.append(L" x64");
-#endif
-#ifdef _DEBUG
-	version.append(L" DEBUG");
-#endif
-	return version;
-}
-
 LPCWSTR GetNameAndVersion()
 {
-	static std::wstring version = L"Bass Audio Source " + GetVersionStr();
-
-	return version.c_str();
+	return L"Bass Audio Source " _CRT_WIDE(VERSION_STR)
+#if VER_RELEASE != 1
+		L" (git-" _CRT_WIDE(_CRT_STRINGIZE(REV_DATE)) "-" _CRT_WIDE(_CRT_STRINGIZE(REV_HASH)) ")"
+#endif
+#ifdef _WIN64
+		L" x64"
+#endif
+#ifdef _DEBUG
+		L" DEBUG"
+#endif
+		;
 }

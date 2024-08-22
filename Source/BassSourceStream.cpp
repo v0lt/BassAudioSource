@@ -466,7 +466,7 @@ STDMETHODIMP BassSourceStream::SetPositions(LONGLONG* pCurrent, DWORD dwCurrentF
 
 	HRESULT result = S_OK;
 
-	if (SUCCEEDED(result) && stopPosBits > 0) {
+	if (stopPosBits > 0) {
 		result = ChangeStop();
 	}
 
