@@ -25,19 +25,23 @@ std::wstring GetFilterDirectory()
 // simple file system path detector
 bool IsLikelyFilePath(const std::wstring_view str)
 {
-	if (str.size() >= 4) {
-		auto s = str.data();
+	auto IsLatin = [](wchar_t ch) { return (ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z'); };
 
-		// local file path
-		if (s[1] == ':' && s[2] == '\\' &&
-			(s[0] >= 'A' && s[0] <= 'Z' || s[0] >= 'a' && s[0] <= 'z')) {
+	if (str.size() >= 4) {
+		// local file path 'x:\'
+		if (str[1] == ':' && str[2] == '\\' && IsLatin(str[0])) {
 			return true;
 		}
 
-		// net file path
-		if (str.size() >= 7 && s[0] == '\\' && s[1] == '\\' &&
-			(s[2] == '-' || s[2] >= '0' && s[2] <= '9' || s[2] >= 'A' && s[2] <= 'Z' || s[2] >= 'a' && s[2] <= 'z')) {
-			return true;
+		if (str.size() >= 7 && str[0] == '\\' && str[1] == '\\') {
+			// net file path '\\servername'
+			if (IsLatin(str[2]) || str[2] == '-' || str[2] >= '0' && str[2] <= '9') {
+				return true;
+			}
+			// local file path with prefix '\\?\x:\'
+			if (str[2] == '?' && str[3] == '\\' && str[5] == ':' && str[6] == '\\' && IsLatin(str[4])) {
+				return true;
+			}
 		}
 	}
 
