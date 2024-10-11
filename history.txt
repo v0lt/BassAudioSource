@@ -5,7 +5,8 @@ Bass Audio Source
 Improved ignoring of MOV video files (BASS and component updates helped).
 Updated BASS components:
   bass.dll     2.4.17.31 beta;
-  bass_aac.dll 2.4.6.3 beta.
+  bass_aac.dll 2.4.6.3 beta;
+  bassmidi.dll 2.4.15.
 
 
 0.3.1.192 - 2024-08-06
