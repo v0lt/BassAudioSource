@@ -245,7 +245,7 @@ void ReadTagsOgg(const char* p, ContentTags& tags, std::unique_ptr<std::list<DSM
 
 						if (FlacPict.length && br.GetRemainder() == FlacPict.length) {
 							DSMResource resource;
-							resource.mime = ConvertAnsiToWide(FlacPict.mime, FlacPict.mime_size);
+							resource.mime = ConvertAnsiToWide(std::string_view(FlacPict.mime, FlacPict.mime_size));
 							resource.data.resize(FlacPict.length);
 							memcpy(resource.data.data(), FlacPict.data, FlacPict.length);
 							pResources->emplace_back(resource);

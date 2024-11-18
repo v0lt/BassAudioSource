@@ -158,8 +158,8 @@ const uint8_t* DecodeString(const int encoding, const uint8_t* str, const uint8_
 		len = p - str;
 		if (len) {
 			wstr = (encoding == ID3v2Encoding::ISO8859)
-				? ConvertAnsiToWide((char*)str, len)
-				: ConvertUtf8ToWide((char*)str, len);
+				? ConvertAnsiToWide(std::string_view((char*)str, len))
+				: ConvertUtf8ToWide(std::string_view((char*)str, len));
 		}
 		if (p < end && *p == 0) {
 			p++;
