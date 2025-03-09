@@ -3,6 +3,8 @@ Bass Audio Source
 0.3.2.x dev
 ----------------------
 Improved ignoring of MOV video files (BASS and component updates helped).
+Added support for covers in .M4A files.
+Fixed registration of a filter from a folder with Unicode characters.
 Updated BASS components:
   bass.dll     2.4.17.31 beta;
   bass_aac.dll 2.4.6.3 beta;
