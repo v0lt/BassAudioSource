@@ -1,65 +1,101 @@
-// Copyright (c) 2020-2024 v0lt, Aleksoid
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//
+// Copyright (c) 2020-2025 v0lt, Aleksoid
+//
+// SPDX-License-Identifier: MIT
+//
 
 #include "stdafx.h"
 #include "Util.h"
 
-VERSIONHELPERAPI
-IsWindows11OrGreater() // https://walbourn.github.io/windows-sdk-for-windows-11/
+static bool IsWindows11OrGreater(DWORD dwBuildNumber)
 {
-	OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0, {0}, 0, 0 };
+	OSVERSIONINFOEXW osvi = {
+		.dwOSVersionInfoSize = sizeof(osvi),
+		.dwMajorVersion = HIBYTE(_WIN32_WINNT_WIN10),
+		.dwMinorVersion = LOBYTE(_WIN32_WINNT_WIN10),
+		.dwBuildNumber = dwBuildNumber, };
 	DWORDLONG const dwlConditionMask = VerSetConditionMask(
 		VerSetConditionMask(
 		VerSetConditionMask(
 			0, VER_MAJORVERSION, VER_GREATER_EQUAL),
 			   VER_MINORVERSION, VER_GREATER_EQUAL),
-			   VER_BUILDNUMBER, VER_GREATER_EQUAL);
-
-	osvi.dwMajorVersion = HIBYTE(_WIN32_WINNT_WIN10);
-	osvi.dwMinorVersion = LOBYTE(_WIN32_WINNT_WIN10);
-	osvi.dwBuildNumber = 22000;
+			   VER_BUILDNUMBER,  VER_GREATER_EQUAL);
 
 	return VerifyVersionInfoW(&osvi, VER_MAJORVERSION | VER_MINORVERSION | VER_BUILDNUMBER, dwlConditionMask) != FALSE;
 }
 
-LPCWSTR GetWindowsVersion()
+static LPCWSTR GetWinVer()
 {
-	if (IsWindows11OrGreater()) {
-		return L"11";
+	// https://learn.microsoft.com/en-us/windows/release-health/release-information#windows-10-release-history
+	// https://learn.microsoft.com/en-us/windows/release-health/windows11-release-information#windows-11-release-history
+	const struct {
+		const DWORD buildNumber;
+		LPCWSTR version;
 	}
-	else if (IsWindows10OrGreater()) {
-		return L"10";
+	win10versions[] = {
+		{ 26100, L"11 24H2" },
+		{ 22631, L"11 23H2" },
+		{ 22621, L"11 22H2" },
+		{ 22000, L"11 21H2" },
+		{ 19045, L"10 22H2" },
+		{ 19044, L"10 21H2" },
+		{ 19043, L"10 21H1" },
+		{ 19042, L"10 20H2" },
+		{ 19041, L"10 2004" },
+		{ 18363, L"10 1909" },
+		{ 18362, L"10 1903" },
+		{ 17763, L"10 1809" },
+		{ 17134, L"10 1803" },
+		{ 16299, L"10 1709" },
+		{ 15063, L"10 1703" },
+		{ 14393, L"10 1607" },
+		{ 10586, L"10 1511" },
+		{ 10240, L"10 1507" },
+	};
+
+	OSVERSIONINFOEXW osvi = {
+		.dwOSVersionInfoSize = sizeof(osvi),
+		.dwMajorVersion = HIBYTE(_WIN32_WINNT_WIN10),
+		.dwMinorVersion = LOBYTE(_WIN32_WINNT_WIN10), };
+	DWORDLONG const dwlConditionMask = VerSetConditionMask(
+		VerSetConditionMask(
+		VerSetConditionMask(
+			0, VER_MAJORVERSION, VER_GREATER_EQUAL),
+			   VER_MINORVERSION, VER_GREATER_EQUAL),
+			   VER_BUILDNUMBER,  VER_GREATER_EQUAL);
+
+	for (const auto& win10ver : win10versions) {
+		osvi.dwBuildNumber = win10ver.buildNumber;
+		if (VerifyVersionInfoW(&osvi, VER_MAJORVERSION | VER_MINORVERSION | VER_BUILDNUMBER, dwlConditionMask) != FALSE) {
+			return win10ver.version;
+		}
 	}
-	else if (IsWindows8Point1OrGreater()) {
+
+	if (IsWindows8Point1OrGreater()) {
 		return L"8.1";
 	}
-	else if (IsWindows8OrGreater()) {
+	if (IsWindows8OrGreater()) {
 		return L"8";
 	}
-	else if (IsWindows7SP1OrGreater()) {
+	if (IsWindows7SP1OrGreater()) {
 		return L"7 SP1";
 	}
-	else if (IsWindows7OrGreater()) {
+	if (IsWindows7OrGreater()) {
 		return L"7";
 	}
 	return L"Vista or older";
+}
+
+bool IsWindows11_24H2OrGreater()
+{
+	static auto ret = IsWindows11OrGreater(26100);
+	return ret;
+}
+
+LPCWSTR GetWindowsVersion()
+{
+	static LPCWSTR winver = GetWinVer();
+	return winver;
 }
 
 std::wstring HR2Str(const HRESULT hr)
@@ -150,4 +186,34 @@ HRESULT GetDataFromResource(LPVOID& data, DWORD& size, UINT resid)
 	}
 
 	return S_OK;
+}
+
+// https://learn.microsoft.com/en-us/visualstudio/debugger/how-to-set-a-thread-name-in-native-code
+//
+// Usage: SetThreadName ((DWORD)-1, "MainThread");
+//
+const DWORD MS_VC_EXCEPTION = 0x406D1388;
+#pragma pack(push,8)
+typedef struct tagTHREADNAME_INFO
+{
+	DWORD dwType;     // Must be 0x1000.
+	LPCSTR szName;    // Pointer to name (in user addr space).
+	DWORD dwThreadID; // Thread ID (-1=caller thread).
+	DWORD dwFlags;    // Reserved for future use, must be zero.
+} THREADNAME_INFO;
+#pragma pack(pop)
+void SetThreadName(DWORD dwThreadID, const char* threadName) {
+	THREADNAME_INFO info;
+	info.dwType = 0x1000;
+	info.szName = threadName;
+	info.dwThreadID = dwThreadID;
+	info.dwFlags = 0;
+#pragma warning(push)
+#pragma warning(disable: 6320 6322)
+	__try {
+		RaiseException(MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR*)&info);
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER) {
+	}
+#pragma warning(pop)
 }
