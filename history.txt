@@ -10,7 +10,7 @@ Added support for Matroska and WebM audio files.
 Updated BASS components:
   bass.dll     2.4.17.41 beta;
   bass_aac.dll 2.4.6.3 beta;
-  bassmidi.dll 2.4.15;
+  bassmidi.dll 2.4.15.3;
   basswebm.dll 2.4.0.5 beta.
 
 
