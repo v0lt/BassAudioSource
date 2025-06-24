@@ -5,10 +5,13 @@ Bass Audio Source
 Improved ignoring of MOV video files (BASS and component updates helped).
 Added support for covers in .M4A files.
 Fixed registration of a filter from a folder with Unicode characters.
+Added support for Matroska and WebM audio files.
+
 Updated BASS components:
-  bass.dll     2.4.17.31 beta;
+  bass.dll     2.4.17.41 beta;
   bass_aac.dll 2.4.6.3 beta;
-  bassmidi.dll 2.4.15.
+  bassmidi.dll 2.4.15;
+  basswebm.dll 2.4.0.5 beta.
 
 
 0.3.1.192 - 2024-08-06

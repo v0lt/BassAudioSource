@@ -191,6 +191,7 @@ void BassDecoder::LoadPlugins()
 		L"bassopus.dll",
 		L"basswma.dll",
 		L"basswv.dll",
+		L"basswebm.dll",
 	};
 
 	const std::wstring filterDir = GetFilterDirectory();
@@ -293,7 +294,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		);
 	}
 	else {
-		m_stream = BASS_StreamCreateFile(false, (const void*)path.c_str(), 0, 0, BASS_STREAM_DECODE | BASS_UNICODE);
+		m_stream = BASS_StreamCreateFile(FALSE, (const void*)path.c_str(), 0, 0, BASS_STREAM_DECODE | BASS_UNICODE);
 	}
 
 	if (!m_stream) {
@@ -371,7 +372,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 			pResources->emplace_back(resource);
 		}
 
-		const TAG_BINARY* pMP4Pic = (const TAG_BINARY*)BASS_ChannelGetTags(m_stream, BASS_TAG_MP4_PICTURE);
+		const TAG_BINARY* pMP4Pic = (const TAG_BINARY*)BASS_ChannelGetTags(m_stream, BASS_TAG_MP4_COVERART);
 		if (pMP4Pic && pMP4Pic->length > 16) {
 			auto p = (const BYTE*)pMP4Pic->data;
 			if (p[0] == 0xFF && p[1] == 0xD8 && p[2] == 0xFF) {

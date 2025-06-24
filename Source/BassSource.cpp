@@ -229,6 +229,8 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 		"wma",
 		// basswv.dll
 		"wv",
+		// basswebm.dll
+		"mka", "webm", "weba"
 	};
 	static LPCSTR bass_mod_exts[] = {
 		// bass.dll
