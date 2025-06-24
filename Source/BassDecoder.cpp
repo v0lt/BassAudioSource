@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2022-2024 v0lt
+ *  Copyright (C) 2022-2025 v0lt
  *  Based on the following code:
  *  DC-Bass Source filter - http://www.dsp-worx.de/index.php?n=15
  *  DC-Bass Source Filter C++ porting - https://github.com/frafv/DCBassSource
@@ -136,7 +136,7 @@ void BassDecoder::LoadBASS()
 
 	EXECUTE_ASSERT(BASS_SetConfigPtr(BASS_CONFIG_NET_AGENT, LABEL_BassAudioSource));
 
-	EXECUTE_ASSERT(BASS_SetConfig(BASS_CONFIG_MF_VIDEO, FALSE));
+	EXECUTE_ASSERT(BASS_SetConfig(BASS_CONFIG_VIDEO, FALSE)); // ignore video files
 
 	// disable Media Foundation to prevent playback of some video files
 	// but local MP4 DASH files will not play
