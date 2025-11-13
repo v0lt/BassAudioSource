@@ -1,6 +1,6 @@
 /*
 	BASSFLAC 2.4 C/C++ header file
-	Copyright (c) 2004-2017 Un4seen Developments Ltd.
+	Copyright (c) 2004-2025 Un4seen Developments Ltd.
 
 	See the BASSFLAC.CHM file for more detailed documentation
 */
@@ -12,6 +12,10 @@
 
 #if BASSVERSION!=0x204
 #error conflicting BASS and BASSFLAC versions
+#endif
+
+#ifdef __OBJC__
+#define BOOL BOOL32 // override objc's BOOL
 #endif
 
 #ifdef __cplusplus
@@ -75,17 +79,17 @@ typedef struct {
 	const void *data;
 } TAG_FLAC_METADATA;
 
-HSTREAM BASSFLACDEF(BASS_FLAC_StreamCreateFile)(BOOL mem, const void *file, QWORD offset, QWORD length, DWORD flags);
+HSTREAM BASSFLACDEF(BASS_FLAC_StreamCreateFile)(DWORD filetype, const void *file, QWORD offset, QWORD length, DWORD flags);
 HSTREAM BASSFLACDEF(BASS_FLAC_StreamCreateURL)(const char *url, DWORD offset, DWORD flags, DOWNLOADPROC *proc, void *user);
 HSTREAM BASSFLACDEF(BASS_FLAC_StreamCreateFileUser)(DWORD system, DWORD flags, const BASS_FILEPROCS *procs, void *user);
 
 #ifdef __cplusplus
 }
 
-#ifdef _WIN32
-static inline HSTREAM BASS_FLAC_StreamCreateFile(BOOL mem, const WCHAR *file, QWORD offset, QWORD length, DWORD flags)
+#if defined(_WIN32) && !defined(NOBASSOVERLOADS)
+static inline HSTREAM BASS_FLAC_StreamCreateFile(DWORD filetype, const WCHAR *file, QWORD offset, QWORD length, DWORD flags)
 {
-	return BASS_FLAC_StreamCreateFile(mem, (const void*)file, offset, length, flags|BASS_UNICODE);
+	return BASS_FLAC_StreamCreateFile(filetype, (const void*)file, offset, length, flags|BASS_UNICODE);
 }
 
 static inline HSTREAM BASS_FLAC_StreamCreateURL(const WCHAR *url, DWORD offset, DWORD flags, DOWNLOADPROC *proc, void *user)
@@ -93,6 +97,10 @@ static inline HSTREAM BASS_FLAC_StreamCreateURL(const WCHAR *url, DWORD offset, 
 	return BASS_FLAC_StreamCreateURL((const char*)url, offset, flags|BASS_UNICODE, proc, user);
 }
 #endif
+#endif
+
+#ifdef __OBJC__
+#undef BOOL
 #endif
 
 #endif

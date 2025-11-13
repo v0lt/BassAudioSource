@@ -1,6 +1,6 @@
 /*
 	BASSDSD 2.4 C/C++ header file
-	Copyright (c) 2014-2017 Un4seen Developments Ltd.
+	Copyright (c) 2014-2025 Un4seen Developments Ltd.
 
 	See the BASSDSD.CHM file for more detailed documentation
 */
@@ -63,17 +63,17 @@ typedef struct {
 #define BASS_ATTRIB_DSD_GAIN		0x14000
 #define BASS_ATTRIB_DSD_RATE		0x14001
 
-HSTREAM BASSDSDDEF(BASS_DSD_StreamCreateFile)(BOOL mem, const void *file, QWORD offset, QWORD length, DWORD flags, DWORD freq);
+HSTREAM BASSDSDDEF(BASS_DSD_StreamCreateFile)(DWORD filetype, const void *file, QWORD offset, QWORD length, DWORD flags, DWORD freq);
 HSTREAM BASSDSDDEF(BASS_DSD_StreamCreateURL)(const char *url, DWORD offset, DWORD flags, DOWNLOADPROC *proc, void *user, DWORD freq);
 HSTREAM BASSDSDDEF(BASS_DSD_StreamCreateFileUser)(DWORD system, DWORD flags, const BASS_FILEPROCS *procs, void *user, DWORD freq);
 
 #ifdef __cplusplus
 }
 
-#if defined(_WIN32) && !defined(NOBASSDSDOVERLOADS)
-static inline HSTREAM BASS_DSD_StreamCreateFile(BOOL mem, const WCHAR *file, QWORD offset, QWORD length, DWORD flags, DWORD freq)
+#if defined(_WIN32) && !defined(NOBASSOVERLOADS)
+static inline HSTREAM BASS_DSD_StreamCreateFile(DWORD filetype, const WCHAR *file, QWORD offset, QWORD length, DWORD flags, DWORD freq)
 {
-	return BASS_DSD_StreamCreateFile(mem, (const void*)file, offset, length, flags|BASS_UNICODE, freq);
+	return BASS_DSD_StreamCreateFile(filetype, (const void*)file, offset, length, flags|BASS_UNICODE, freq);
 }
 
 static inline HSTREAM BASS_DSD_StreamCreateURL(const WCHAR *url, DWORD offset, DWORD flags, DOWNLOADPROC *proc, void *user, DWORD freq)

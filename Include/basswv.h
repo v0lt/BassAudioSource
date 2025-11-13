@@ -1,6 +1,6 @@
 /*
 	BASSWV 2.4 C/C++ header file
-	Copyright (c) 2007-2020 Un4seen Developments Ltd.
+	Copyright (c) 2007-2025 Un4seen Developments Ltd.
 
 	See the BASSWV.CHM file for more detailed documentation
 */
@@ -25,7 +25,7 @@ extern "C" {
 // BASS_CHANNELINFO type
 #define BASS_CTYPE_STREAM_WV	0x10500
 
-HSTREAM BASSWVDEF(BASS_WV_StreamCreateFile)(BOOL mem, const void *file, QWORD offset, QWORD length, DWORD flags);
+HSTREAM BASSWVDEF(BASS_WV_StreamCreateFile)(DWORD filetype, const void *file, QWORD offset, QWORD length, DWORD flags);
 HSTREAM BASSWVDEF(BASS_WV_StreamCreateURL)(const char *url, DWORD offset, DWORD flags, DOWNLOADPROC *proc, void *user);
 HSTREAM BASSWVDEF(BASS_WV_StreamCreateFileUser)(DWORD system, DWORD flags, const BASS_FILEPROCS *procs, void *user);
 HSTREAM BASSWVDEF(BASS_WV_StreamCreateFileUserEx)(DWORD system, DWORD flags, const BASS_FILEPROCS *procs, void *user, void *userwvc);
@@ -33,10 +33,10 @@ HSTREAM BASSWVDEF(BASS_WV_StreamCreateFileUserEx)(DWORD system, DWORD flags, con
 #ifdef __cplusplus
 }
 
-#ifdef _WIN32
-static inline HSTREAM BASS_WV_StreamCreateFile(BOOL mem, const WCHAR *file, QWORD offset, QWORD length, DWORD flags)
+#if defined(_WIN32) && !defined(NOBASSOVERLOADS)
+static inline HSTREAM BASS_WV_StreamCreateFile(DWORD filetype, const WCHAR *file, QWORD offset, QWORD length, DWORD flags)
 {
-	return BASS_WV_StreamCreateFile(mem, (const void*)file, offset, length, flags|BASS_UNICODE);
+	return BASS_WV_StreamCreateFile(filetype, (const void*)file, offset, length, flags|BASS_UNICODE);
 }
 
 static inline HSTREAM BASS_WV_StreamCreateURL(const WCHAR *url, DWORD offset, DWORD flags, DOWNLOADPROC *proc, void *user)
