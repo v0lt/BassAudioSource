@@ -1,6 +1,6 @@
 /*
 	BASSWEBM 2.4 C/C++ header file
-	Copyright (c) 2018-2019 Un4seen Developments Ltd.
+	Copyright (c) 2018-2025 Un4seen Developments Ltd.
 
 	See the BASSWEBM.CHM file for more detailed documentation
 */
@@ -23,7 +23,6 @@ extern "C" {
 #endif
 
 // Additional error codes returned by BASS_ErrorGetCode
-#define BASS_ERROR_NOTAUDIO			17
 #define BASS_ERROR_WEBM_TRACK		8000
 
 // Additional tag types
@@ -34,7 +33,7 @@ extern "C" {
 #define BASS_ATTRIB_WEBM_TRACK	0x16000
 #define BASS_ATTRIB_WEBM_TRACKS	0x16001
 
-HSTREAM BASSWEBMDEF(BASS_WEBM_StreamCreateFile)(BOOL mem, const void *file, QWORD offset, QWORD length, DWORD flags, DWORD track);
+HSTREAM BASSWEBMDEF(BASS_WEBM_StreamCreateFile)(DWORD filetype, const void *file, QWORD offset, QWORD length, DWORD flags, DWORD track);
 HSTREAM BASSWEBMDEF(BASS_WEBM_StreamCreateURL)(const char *url, DWORD offset, DWORD flags, DOWNLOADPROC *proc, void *user, DWORD track);
 HSTREAM BASSWEBMDEF(BASS_WEBM_StreamCreateFileUser)(DWORD system, DWORD flags, const BASS_FILEPROCS *procs, void *user, DWORD track);
 
@@ -42,9 +41,9 @@ HSTREAM BASSWEBMDEF(BASS_WEBM_StreamCreateFileUser)(DWORD system, DWORD flags, c
 }
 
 #if defined(_WIN32) && !defined(NOBASSOVERLOADS)
-static inline HSTREAM BASS_WEBM_StreamCreateFile(BOOL mem, const WCHAR *file, QWORD offset, QWORD length, DWORD flags, DWORD track)
+static inline HSTREAM BASS_WEBM_StreamCreateFile(DWORD filetype, const WCHAR *file, QWORD offset, QWORD length, DWORD flags, DWORD track)
 {
-	return BASS_WEBM_StreamCreateFile(mem, (const void*)file, offset, length, flags|BASS_UNICODE, track);
+	return BASS_WEBM_StreamCreateFile(filetype, (const void*)file, offset, length, flags|BASS_UNICODE, track);
 }
 
 static inline HSTREAM BASS_WEBM_StreamCreateURL(const WCHAR *url, DWORD offset, DWORD flags, DOWNLOADPROC *proc, void *user, DWORD track)
