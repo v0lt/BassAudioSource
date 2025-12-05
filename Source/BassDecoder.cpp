@@ -379,6 +379,31 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 			index++;
 		}
 
+		index = 0;
+		while (const TAG_APE_BINARY* pApeBinary = (const TAG_APE_BINARY*)BASS_ChannelGetTags(m_stream, BASS_TAG_APE_BINARY + index)) {
+			if (pApeBinary && pApeBinary->length > 16 && pApeBinary->key) {
+				auto d = (const BYTE*)pApeBinary->data;
+				auto end = d + pApeBinary->length;
+				while (d < end && *d) {
+					d++;
+				}
+				if (d + 16 < end && !*d) {
+					d++;
+					const size_t data_size = end - d;
+					if (d[0] == 0xFF && d[1] == 0xD8 && d[2] == 0xFF) {
+						DSMResource resource;
+						resource.name = ConvertUtf8ToWide((const char*)pApeBinary->data);
+						resource.desc = ConvertUtf8ToWide(pApeBinary->key);
+						resource.mime = L"image/jpeg";
+						resource.data.resize(data_size);
+						memcpy(resource.data.data(), d, data_size);
+						pResources->emplace_back(resource);
+					}
+				}
+			}
+			index++;
+		}
+
 		{
 			const TAG_BINARY* pMP4Pic = (const TAG_BINARY*)BASS_ChannelGetTags(m_stream, BASS_TAG_MP4_COVERART);
 			if (pMP4Pic && pMP4Pic->length > 16) {
