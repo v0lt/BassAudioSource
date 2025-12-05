@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2022-2024 v0lt
+ *  Copyright (C) 2022-2025 v0lt
  *  Based on the following code:
  *  DC-Bass Source filter - http://www.dsp-worx.de/index.php?n=15
  *  DC-Bass Source Filter C++ porting - https://github.com/frafv/DCBassSource
@@ -45,7 +45,17 @@ struct ContentTags
 	}
 };
 
+// BASS_TAG_APE, BASS_TAG_MP4, BASS_TAG_WMA
 void ReadTagsCommon(const char* p, ContentTags& tags);
+
+// BASS_TAG_OGG
 void ReadTagsOgg(const char* p, ContentTags& tags, std::unique_ptr<std::list<DSMResource>>& pResources);
+
+// BASS_TAG_ID3V2
 void ReadTagsID3v2(const char* p, ContentTags& tags, std::unique_ptr<std::list<DSMResource>>& pResources);
+
+// BASS_TAG_ID3
 void ReadTagsID3v1(const char* p, ContentTags& tags);
+
+// BASS_TAG_ICY, BASS_TAG_HTTP
+void ReadTagsICYheaders(const char* p, ContentTags& tags);

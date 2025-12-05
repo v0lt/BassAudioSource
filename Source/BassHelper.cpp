@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2022-2024 v0lt
+ *  Copyright (C) 2022-2025 v0lt
  *  Based on the following code:
  *  DC-Bass Source filter - http://www.dsp-worx.de/index.php?n=15
  *  DC-Bass Source Filter C++ porting - https://github.com/frafv/DCBassSource
@@ -325,5 +325,25 @@ void ReadTagsID3v1(const char* p, ContentTags& tags)
 		str.assign(p, p[28] == 0 ? 28 : 30);
 		id3v1_truncate(str);
 		tags.Description = ConvertAnsiToWide(str);
+	}
+}
+
+void ReadTagsICYheaders(const char* p, ContentTags& tags)
+{
+	while (p && *p) {
+		std::string_view str(p);
+		const size_t k = str.find(':');
+		if (k > 0 && k < str.size()) {
+			std::string field_name(p, k);
+
+			if (field_name.compare("icy-name") == 0) {
+				tags.Title = str_trim(ConvertUtf8ToWide(p + k + 1));
+			}
+			else if (field_name.compare("icy-description") == 0) {
+				tags.Description = str_trim(ConvertUtf8ToWide(p + k + 1));
+			}
+		}
+
+		p += str.size() + 1;
 	}
 }
