@@ -49,6 +49,7 @@ void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user)
 		if (p) {
 			DLog(L"Received Meta Tag: {}", ConvertUtf8ToWide(p).c_str());
 			ReadTagsICYmetadata(p, tags);
+			decoder->m_shoutcastEvents->OnMetaDataCallback(&tags);
 		}
 		return;
 	}
