@@ -386,22 +386,25 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 			}
 		}
 
-		const TAG_WEBM_ATTACHMENT* pWebmAttachment = (const TAG_WEBM_ATTACHMENT*)BASS_ChannelGetTags(m_stream, BASS_TAG_WEBM_ATTACHMENT);
-		if (pWebmAttachment && pWebmAttachment->length > 16) {
-			std::string_view mediatype(pWebmAttachment->mediatype);
-			if (mediatype.starts_with("image/")) {
-				DSMResource resource;
-				if (pWebmAttachment->filename) {
-					resource.name = ConvertUtf8ToWide(pWebmAttachment->filename);
+		int index = 0;
+		while (const TAG_WEBM_ATTACHMENT* pWebmAttachment = (const TAG_WEBM_ATTACHMENT*)BASS_ChannelGetTags(m_stream, BASS_TAG_WEBM_ATTACHMENT + index)) {
+			if (pWebmAttachment && pWebmAttachment->length > 16) {
+				std::string_view mediatype(pWebmAttachment->mediatype);
+				if (mediatype.starts_with("image/")) {
+					DSMResource resource;
+					if (pWebmAttachment->filename) {
+						resource.name = ConvertUtf8ToWide(pWebmAttachment->filename);
+					}
+					if (pWebmAttachment->description) {
+						resource.name = ConvertUtf8ToWide(pWebmAttachment->description);
+					}
+					resource.mime = A2WStr(mediatype);
+					resource.data.resize(pWebmAttachment->length);
+					memcpy(resource.data.data(), pWebmAttachment->data, pWebmAttachment->length);
+					pResources->emplace_back(resource);
 				}
-				if (pWebmAttachment->description) {
-					resource.name = ConvertUtf8ToWide(pWebmAttachment->description);
-				}
-				resource.mime = A2WStr(mediatype);
-				resource.data.resize(pWebmAttachment->length);
-				memcpy(resource.data.data(), pWebmAttachment->data, pWebmAttachment->length);
-				pResources->emplace_back(resource);
 			}
+			index++;
 		}
 	}
 
