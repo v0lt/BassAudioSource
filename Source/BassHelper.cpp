@@ -347,3 +347,33 @@ void ReadTagsICYheaders(const char* p, ContentTags& tags)
 		p += str.size() + 1;
 	}
 }
+
+void ReadTagsICYmetadata(const char* p, ContentTags& tags)
+{
+	std::string_view str(p);
+
+	size_t k1 = str.find("StreamTitle='");
+	if (k1 != str.npos) {
+		k1 += 13;
+		size_t k2 = str.find(L'\'', k1);
+		if (k2 != str.npos) {
+			tags.Title = ConvertUtf8ToWide(str.substr(k1, k2 - k1));
+		}
+	}
+#ifdef _DEBUG
+	else {
+		k1 = str.find("TITLE=");
+		if (k1 == str.npos) {
+			k1 = str.find("Title=");
+			if (k1 == str.npos) {
+				k1 = str.find("title=");
+			}
+		}
+		if (k1 != str.npos) {
+			ASSERT(0);
+			k1 += 6;
+			tags.Title = ConvertUtf8ToWide(str.substr(k1));
+		}
+	}
+#endif
+}

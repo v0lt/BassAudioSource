@@ -45,34 +45,10 @@ void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user)
 
 	if (handle == decoder->m_syncMeta) {
 		DLog(L"OnMetaData() - BASS_SYNC_META");
-		LPCSTR metaTagsUtf8 = BASS_ChannelGetTags(channel, BASS_TAG_META);
-		if (metaTagsUtf8) {
-			std::wstring metaTags = ConvertUtf8ToWide(metaTagsUtf8);
-			DLog(L"Received Meta Tag: {}", metaTags.c_str());
-
-			size_t k1 = metaTags.find(L"StreamTitle='");
-			if (k1 != metaTags.npos) {
-				k1 += 13;
-				size_t k2 = metaTags.find(L'\'', k1);
-				if (k2 != metaTags.npos) {
-					tags.Title = metaTags.substr(k1, k2 - k1);
-					decoder->m_shoutcastEvents->OnMetaDataCallback(&tags);
-				}
-			}
-			else {
-				k1 = metaTags.find(L"TITLE=");
-				if (k1 == metaTags.npos) {
-					k1 = metaTags.find(L"Title=");
-					if (k1 == metaTags.npos) {
-						k1 = metaTags.find(L"title=");
-					}
-				}
-				if (k1 != metaTags.npos) {
-					k1 += 6;
-					tags.Title = metaTags.substr(k1);
-					decoder->m_shoutcastEvents->OnMetaDataCallback(&tags);
-				}
-			}
+		LPCSTR p = BASS_ChannelGetTags(channel, BASS_TAG_META);
+		if (p) {
+			DLog(L"Received Meta Tag: {}", ConvertUtf8ToWide(p).c_str());
+			ReadTagsICYmetadata(p, tags);
 		}
 		return;
 	}
@@ -233,29 +209,6 @@ void BassDecoder::LoadPlugins()
 	}
 }
 
-std::wstring GetNameTag(LPCSTR string)
-{
-	std::wstring name_tag;
-
-	std::wstring strTags = ConvertAnsiToWide(string);
-
-	LPCWSTR astring = strTags.c_str();
-	while (astring && *astring) {
-		LPCWSTR tag = astring;
-		if (wcsncmp(L"icy-name:", tag, 9) == 0) {
-			tag += 9;
-			while (*tag && iswspace(*tag)) {
-				tag++;
-			}
-			name_tag = tag;
-			break;
-		}
-		astring += wcslen(astring) + 1;
-	}
-
-	return name_tag;
-}
-
 bool BassDecoder::Load(std::wstring path) // use copy of path here
 {
 	Close();
@@ -330,10 +283,25 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		}
 	}
 	else if (m_isLiveStream) {
-		LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_OGG);
-		if (p) {
+		if (LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_OGG)) {
 			DLog(L"Found OGG Tag");
 			ReadTagsOgg(p, tags, pResources);
+		}
+
+		if (tags.Empty()) {
+			if (LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_ICY)) {
+				DLog(L"Check the ICY header");
+				ReadTagsICYheaders(p, tags);
+			}
+			else if (LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_HTTP)) {
+				DLog(L"Check the HTTP header");
+				ReadTagsICYheaders(p, tags);
+			}
+
+			if (LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_META)) {
+				DLog(L"Received Meta Tag: {}", ConvertUtf8ToWide(p).c_str());
+				ReadTagsICYmetadata(p, tags);
+			}
 		}
 	}
 	else {
@@ -438,49 +406,6 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 				}
 			}
 			index++;
-		}
-	}
-
-	if (m_isLiveStream && tags.Empty()) {
-		LPCSTR icyTags;
-		LPCSTR httpHeaders;
-
-		icyTags = BASS_ChannelGetTags(m_stream, BASS_TAG_ICY);
-		if (icyTags) {
-			tags.Title = GetNameTag(icyTags);
-		}
-
-		httpHeaders = BASS_ChannelGetTags(m_stream, BASS_TAG_HTTP);
-		if (httpHeaders) {
-			tags.Title = GetNameTag(httpHeaders);
-		}
-
-		LPCSTR metaTagsUtf8 = BASS_ChannelGetTags(m_stream, BASS_TAG_META);
-		if (metaTagsUtf8) {
-			std::wstring metaTags = ConvertUtf8ToWide(metaTagsUtf8);
-			DLog(L"Received Meta Tag: {}", metaTags.c_str());
-
-			size_t k1 = metaTags.find(L"StreamTitle='");
-			if (k1 != metaTags.npos) {
-				k1 += 13;
-				size_t k2 = metaTags.find(L'\'', k1);
-				if (k2 != metaTags.npos) {
-					tags.Title = metaTags.substr(k1, k2 - k1);
-				}
-			}
-			else {
-				k1 = metaTags.find(L"TITLE=");
-				if (k1 == metaTags.npos) {
-					k1 = metaTags.find(L"Title=");
-					if (k1 == metaTags.npos) {
-						k1 = metaTags.find(L"title=");
-					}
-				}
-				if (k1 != metaTags.npos) {
-					k1 += 6;
-					tags.Title = metaTags.substr(k1);
-				}
-			}
 		}
 	}
 

@@ -59,3 +59,6 @@ void ReadTagsID3v1(const char* p, ContentTags& tags);
 
 // BASS_TAG_ICY, BASS_TAG_HTTP
 void ReadTagsICYheaders(const char* p, ContentTags& tags);
+
+// BASS_TAG_META
+void ReadTagsICYmetadata(const char* p, ContentTags& tags);
