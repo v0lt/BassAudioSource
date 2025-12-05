@@ -364,13 +364,18 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 			ReadTagsID3v1(p, tags);
 		}
 
-		TAG_FLAC_PICTURE* pFlacPic = (TAG_FLAC_PICTURE*)BASS_ChannelGetTags(m_stream, BASS_TAG_FLAC_PICTURE);
-		if (pFlacPic && pFlacPic->length) {
-			DSMResource resource;
-			resource.mime = ConvertAnsiToWide(pFlacPic->mime);
-			resource.data.resize(pFlacPic->length);
-			memcpy(resource.data.data(), pFlacPic->data, pFlacPic->length);
-			pResources->emplace_back(resource);
+		int index = 0;
+		while (const TAG_FLAC_PICTURE* pFlacPic = (TAG_FLAC_PICTURE*)BASS_ChannelGetTags(m_stream, BASS_TAG_FLAC_PICTURE + index)) {
+			if (pFlacPic && pFlacPic->length > 16 && pFlacPic->mime) {
+				DSMResource resource;
+				if (pFlacPic->desc) {
+					resource.name = ConvertUtf8ToWide(pFlacPic->desc);
+				}
+				resource.mime = ConvertAnsiToWide(pFlacPic->mime);
+				resource.data.resize(pFlacPic->length);
+				memcpy(resource.data.data(), pFlacPic->data, pFlacPic->length);
+				pResources->emplace_back(resource);
+			}
 		}
 
 		const TAG_BINARY* pMP4Pic = (const TAG_BINARY*)BASS_ChannelGetTags(m_stream, BASS_TAG_MP4_COVERART);
@@ -386,7 +391,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 			}
 		}
 
-		int index = 0;
+		index = 0;
 		while (const TAG_WEBM_ATTACHMENT* pWebmAttachment = (const TAG_WEBM_ATTACHMENT*)BASS_ChannelGetTags(m_stream, BASS_TAG_WEBM_ATTACHMENT + index)) {
 			if (pWebmAttachment && pWebmAttachment->length > 16) {
 				std::string_view mediatype(pWebmAttachment->mediatype);
