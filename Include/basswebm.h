@@ -30,6 +30,16 @@ extern "C" {
 // Additional tag types
 #define BASS_TAG_WEBM			0x15000 // file tags : series of null-terminated UTF-8 strings
 #define BASS_TAG_WEBM_TRACK		0x15001 // track tags : series of null-terminated UTF-8 strings
+#define BASS_TAG_WEBM_ATTACHMENT 0x15100 // + index #, file attachment : TAG_WEBM_ATTACHMENT
+
+// File attachment structure
+typedef struct {
+	const char *description;
+	const char *filename;
+	const char *mediatype;
+	const void *data;
+	DWORD length;
+} TAG_WEBM_ATTACHMENT;
 
 // Additional attributes
 #define BASS_ATTRIB_WEBM_TRACK	0x16000
