@@ -9,6 +9,8 @@ extern "C" {
 
 #ifndef BASSAACDEF
 #define BASSAACDEF(f) WINAPI f
+#else
+#define NOBASSAACOVERLOADS
 #endif
 
 // additional BASS_SetConfig options
@@ -21,7 +23,7 @@ extern "C" {
 #define BASS_AAC_STEREO			0x400000 // downmatrix to stereo
 
 // additional BASS_ChannelGetLength/GetPosition/SetPosition mode
-#define BASS_POS_TRACK			7 // track number
+#define BASS_POS_TRACK			4 // track number
 
 // BASS_CHANNELINFO type
 #define BASS_CTYPE_STREAM_AAC	0x10b00 // AAC
@@ -35,7 +37,7 @@ HSTREAM BASSAACDEF(BASS_AAC_StreamCreateFileUser)(DWORD system, DWORD flags, con
 #ifdef __cplusplus
 }
 
-#if defined(_WIN32) && !defined(NOBASSOVERLOADS)
+#if defined(_WIN32) && !defined(NOBASSAACOVERLOADS)
 static inline HSTREAM BASS_AAC_StreamCreateFile(DWORD filetype, const WCHAR *file, QWORD offset, QWORD length, DWORD flags)
 {
 	return BASS_AAC_StreamCreateFile(filetype, (const void*)file, offset, length, flags | BASS_UNICODE);
