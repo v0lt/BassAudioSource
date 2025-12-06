@@ -47,7 +47,7 @@ void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user)
 		DLog(L"OnMetaData() - BASS_SYNC_META");
 		LPCSTR p = BASS_ChannelGetTags(channel, BASS_TAG_META);
 		if (p) {
-			DLog(L"Received Meta Tag: {}", ConvertUtf8ToWide(p).c_str());
+			DLog(L"Received Meta Tag: {}", ConvertUtf8orAnsiToWide(p).c_str());
 			ReadTagsICYmetadata(p, tags);
 			decoder->m_shoutcastEvents->OnMetaDataCallback(&tags);
 		}
@@ -300,7 +300,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 			}
 
 			if (LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_META)) {
-				DLog(L"Received Meta Tag: {}", ConvertUtf8ToWide(p).c_str());
+				DLog(L"Received Meta Tag: {}", ConvertUtf8orAnsiToWide(p).c_str());
 				ReadTagsICYmetadata(p, tags);
 			}
 		}

@@ -357,7 +357,7 @@ void ReadTagsICYmetadata(const char* p, ContentTags& tags)
 		k1 += 13;
 		size_t k2 = str.find(L'\'', k1);
 		if (k2 != str.npos) {
-			tags.Title = ConvertUtf8ToWide(str.substr(k1, k2 - k1));
+			tags.Title = ConvertUtf8orAnsiToWide(str.substr(k1, k2 - k1));
 		}
 	}
 #ifdef _DEBUG
