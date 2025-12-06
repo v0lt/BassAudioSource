@@ -125,7 +125,11 @@ std::wstring ConvertAnsiToWide(const std::string_view sv);
 
 std::wstring ConvertUtf8ToWide(const std::string_view sv);
 
+// An attempt will be made to convert the string from UTF-8 to UTF-16 (wide character) encoding.
+// If UTF-8 characters are not recognized, conversion will be made from the system default Windows ANSI code page.
+std::wstring ConvertUtf8orAnsiToWide(const std::string_view sv);
+
 // convert UTF-16 (wide character) string to system default Windows ANSI code page string
-std::string ConvertWideToANSI(const std::wstring_view wsv);
+std::string ConvertWideToAnsi(const std::wstring_view wsv);
 
 std::string ConvertWideToUtf8(const std::wstring_view wsv);

@@ -263,7 +263,7 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 
 		ASSERT(wext[0] == L'.');
 		wext.erase(0, 1);
-		std::string ext = ConvertWideToANSI(wext);
+		std::string ext = ConvertWideToAnsi(wext);
 		str_tolower(ext);
 
 		for (const auto& bass_ext : bass_exts) {
