@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2022-2024 v0lt
+ *  Copyright (C) 2022-2025 v0lt
  *  Based on the following code:
  *  DC-Bass Source filter - http://www.dsp-worx.de/index.php?n=15
  *  DC-Bass Source Filter C++ porting - https://github.com/frafv/DCBassSource
@@ -33,6 +33,7 @@
 #define PATH_TYPE_OFR      3
 #define PATH_TYPE_MIDI     4
 #define PATH_TYPE_ZXTUNE   5
+#define PATH_TYPE_WEBM     6
 #define PATH_TYPE_URL      0x10000
 
 class ShoutcastEvents

@@ -169,7 +169,6 @@ void BassDecoder::LoadPlugins()
 		L"bassopus.dll",
 		L"basswma.dll",
 		L"basswv.dll",
-		L"basswebm.dll",
 	};
 
 	const std::wstring filterDir = GetFilterDirectory();
@@ -200,7 +199,11 @@ void BassDecoder::LoadPlugins()
 	else if (m_pathType == PATH_TYPE_MOD) {
 		// no plugins needed
 	}
-	else {
+	else if (m_pathType == PATH_TYPE_WEBM) {
+		LoadBassPlugin(L"basswebm.dll");
+	}
+
+	if (m_pathType == PATH_TYPE_REGULAR || m_pathType == PATH_TYPE_WEBM) {
 		for (const auto pligin : BassPlugins) {
 			LoadBassPlugin(pligin);
 		}

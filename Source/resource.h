@@ -6,6 +6,7 @@
 #define IDS_MAINPROPPAGE_TITLE          104
 #define IDC_STATIC1                     1001
 #define IDC_CHECK1                      1011
+#define IDC_CHECK2                      1013
 #define IDC_COMBO1                      1021
 #define IDC_EDIT1                       1031
 #define IDC_EDIT3                       1033

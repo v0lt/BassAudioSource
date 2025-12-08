@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2023-2024 v0lt
+ *  Copyright (C) 2023-2025 v0lt
  */
 
 #include "stdafx.h"
@@ -115,6 +115,7 @@ HRESULT CBassMainPPage::OnActivate()
 	CheckDlgButton(IDC_CHECK1, m_SetsPP.bMidiEnable ? BST_CHECKED : BST_UNCHECKED);
 	GetDlgItem(IDC_STATIC1).EnableWindow(m_SetsPP.bMidiEnable);
 	GetDlgItem(IDC_COMBO1).EnableWindow(m_SetsPP.bMidiEnable);
+	CheckDlgButton(IDC_CHECK2, m_SetsPP.bWebmEnable ? BST_CHECKED : BST_UNCHECKED);
 
 	const std::wstring filterDir = GetFilterDirectory();
 	std::vector<std::wstring> soundFontFiles;
@@ -178,6 +179,11 @@ INT_PTR CBassMainPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 				m_SetsPP.bMidiEnable = IsDlgButtonChecked(IDC_CHECK1) == BST_CHECKED;
 				GetDlgItem(IDC_STATIC1).EnableWindow(m_SetsPP.bMidiEnable);
 				GetDlgItem(IDC_COMBO1).EnableWindow(m_SetsPP.bMidiEnable);
+				SetDirty();
+				return (LRESULT)1;
+			}
+			if (nID == IDC_CHECK2) {
+				m_SetsPP.bWebmEnable = IsDlgButtonChecked(IDC_CHECK2) == BST_CHECKED;
 				SetDirty();
 				return (LRESULT)1;
 			}

@@ -1,11 +1,12 @@
 /*
- *  Copyright (C) 2023-2024 v0lt
+ *  Copyright (C) 2023-2025 v0lt
  */
 
 #pragma once
 
 struct Settings_t {
 	bool bMidiEnable;
+	bool bWebmEnable;
 	std::wstring sMidiSoundFontDefault;
 
 	Settings_t() {
@@ -14,6 +15,7 @@ struct Settings_t {
 
 	void SetDefault() {
 		bMidiEnable = false;
+		bWebmEnable = false;
 		sMidiSoundFontDefault.clear();
 	}
 };

@@ -32,6 +32,7 @@
 #define OPT_REGKEY_BassAudioSource L"Software\\MPC-BE Filters\\BassAudioSource"
 #define OPT_MidiEnable             L"MIDI_Enable"
 #define OPT_MidiSoundFontDefault   L"MIDI_SoundFontDefault"
+#define OPT_WebmEnable             L"WebM_Enable"
 
 volatile LONG InstanceCount = 0;
 
@@ -145,6 +146,12 @@ void BassSource::LoadSettings()
 			}
 		}
 
+		nBytes = sizeof(DWORD);
+		lRes = ::RegQueryValueExW(key, OPT_WebmEnable, nullptr, &dwType, reinterpret_cast<LPBYTE>(&dwValue), &nBytes);
+		if (lRes == ERROR_SUCCESS && dwType == REG_DWORD) {
+			m_Sets.bWebmEnable = !!dwValue;
+		}
+
 		RegCloseKey(key);
 	}
 }
@@ -229,8 +236,6 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 		"wma",
 		// basswv.dll
 		"wv",
-		// basswebm.dll
-		"mka", "webm", "weba"
 	};
 	static LPCSTR bass_mod_exts[] = {
 		// bass.dll
@@ -249,6 +254,10 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 		"ahx", "ay", "gbs", "nsf", "pt2", "pt3",
 		"sap", "sid", "spc", "stc",
 		"v2m", "vgm", "vgz", "vtx", "ym",
+	};
+	static LPCSTR bass_webm_exts[] = {
+		// basswebm.dll
+		"mka", "webm", "weba",
 	};
 
 	m_filePath = pszFileName;
@@ -300,6 +309,14 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 			for (const auto& bass_ext : bass_zxtune_exts) {
 				if (ext.compare(bass_ext) == 0) {
 					path_type = PATH_TYPE_ZXTUNE;
+					break;
+				}
+			}
+		}
+		if (!path_type && m_Sets.bWebmEnable) {
+			for (const auto& bass_ext : bass_webm_exts) {
+				if (ext.compare(bass_ext) == 0) {
+					path_type = PATH_TYPE_WEBM;
 					break;
 				}
 			}
@@ -502,6 +519,9 @@ STDMETHODIMP BassSource::SaveSettings()
 
 		std::wstring str(m_Sets.sMidiSoundFontDefault);
 		lRes = ::RegSetValueExW(key, OPT_MidiSoundFontDefault, 0, REG_SZ, reinterpret_cast<const BYTE*>(str.c_str()), (DWORD)(str.size() + 1) * sizeof(wchar_t));
+
+		dwValue = m_Sets.bWebmEnable;
+		lRes = ::RegSetValueExW(key, OPT_WebmEnable, 0, REG_DWORD, reinterpret_cast<const BYTE*>(&dwValue), sizeof(DWORD));
 
 		RegCloseKey(key);
 	}
