@@ -2,10 +2,11 @@ Bass Audio Source
 
 0.3.2.x dev
 ----------------------
-Improved ignoring of MOV video files (BASS and component updates helped).
-Added support for covers in .M4A files.
+Improved ignoring of MOV video files.
+Added support for embedded images (Cover Art) in M4A and APE files.
 Fixed registration of a filter from a folder with Unicode characters.
-Added support for Matroska and WebM audio files.
+Added support for Matroska and WebM audio files. Disabled by default in the settings.
+Added support for multiple embedded images in FLAC files.
 
 Updated BASS components:
   bass.dll     2.4.18;
