@@ -33,6 +33,7 @@ struct ContentTags
 	std::wstring Title;
 	std::wstring AuthorName;
 	std::wstring Description;
+	std::wstring StationName;
 
 	void Clear() {
 		Title.clear();

@@ -337,7 +337,7 @@ void ReadTagsICYheaders(const char* p, ContentTags& tags)
 			std::string field_name(p, k);
 
 			if (field_name.compare("icy-name") == 0) {
-				tags.Title = str_trim(ConvertUtf8ToWide(p + k + 1));
+				tags.StationName = str_trim(ConvertUtf8ToWide(p + k + 1));
 			}
 			else if (field_name.compare("icy-description") == 0) {
 				tags.Description = str_trim(ConvertUtf8ToWide(p + k + 1));

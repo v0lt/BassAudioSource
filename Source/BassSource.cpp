@@ -393,7 +393,11 @@ STDMETHODIMP BassSource::get_Title(THIS_ BSTR FAR* pbstrTitle)
 
 	if (m_Tags.Title.size()) {
 		*pbstrTitle = SysAllocString(m_Tags.Title.c_str());
-	} else {
+	}
+	else if (m_Tags.StationName.size()) {
+		*pbstrTitle = SysAllocString(m_Tags.StationName.c_str());
+	}
+	else {
 		hr = VFW_E_NOT_FOUND;
 	}
 		

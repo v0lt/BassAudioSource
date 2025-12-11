@@ -287,25 +287,24 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		}
 	}
 	else if (m_isLiveStream) {
+		// First, we get the metadata from the HTTP header.
+		if (LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_ICY)) {
+			DLog(L"Check the ICY header");
+			ReadTagsICYheaders(p, tags);
+		}
+		else if (LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_HTTP)) {
+			DLog(L"Check the HTTP header");
+			ReadTagsICYheaders(p, tags);
+		}
+
+		// Then we supplement and replace with data from the stream.
 		if (LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_OGG)) {
 			DLog(L"Found OGG Tag");
 			ReadTagsOgg(p, tags, pResources);
 		}
-
-		if (tags.Empty()) {
-			if (LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_ICY)) {
-				DLog(L"Check the ICY header");
-				ReadTagsICYheaders(p, tags);
-			}
-			else if (LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_HTTP)) {
-				DLog(L"Check the HTTP header");
-				ReadTagsICYheaders(p, tags);
-			}
-
-			if (LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_META)) {
-				DLog(L"Received Meta Tag: {}", ConvertUtf8orAnsiToWide(p).c_str());
-				ReadTagsICYmetadata(p, tags);
-			}
+		else if (LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_META)) {
+			DLog(L"Received Meta Tag: {}", ConvertUtf8orAnsiToWide(p).c_str());
+			ReadTagsICYmetadata(p, tags);
 		}
 	}
 	else {
