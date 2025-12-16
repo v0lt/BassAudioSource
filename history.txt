@@ -9,7 +9,7 @@ Added support for Matroska and WebM audio files. Disabled by default in the sett
 Added support for multiple embedded images in FLAC files.
 
 Updated BASS components:
-  bass.dll     2.4.18;
+  bass.dll     2.4.18.3;
   bass_aac.dll 2.4.7.1;
   bassmidi.dll 2.4.15.3;
   basswebm.dll 2.4.1.1 beta.
