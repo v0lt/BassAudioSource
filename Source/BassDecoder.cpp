@@ -239,7 +239,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 	}
 
 	if (m_pathType == PATH_TYPE_MOD) {
-		m_stream = BASS_MusicLoad(false, (const void*)path.c_str(), 0, 0, BASS_MUSIC_DECODE | BASS_MUSIC_RAMP | BASS_MUSIC_POSRESET | BASS_MUSIC_PRESCAN | BASS_UNICODE, 0);
+		m_stream = BASS_MusicLoad(BASS_FILE_NAME, (const void*)path.c_str(), 0, 0, BASS_MUSIC_DECODE | BASS_MUSIC_RAMP | BASS_MUSIC_POSRESET | BASS_MUSIC_PRESCAN | BASS_UNICODE, 0);
 	}
 	else if (m_pathType & PATH_TYPE_URL) {
 		// disable Media Foundation because navigation for M4A DASH (YouTube) does not work
@@ -252,7 +252,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		);
 	}
 	else {
-		m_stream = BASS_StreamCreateFile(FALSE, (const void*)path.c_str(), 0, 0, BASS_STREAM_DECODE | BASS_UNICODE);
+		m_stream = BASS_StreamCreateFile(BASS_FILE_NAME, (const void*)path.c_str(), 0, 0, BASS_STREAM_DECODE | BASS_UNICODE);
 	}
 
 	if (!m_stream) {
@@ -337,7 +337,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 
 		int index = 0;
 		while (const TAG_FLAC_PICTURE* pFlacPic = (TAG_FLAC_PICTURE*)BASS_ChannelGetTags(m_stream, BASS_TAG_FLAC_PICTURE + index)) {
-			if (pFlacPic && pFlacPic->length > 16 && pFlacPic->mime) {
+			if (pFlacPic->length > 16 && pFlacPic->mime) {
 				DSMResource resource;
 				if (pFlacPic->desc) {
 					resource.name = ConvertUtf8ToWide(pFlacPic->desc);
@@ -352,7 +352,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 
 		index = 0;
 		while (const TAG_APE_BINARY* pApeBinary = (const TAG_APE_BINARY*)BASS_ChannelGetTags(m_stream, BASS_TAG_APE_BINARY + index)) {
-			if (pApeBinary && pApeBinary->length > 16 && pApeBinary->key) {
+			if (pApeBinary->length > 16 && pApeBinary->key) {
 				auto d = (const BYTE*)pApeBinary->data;
 				auto end = d + pApeBinary->length;
 				while (d < end && *d) {
@@ -377,7 +377,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 
 		index = 0;
 		while (const TAG_BINARY* pMP4CoverArt = (const TAG_BINARY*)BASS_ChannelGetTags(m_stream, BASS_TAG_MP4_COVERART + index)) {
-			if (pMP4CoverArt && pMP4CoverArt->length > 16) {
+			if (pMP4CoverArt->length > 16) {
 				auto d = (const BYTE*)pMP4CoverArt->data;
 				if (d[0] == 0xFF && d[1] == 0xD8 && d[2] == 0xFF) {
 					DSMResource resource;
@@ -393,7 +393,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 
 		index = 0;
 		while (const TAG_WEBM_ATTACHMENT* pWebmAttachment = (const TAG_WEBM_ATTACHMENT*)BASS_ChannelGetTags(m_stream, BASS_TAG_WEBM_ATTACHMENT + index)) {
-			if (pWebmAttachment && pWebmAttachment->length > 16) {
+			if (pWebmAttachment->length > 16) {
 				std::string_view mediatype(pWebmAttachment->mediatype);
 				if (mediatype.starts_with("image/")) {
 					DSMResource resource;
