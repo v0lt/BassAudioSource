@@ -79,7 +79,7 @@ void BassSource::Init()
 	InterlockedIncrement(&InstanceCount);
 }
 
-void STDMETHODCALLTYPE BassSource::OnMetaDataCallback(ContentTags* pTags)
+void STDMETHODCALLTYPE BassSource::OnMetaDataCallback(const ContentTags* pTags)
 {
 	DLog(L"BassSource::OnMetaDataCallback()");
 	if (!pTags) {
@@ -89,6 +89,22 @@ void STDMETHODCALLTYPE BassSource::OnMetaDataCallback(ContentTags* pTags)
 	m_metaLock->Lock();
 	__try {
 		m_Tags = *pTags;
+	}
+	__finally {
+		m_metaLock->Unlock();
+	}
+}
+
+void STDMETHODCALLTYPE BassSource::OnStreamTitleCallback(const wchar_t* title)
+{
+	DLog(L"BassSource::OnStreamTitleCallback()");
+	if (!title) {
+		return;
+	}
+
+	m_metaLock->Lock();
+	__try {
+		m_Tags.Title = title;
 	}
 	__finally {
 		m_metaLock->Unlock();

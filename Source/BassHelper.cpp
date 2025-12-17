@@ -348,7 +348,7 @@ void ReadTagsICYheaders(const char* p, ContentTags& tags)
 	}
 }
 
-void ReadTagsICYmetadata(const char* p, ContentTags& tags)
+void ReadTagsICYStreamTitle(const char* p, std::wstring& title)
 {
 	std::string_view str(p);
 
@@ -357,7 +357,7 @@ void ReadTagsICYmetadata(const char* p, ContentTags& tags)
 		k1 += 13;
 		size_t k2 = str.find(L'\'', k1);
 		if (k2 != str.npos) {
-			tags.Title = ConvertUtf8orAnsiToWide(str.substr(k1, k2 - k1));
+			title = ConvertUtf8orAnsiToWide(str.substr(k1, k2 - k1));
 		}
 	}
 #ifdef _DEBUG
@@ -372,7 +372,7 @@ void ReadTagsICYmetadata(const char* p, ContentTags& tags)
 		if (k1 != str.npos) {
 			ASSERT(0);
 			k1 += 6;
-			tags.Title = ConvertUtf8ToWide(str.substr(k1));
+			title = ConvertUtf8ToWide(str.substr(k1));
 		}
 	}
 #endif

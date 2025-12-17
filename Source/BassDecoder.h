@@ -39,7 +39,8 @@
 class ShoutcastEvents
 {
 public:
-	virtual void STDMETHODCALLTYPE OnMetaDataCallback(ContentTags* pTags) = 0;
+	virtual void STDMETHODCALLTYPE OnMetaDataCallback(const ContentTags* pTags) = 0;
+	virtual void STDMETHODCALLTYPE OnStreamTitleCallback(const wchar_t* title) = 0;
 	virtual void STDMETHODCALLTYPE OnResourceDataCallback(std::unique_ptr<std::list<DSMResource>>& pResources) = 0;
 	virtual void STDMETHODCALLTYPE OnShoutcastBufferCallback(const void* buffer, DWORD size) = 0;
 };

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2022-2024 v0lt
+ *  Copyright (C) 2022-2025 v0lt
  *  Based on the following code:
  *  DC-Bass Source filter - http://www.dsp-worx.de/index.php?n=15
  *  DC-Bass Source Filter C++ porting - https://github.com/frafv/DCBassSource
@@ -49,7 +49,8 @@ protected:
 	std::wstring m_filePath;
 	Settings_t m_Sets;
 
-	void STDMETHODCALLTYPE OnMetaDataCallback(ContentTags* tags);
+	void STDMETHODCALLTYPE OnMetaDataCallback(const ContentTags* tags);
+	void STDMETHODCALLTYPE OnStreamTitleCallback(const wchar_t* title);
 	void STDMETHODCALLTYPE OnResourceDataCallback(std::unique_ptr<std::list<DSMResource>>& pResources);
 	void STDMETHODCALLTYPE OnShoutcastBufferCallback(const void* buffer, DWORD size);
 	void LoadSettings();

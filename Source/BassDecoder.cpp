@@ -41,15 +41,14 @@ void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user)
 		return;
 	}
 
-	ContentTags tags;
-
 	if (handle == decoder->m_syncMeta) {
 		DLog(L"OnMetaData() - BASS_SYNC_META");
 		LPCSTR p = BASS_ChannelGetTags(channel, BASS_TAG_META);
 		if (p) {
 			DLog(L"Received Meta Tag: {}", ConvertUtf8orAnsiToWide(p).c_str());
-			ReadTagsICYmetadata(p, tags);
-			decoder->m_shoutcastEvents->OnMetaDataCallback(&tags);
+			std::wstring title;
+			ReadTagsICYStreamTitle(p, title);
+			decoder->m_shoutcastEvents->OnStreamTitleCallback(title.c_str());
 		}
 		return;
 	}
@@ -58,6 +57,7 @@ void CALLBACK OnMetaData(HSYNC handle, DWORD channel, DWORD data, void* user)
 		DLog(L"OnMetaData() - BASS_SYNC_OGG_CHANGE");
 		LPCSTR p = BASS_ChannelGetTags(channel, BASS_TAG_OGG);
 		if (p) {
+			ContentTags tags;
 			ReadTagsCommon(p, tags);
 			decoder->m_shoutcastEvents->OnMetaDataCallback(&tags);
 		}
@@ -304,7 +304,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		}
 		else if (LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_META)) {
 			DLog(L"Received Meta Tag: {}", ConvertUtf8orAnsiToWide(p).c_str());
-			ReadTagsICYmetadata(p, tags);
+			ReadTagsICYStreamTitle(p, tags.Title);
 		}
 	}
 	else {

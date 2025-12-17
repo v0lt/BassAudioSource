@@ -62,4 +62,4 @@ void ReadTagsID3v1(const char* p, ContentTags& tags);
 void ReadTagsICYheaders(const char* p, ContentTags& tags);
 
 // BASS_TAG_META
-void ReadTagsICYmetadata(const char* p, ContentTags& tags);
+void ReadTagsICYStreamTitle(const char* p, std::wstring& title);
