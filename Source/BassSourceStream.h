@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2022-2024 v0lt
+ *  Copyright (C) 2022-2025 v0lt
  *  Based on the following code:
  *  DC-Bass Source filter - http://www.dsp-worx.de/index.php?n=15
  *  DC-Bass Source Filter C++ porting - https://github.com/frafv/DCBassSource
@@ -49,7 +49,7 @@ private:
 
 public:
 	BassSourceStream(LPCWSTR objectName, HRESULT& hr, CSource* filter, LPCWSTR name,
-		LPCWSTR filename, ShoutcastEvents* shoutcastEvents, UINT pathType, Settings_t& sets);
+		LPCWSTR filename, ShoutcastEvents* shoutcastEvents, PathType_t pathType, Settings_t& sets);
 	~BassSourceStream();
 
 	HRESULT GetMediaType(CMediaType* pMediaType);

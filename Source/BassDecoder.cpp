@@ -77,7 +77,7 @@ void CALLBACK OnDownloadData(const void* buffer, DWORD length, void* user)
 // BassDecoder
 //
 
-BassDecoder::BassDecoder(ShoutcastEvents* shoutcastEvents, UINT pathType, Settings_t& sets)
+BassDecoder::BassDecoder(ShoutcastEvents* shoutcastEvents, PathType_t pathType, Settings_t& sets)
 	: m_shoutcastEvents(shoutcastEvents)
 	, m_pathType(pathType)
 	, m_midiSoundFontDefault(sets.sMidiSoundFontDefault)
@@ -182,28 +182,28 @@ void BassDecoder::LoadPlugins()
 		}
 	};
 
-	if (m_pathType == PATH_TYPE_OFR) {
+	if (m_pathType.ext == PATH_TYPE_OFR) {
 		const std::wstring optimFrogDllPath = filterDir + L"OptimFROG.dll";
 		m_optimFROGDLL = LoadLibraryW(optimFrogDllPath.c_str());
 		LoadBassPlugin(L"bass_ofr.dll");
 	}
-	else if (m_pathType == PATH_TYPE_MIDI) {
+	else if (m_pathType.ext == PATH_TYPE_MIDI) {
 		LoadBassPlugin(L"bassmidi.dll");
 	}
-	else if (m_pathType == PATH_TYPE_ZXTUNE) {
+	else if (m_pathType.ext == PATH_TYPE_ZXTUNE) {
 		// Load basszxtune only for specific files.
 		// This will prevent slowdowns in parsing large files
 		// that have not been opened by bass or other plugins.
 		LoadBassPlugin(L"basszxtune.dll");
 	}
-	else if (m_pathType == PATH_TYPE_MOD) {
+	else if (m_pathType.ext == PATH_TYPE_MOD) {
 		// no plugins needed
 	}
-	else if (m_pathType == PATH_TYPE_WEBM) {
+	else if (m_pathType.ext == PATH_TYPE_WEBM) {
 		LoadBassPlugin(L"basswebm.dll");
 	}
 
-	if (m_pathType == PATH_TYPE_REGULAR || m_pathType == PATH_TYPE_WEBM || m_pathType & PATH_TYPE_URL) {
+	if (m_pathType.ext == PATH_TYPE_REGULAR || m_pathType.ext == PATH_TYPE_WEBM || m_pathType.url) {
 		for (const auto pligin : BassPlugins) {
 			LoadBassPlugin(pligin);
 		}
@@ -226,7 +226,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		path[3] = 'p';
 	}
 
-	if (m_pathType == PATH_TYPE_MIDI) {
+	if (m_pathType.ext == PATH_TYPE_MIDI) {
 		m_soundFont = BASS_MIDI_FontInit((const void*)m_midiSoundFontDefault.c_str(), BASS_MIDI_FONT_MMAP | BASS_UNICODE);
 		if (m_soundFont) {
 			BASS_MIDI_FONT sf = { m_soundFont, -1, 0 };
@@ -238,15 +238,14 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		
 	}
 
-	if (m_pathType == PATH_TYPE_MOD) {
+	if (m_pathType.ext == PATH_TYPE_MOD) {
 		m_stream = BASS_MusicLoad(BASS_FILE_NAME, (const void*)path.c_str(), 0, 0, BASS_MUSIC_DECODE | BASS_MUSIC_RAMP | BASS_MUSIC_POSRESET | BASS_MUSIC_PRESCAN | BASS_UNICODE, 0);
 	}
-	else if (m_pathType & PATH_TYPE_URL) {
+	else if (m_pathType.url) {
 		// disable Media Foundation because navigation for M4A DASH (YouTube) does not work
 		EXECUTE_ASSERT(BASS_SetConfig(BASS_CONFIG_MF_DISABLE, TRUE));
 
-		m_stream = BASS_StreamCreateURL(
-			LPCSTR(path.c_str()), 0,
+		m_stream = BASS_StreamCreateURL((const char*)path.c_str(), 0,
 			BASS_STREAM_BLOCK | BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS,
 			OnDownloadData, this
 		);
@@ -266,7 +265,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 		return false;
 	}
 
-	if (m_pathType & PATH_TYPE_URL) {
+	if (m_pathType.url) {
 		m_syncMeta = BASS_ChannelSetSync(m_stream, BASS_SYNC_META, 0, OnMetaData, this);
 		m_syncOggChange = BASS_ChannelSetSync(m_stream, BASS_SYNC_OGG_CHANGE, 0, OnMetaData, this);
 
@@ -279,7 +278,7 @@ bool BassDecoder::Load(std::wstring path) // use copy of path here
 	ContentTags tags;
 	auto pResources = std::make_unique<std::list<DSMResource>>();
 
-	if (m_pathType == PATH_TYPE_MOD) {
+	if (m_pathType.ext == PATH_TYPE_MOD) {
 		LPCSTR p = BASS_ChannelGetTags(m_stream, BASS_TAG_MUSIC_NAME);
 		if (p) {
 			DLog(L"Found Music Name");
@@ -435,7 +434,7 @@ void BassDecoder::Close()
 			BASS_ChannelRemoveSync(m_stream, m_syncOggChange);
 		}
 
-		if (m_pathType == PATH_TYPE_MOD) {
+		if (m_pathType.ext == PATH_TYPE_MOD) {
 			BASS_MusicFree(m_stream);
 		}
 		else {

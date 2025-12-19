@@ -277,7 +277,7 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 	};
 
 	m_filePath = pszFileName;
-	UINT path_type = PATH_TYPE_UNKNOWN;
+	PathType_t path_type;
 
 	if (IsLikelyFilePath(pszFileName)) {
 		std::wstring wext = std::filesystem::path(pszFileName).extension();
@@ -293,46 +293,46 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 
 		for (const auto& bass_ext : bass_exts) {
 			if (ext.compare(bass_ext) == 0) {
-				path_type = PATH_TYPE_REGULAR;
+				path_type.ext = PATH_TYPE_REGULAR;
 				break;
 			}
 		}
-		if (!path_type) {
+		if (!path_type.ext) {
 			for (const auto& bass_ext : bass_mod_exts) {
 				if (ext.compare(bass_ext) == 0) {
-					path_type = PATH_TYPE_MOD;
+					path_type.ext = PATH_TYPE_MOD;
 					break;
 				}
 			}
 		}
-		if (!path_type) {
+		if (!path_type.ext) {
 			for (const auto& bass_ext : bass_ofr_exts) {
 				if (ext.compare(bass_ext) == 0) {
-					path_type = PATH_TYPE_OFR;
+					path_type.ext = PATH_TYPE_OFR;
 					break;
 				}
 			}
 		}
-		if (!path_type && m_Sets.bMidiEnable) {
+		if (!path_type.ext && m_Sets.bMidiEnable) {
 			for (const auto& bass_ext : bass_midi_exts) {
 				if (ext.compare(bass_ext) == 0) {
-					path_type = PATH_TYPE_MIDI;
+					path_type.ext = PATH_TYPE_MIDI;
 					break;
 				}
 			}
 		}
-		if (!path_type) {
+		if (!path_type.ext) {
 			for (const auto& bass_ext : bass_zxtune_exts) {
 				if (ext.compare(bass_ext) == 0) {
-					path_type = PATH_TYPE_ZXTUNE;
+					path_type.ext = PATH_TYPE_ZXTUNE;
 					break;
 				}
 			}
 		}
-		if (!path_type && m_Sets.bWebmEnable) {
+		if (!path_type.ext && m_Sets.bWebmEnable) {
 			for (const auto& bass_ext : bass_webm_exts) {
 				if (ext.compare(bass_ext) == 0) {
-					path_type = PATH_TYPE_WEBM;
+					path_type.ext = PATH_TYPE_WEBM;
 					break;
 				}
 			}
@@ -341,10 +341,10 @@ STDMETHODIMP BassSource::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE* pmt)
 	else if (m_filePath.starts_with(L"http://")
 			|| m_filePath.starts_with(L"https://")
 			|| m_filePath.starts_with(L"ftp://")) {
-		path_type = PATH_TYPE_URL;
+		path_type.url = TRUE;
 	}
 
-	if (!path_type) {
+	if (!path_type.ext && !path_type.url) {
 		return VFW_E_CANNOT_LOAD_SOURCE_FILTER;
 	}
 

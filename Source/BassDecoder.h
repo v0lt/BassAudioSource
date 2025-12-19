@@ -34,7 +34,12 @@
 #define PATH_TYPE_MIDI     4
 #define PATH_TYPE_ZXTUNE   5
 #define PATH_TYPE_WEBM     6
-#define PATH_TYPE_URL      0x10000
+
+struct PathType_t
+{
+	UINT ext : 8 = PATH_TYPE_UNKNOWN;
+	UINT url : 8 = FALSE;
+};
 
 class ShoutcastEvents
 {
@@ -53,7 +58,7 @@ protected:
 	//Use shoutcastEvents instead of FMetaDataCallback and FBufferCallback
 	ShoutcastEvents* m_shoutcastEvents;
 
-	const UINT m_pathType;
+	const PathType_t m_pathType;
 	std::wstring m_midiSoundFontDefault;
 
 	HMODULE m_optimFROGDLL = nullptr;
@@ -86,7 +91,7 @@ public:
 	void SetPosition(REFERENCE_TIME refTime);
 
 public:
-	BassDecoder(ShoutcastEvents* shoutcastEvents, UINT pathType, Settings_t& sets);
+	BassDecoder(ShoutcastEvents* shoutcastEvents, PathType_t pathType, Settings_t& sets);
 	~BassDecoder();
 
 	bool Load(std::wstring path);
