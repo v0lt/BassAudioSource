@@ -203,7 +203,7 @@ void BassDecoder::LoadPlugins()
 		LoadBassPlugin(L"basswebm.dll");
 	}
 
-	if (m_pathType == PATH_TYPE_REGULAR || m_pathType == PATH_TYPE_WEBM) {
+	if (m_pathType == PATH_TYPE_REGULAR || m_pathType == PATH_TYPE_WEBM || m_pathType & PATH_TYPE_URL) {
 		for (const auto pligin : BassPlugins) {
 			LoadBassPlugin(pligin);
 		}
