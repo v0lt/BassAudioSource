@@ -70,7 +70,7 @@ HSTREAM BASSDSDDEF(BASS_DSD_StreamCreateFileUser)(DWORD system, DWORD flags, con
 #ifdef __cplusplus
 }
 
-#if defined(_WIN32) && !defined(NOBASSOVERLOADS)
+#if defined(_WIN32) && !defined(NOBASSDSDOVERLOADS)
 static inline HSTREAM BASS_DSD_StreamCreateFile(DWORD filetype, const WCHAR *file, QWORD offset, QWORD length, DWORD flags, DWORD freq)
 {
 	return BASS_DSD_StreamCreateFile(filetype, (const void*)file, offset, length, flags|BASS_UNICODE, freq);
