@@ -274,6 +274,12 @@ void ReadTagsID3v2(const char* p, ContentTags& tags, std::unique_ptr<std::list<D
 				case '\0TT2':
 					tags.Title = GetID3v2FrameText(frame);
 					break;
+				case 'TPE2':
+				case '\0TP2':
+					if (tags.AuthorName.length()) {
+						break;
+					}
+					[[fallthrough]];
 				case 'TPE1':
 				case '\0TP1':
 					tags.AuthorName = GetID3v2FrameText(frame);
