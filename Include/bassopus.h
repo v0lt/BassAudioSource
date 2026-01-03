@@ -20,6 +20,8 @@ extern "C" {
 
 #ifndef BASSOPUSDEF
 #define BASSOPUSDEF(f) WINAPI f
+#else
+#define NOBASSOPUSOVERLOADS
 #endif
 
 // BASS_CHANNELINFO type
@@ -52,7 +54,7 @@ DWORD BASSOPUSDEF(BASS_OPUS_StreamPutData)(HSTREAM handle, const void *buffer, D
 #ifdef __cplusplus
 }
 
-#if defined(_WIN32) && !defined(NOBASSOVERLOADS)
+#if defined(_WIN32) && !defined(NOBASSOPUSOVERLOADS)
 static inline HSTREAM BASS_OPUS_StreamCreateFile(DWORD filetype, const WCHAR *file, QWORD offset, QWORD length, DWORD flags)
 {
 	return BASS_OPUS_StreamCreateFile(filetype, (const void*)file, offset, length, flags | BASS_UNICODE);
