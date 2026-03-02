@@ -1,6 +1,6 @@
 /*
 	BASSFLAC 2.4 C/C++ header file
-	Copyright (c) 2004-2025 Un4seen Developments Ltd.
+	Copyright (c) 2004-2026 Un4seen Developments Ltd.
 
 	See the BASSFLAC.CHM file for more detailed documentation
 */
@@ -24,6 +24,8 @@ extern "C" {
 
 #ifndef BASSFLACDEF
 #define BASSFLACDEF(f) WINAPI f
+#else
+#define NOBASSFLACOVERLOADS
 #endif
 
 // BASS_CHANNELINFO type
@@ -86,15 +88,15 @@ HSTREAM BASSFLACDEF(BASS_FLAC_StreamCreateFileUser)(DWORD system, DWORD flags, c
 #ifdef __cplusplus
 }
 
-#if defined(_WIN32) && !defined(NOBASSOVERLOADS)
+#if defined(_WIN32) && !defined(NOBASSFLACOVERLOADS)
 static inline HSTREAM BASS_FLAC_StreamCreateFile(DWORD filetype, const WCHAR *file, QWORD offset, QWORD length, DWORD flags)
 {
-	return BASS_FLAC_StreamCreateFile(filetype, (const void*)file, offset, length, flags|BASS_UNICODE);
+	return BASS_FLAC_StreamCreateFile(filetype, (const void*)file, offset, length, flags | BASS_UNICODE);
 }
 
 static inline HSTREAM BASS_FLAC_StreamCreateURL(const WCHAR *url, DWORD offset, DWORD flags, DOWNLOADPROC *proc, void *user)
 {
-	return BASS_FLAC_StreamCreateURL((const char*)url, offset, flags|BASS_UNICODE, proc, user);
+	return BASS_FLAC_StreamCreateURL((const char*)url, offset, flags | BASS_UNICODE, proc, user);
 }
 #endif
 #endif

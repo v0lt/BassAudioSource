@@ -15,7 +15,8 @@ Updated BASS components:
   basswebm.dll 2.4.1.1 beta;
   bassdsd.dll  2.4.2;
   bassopus.dll 2.4.3.1;
-  bassape.dll  2.4.1.
+  bassape.dll  2.4.1;
+  bassflac.dll 2.4.6.
 
 
 0.3.1.192 - 2024-08-06
