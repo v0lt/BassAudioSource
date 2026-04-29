@@ -1,6 +1,6 @@
 /*
 	BASSMIDI 2.4 C/C++ header file
-	Copyright (c) 2006-2025 Un4seen Developments Ltd.
+	Copyright (c) 2006-2026 Un4seen Developments Ltd.
 
 	See the BASSMIDI.CHM file for more detailed documentation
 */
@@ -82,6 +82,7 @@ typedef DWORD HSOUNDFONT;	// soundfont handle
 #define BASS_MIDI_FONT_NOLIMITS		BASS_MIDI_FONT_NOSBLIMITS
 #define BASS_MIDI_FONT_MINFX		0x1000000
 #define BASS_MIDI_FONT_SBLIMITS		0x2000000
+#define BASS_MIDI_FONT_STEREO		0x4000000
 
 typedef struct {
 	HSOUNDFONT font;	// soundfont
@@ -225,6 +226,7 @@ typedef struct {
 #define MIDI_EVENT_VIBRATO_DELAY	82
 #define MIDI_EVENT_MASTER_FINETUNE	83
 #define MIDI_EVENT_MASTER_COARSETUNE 84
+#define MIDI_EVENT_PAN_LSB			85
 #define MIDI_EVENT_MIXLEVEL			0x10000
 #define MIDI_EVENT_TRANSPOSE		0x10001
 #define MIDI_EVENT_SYSTEMEX			0x10002
@@ -242,6 +244,7 @@ typedef struct {
 #define MIDI_SYSTEM_GM2				2
 #define MIDI_SYSTEM_XG				3
 #define MIDI_SYSTEM_GS				4
+#define MIDI_SYSTEM_GS_88			5
 
 typedef struct {
 	DWORD event;		// MIDI_EVENT_xxx
@@ -286,6 +289,10 @@ typedef struct {
 #define BASS_ATTRIB_MIDI_QUEUE_TICK	0x1200b
 #define BASS_ATTRIB_MIDI_QUEUE_BYTE	0x1200c
 #define BASS_ATTRIB_MIDI_QUEUE_ASYNC 0x1200d
+#define BASS_ATTRIB_MIDI_QUEUED_TICK 0x1200e
+#define BASS_ATTRIB_MIDI_QUEUED_BYTE 0x1200f
+#define BASS_ATTRIB_MIDI_QUEUED_ASYNC 0x12010
+#define BASS_ATTRIB_MIDI_EXCKEYS	0x12011
 #define BASS_ATTRIB_MIDI_TRACK_VOL	0x12100 // + track #
 
 // Additional tag type
@@ -405,7 +412,7 @@ static inline DWORD BASS_MIDI_StreamGetFonts(HSTREAM handle, decltype(nullptr) f
 }
 #endif
 
-#if defined(_WIN32) && !defined(NOBASSOVERLOADS)
+#ifdef _WIN32
 static inline HSTREAM BASS_MIDI_StreamCreateFile(DWORD filetype, const WCHAR *file, QWORD offset, QWORD length, DWORD flags, DWORD freq)
 {
 	return BASS_MIDI_StreamCreateFile(filetype, (const void*)file, offset, length, flags | BASS_UNICODE, freq);
